@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="EMPTY_MODULE" version="4">
+  <component name="NewModuleRootManager">
+    <content url="file://$MODULE_DIR$">
+      <sourceFolder url="file://$MODULE_DIR$/demo/client/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/demo/server/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/lib_rrttp/src" isTestSource="false" />
+      <excludeFolder url="file://$MODULE_DIR$/demo/client/target" />
+      <excludeFolder url="file://$MODULE_DIR$/demo/server/target" />
+      <excludeFolder url="file://$MODULE_DIR$/lib_rrttp/target" />
+    </content>
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+  </component>
+  <component name="SonarLintModuleSettings">
+    <option name="uniqueId" value="2b8bc969-89f8-40d8-acd2-565008ba9230" />
+  </component>
+</module>
