@@ -1,5 +1,10 @@
 pub mod socket;
 pub mod constants;
+pub mod window;
+pub mod checksum;
+pub mod frame;
+
+
 pub fn add(left: usize, right: usize) -> usize {
     left + right
 }

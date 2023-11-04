@@ -8,12 +8,12 @@
         "type": "tabs",
         "children": [
           {
-            "id": "a4a2e75b73b0c791",
+            "id": "5634ecae13406d0b",
             "type": "leaf",
             "state": {
               "type": "markdown",
               "state": {
-                "file": "UDP Implementation.md",
+                "file": "Sliding Window.md",
                 "mode": "source",
                 "source": false
               }
@@ -85,7 +85,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "UDP Implementation.md",
+                "file": "Sliding Window.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -102,7 +102,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "UDP Implementation.md",
+                "file": "Sliding Window.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -125,16 +125,16 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "UDP Implementation.md"
+                "file": "Sliding Window.md"
               }
             }
           }
-        ]
+        ],
+        "currentTab": 3
       }
     ],
     "direction": "horizontal",
-    "width": 300,
-    "collapsed": true
+    "width": 300
   },
   "left-ribbon": {
     "hiddenItems": {
@@ -146,8 +146,11 @@
       "command-palette:Open command palette": false
     }
   },
-  "active": "a4a2e75b73b0c791",
+  "active": "1168858ff4408d6d",
   "lastOpenFiles": [
-    "UDP Implementation.md"
+    "UDP Implementation.md",
+    "Sliding Window.md",
+    "Error checking.md",
+    "Flow Control.md"
   ]
 }
