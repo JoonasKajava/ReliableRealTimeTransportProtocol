@@ -2,7 +2,7 @@ pub mod socket;
 pub mod constants;
 pub mod window;
 pub mod frame;
-
+pub mod control_bits;
 
 pub fn add(left: usize, right: usize) -> usize {
     left + right
