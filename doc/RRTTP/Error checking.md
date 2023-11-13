@@ -1,13 +1,10 @@
 UDP provides only checksum for error checking.
 
-## Checksum
-Checksum is used to verify that packet has not been corrupted during transit.
+## [[Checksum]]
+Network interface controller handles this. It will detect corruption in packets.
 
->[!info]
->Checksum only contains source address, destination address, zero, protocol, length
->It seems that it does not provide checksum for data it self.
+## [[Sliding Window]]
 
-## Sliding window
 
 ## References
 - https://www.scs.stanford.edu/09au-cs144/notes/l2-print.pdf

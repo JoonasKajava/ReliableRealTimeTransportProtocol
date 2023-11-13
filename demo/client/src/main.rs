@@ -10,7 +10,7 @@ fn main() {
     println!("Connected to {}", ADDR);
     loop {
         println!("Sending data");
-        client.send(b"Hello, world!").expect("Failed to send");
-        sleep(std::time::Duration::from_secs(1));
+        client.send(b"Hello, world! jotain").expect("Failed to send");
+        sleep(std::time::Duration::from_secs(10));
     }
 }

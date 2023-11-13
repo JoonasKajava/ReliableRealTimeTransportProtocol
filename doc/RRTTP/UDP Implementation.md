@@ -6,3 +6,7 @@ On windows this is done using https://learn.microsoft.com/en-us/windows/win32/ap
 >It's unlikely I will create my own implementation for this as it's a bit out of scope for this project.
 
  
+## Packet 
+UdpSocket creates udp-packet that seems to contain checksum
+![[Udp-packet.png]]
+
