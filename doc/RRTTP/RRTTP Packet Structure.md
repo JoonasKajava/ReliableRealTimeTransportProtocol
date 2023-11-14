@@ -89,7 +89,7 @@
                 style="writing-mode: vertical-lr; text-orientation: upright; letter-spacing: -0.12em; line-height:1em; width:1em;">ACK</span>
         </td>
         <td><span
-                style="writing-mode: vertical-lr; text-orientation: upright; letter-spacing: -0.12em; line-height:1em; width:1em;">WSC</span>
+                style="writing-mode: vertical-lr; text-orientation: upright; letter-spacing: -0.12em; line-height:1em; width:1em;">RES</span>
         </td>
         <td><span
                 style="writing-mode: vertical-lr; text-orientation: upright; letter-spacing: -0.12em; line-height:1em; width:1em;">RES</span>
@@ -147,5 +147,4 @@ if the ACK flag is set then the value of this field is the next sequence number 
 Offset from the start of the segment to the actual data.
 ### Control bits (8 bits)
 * ACK - Acknowledgment field significant
-* WSC - Indicates that the Window resize option is present
 * RES - Reserved for future use
