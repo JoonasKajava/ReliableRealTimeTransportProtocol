@@ -1,8 +1,9 @@
 extern crate lib_rrttp;
 
 use std::time::SystemTime;
+use log::info;
+use lib_rrttp::window::Window;
 
-use lib_rrttp::window::receiver::Receiver;
 
 //noinspection DuplicatedCode
 fn setup_logger() -> Result<(), fern::InitError> {
@@ -26,9 +27,10 @@ fn setup_logger() -> Result<(), fern::InitError> {
 const ADDR: &str = "127.0.0.1:54321";
 fn main() {
     setup_logger().expect("Failed to setup logger");
-    let mut client = Receiver::new(ADDR, "127.0.0.1:12345").expect("Failed to bind socket");
+    const REMOTE_ADDR: &str = "127.0.0.1:12345";
+    let mut client = Window::new(ADDR, REMOTE_ADDR).expect("Failed to bind socket");
+    info!("Client bound to {}", ADDR);
+    info!("Reading data from {}", REMOTE_ADDR);
 
-    println!("Connected to {}", ADDR);
-
-    client.read();
+    client.read().join().unwrap();
 }

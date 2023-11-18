@@ -2,7 +2,7 @@ use crate::constants::{MAX_FRAME_SIZE, MIN_FRAME_SIZE};
 
 #[derive(Debug)]
 pub struct Frame {
-    frame: [u8; MAX_FRAME_SIZE as usize],
+    frame: [u8; MAX_FRAME_SIZE],
     data_size: usize,
     options_size: usize,
 }
@@ -21,7 +21,7 @@ impl Frame {
     }
 
     pub fn get_sequence_number(&self) -> u32 {
-        u32::from_be_bytes(self.frame[SEQUENCE_NUMBER_OCTET..SEQUENCE_NUMBER_OCTET+4].try_into().expect("Failed to convert sequence number to u32"))
+        u32::from_be_bytes(self.frame[SEQUENCE_NUMBER_OCTET..SEQUENCE_NUMBER_OCTET + 4].try_into().expect("Failed to convert sequence number to u32"))
     }
 
     pub fn set_acknowledgment_number(&mut self, acknowledgment_number: u32) {
@@ -33,7 +33,7 @@ impl Frame {
     }
 
     pub fn get_acknowledgment_number(&self) -> u32 {
-        u32::from_be_bytes(self.frame[ACKNOWLEDGMENT_NUMBER_OCTET..ACKNOWLEDGMENT_NUMBER_OCTET+4].try_into().expect("Failed to convert acknowledgment number to u32"))
+        u32::from_be_bytes(self.frame[ACKNOWLEDGMENT_NUMBER_OCTET..ACKNOWLEDGMENT_NUMBER_OCTET + 4].try_into().expect("Failed to convert acknowledgment number to u32"))
     }
 
     pub fn set_control_bits(&mut self, control_bits: u8) {
@@ -54,7 +54,7 @@ impl Frame {
 
     pub fn set_data(&mut self, data: &[u8]) {
         self.data_size = data.len();
-        let offset = MIN_FRAME_SIZE as usize + self.options_size;
+        let offset = MIN_FRAME_SIZE + self.options_size;
         self.set_data_offset(offset as u8);
         self.frame[offset..(offset + self.data_size)].copy_from_slice(data);
     }
@@ -64,14 +64,14 @@ impl Frame {
     }
 
     pub fn get_buffer(&self) -> &[u8] {
-        &self.frame[0.. MIN_FRAME_SIZE as usize + self.options_size + self.data_size]
+        &self.frame[0..MIN_FRAME_SIZE + self.options_size + self.data_size]
     }
 }
 
 impl Default for Frame {
     fn default() -> Self {
         Self {
-            frame: [0; MAX_FRAME_SIZE as usize],
+            frame: [0; MAX_FRAME_SIZE],
             data_size: 0,
             options_size: 0,
         }
@@ -83,5 +83,15 @@ impl From<&[u8]> for Frame {
         let mut frame = Frame::default();
         frame.frame[..buffer.len()].copy_from_slice(buffer);
         frame
+    }
+}
+
+impl From<[u8; MAX_FRAME_SIZE]> for Frame {
+    fn from(value: [u8; MAX_FRAME_SIZE]) -> Self {
+        Self {
+            frame: value,
+            data_size: 0,
+            options_size: 0,
+        }
     }
 }

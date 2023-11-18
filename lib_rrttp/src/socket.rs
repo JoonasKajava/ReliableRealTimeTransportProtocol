@@ -1,9 +1,9 @@
 use std::net::UdpSocket;
-use crate::constants::BUFFER_SIZE;
+
+use crate::constants::MAX_FRAME_SIZE;
 
 pub struct Socket {
-    socket: UdpSocket,
-    buffer: [u8; BUFFER_SIZE as usize],
+    socket: UdpSocket
 }
 
 
@@ -11,20 +11,18 @@ impl Socket {
     pub fn bind(addr: &str) -> std::io::Result<Self> {
         let udp_socket = UdpSocket::bind(addr)?;
         Ok(Self {
-            socket: udp_socket,
-            buffer: [0; BUFFER_SIZE as usize],
+            socket: udp_socket
         })
     }
 
     pub fn connect(&self, addr: &str) -> std::io::Result<()> {
         self.socket.connect(addr)
     }
-    pub fn receive(&mut self) -> std::io::Result<(usize, &[u8], std::net::SocketAddr)> {
-        match self.socket.recv_from(&mut self.buffer) {
+    pub fn receive(&self) -> std::io::Result<(usize, [u8; MAX_FRAME_SIZE ], std::net::SocketAddr)> {
+        let mut buffer = [0; MAX_FRAME_SIZE];
+        match self.socket.recv_from(&mut buffer) {
             Ok(result) => {
-
-                let slice = &self.buffer[..result.0];
-                Ok((result.0, slice, result.1))
+                Ok((result.0, buffer, result.1))
             }
             Err(e) => Err(e)
         }
