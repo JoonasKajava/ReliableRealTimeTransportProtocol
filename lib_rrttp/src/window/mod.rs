@@ -5,7 +5,7 @@ mod receiver;
 
 pub struct Window {
     sequence_number: usize,
-    size: usize,
+    size: u32,
 }
 
 

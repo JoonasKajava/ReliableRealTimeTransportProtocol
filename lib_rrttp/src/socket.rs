@@ -3,7 +3,7 @@ use crate::constants::BUFFER_SIZE;
 
 pub struct Socket {
     socket: UdpSocket,
-    buffer: [u8; BUFFER_SIZE],
+    buffer: [u8; BUFFER_SIZE as usize],
 }
 
 
@@ -12,7 +12,7 @@ impl Socket {
         let udp_socket = UdpSocket::bind(addr)?;
         Ok(Self {
             socket: udp_socket,
-            buffer: [0; BUFFER_SIZE],
+            buffer: [0; BUFFER_SIZE as usize],
         })
     }
 

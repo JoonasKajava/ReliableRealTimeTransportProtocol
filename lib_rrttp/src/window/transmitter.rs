@@ -24,23 +24,42 @@ impl Transmitter {
         })
     }
 
-    pub fn send(&mut self, data: &[u8]) -> std::io::Result<usize> {
-        let segments = data.len() as f32 / (MAX_DATA_SIZE as f32 / 8f32);
-        let segments = segments.ceil() as usize;
-        let mut current_segment = 0;
-        while current_segment < segments {
+    pub fn send(&mut self, data_buffer: &[u8]) -> std::io::Result<usize> {
+        let segments = data_buffer.len() as f32 / MAX_DATA_SIZE as f32;
+        let segments = segments.ceil() as u32;
+
+        let mut sequence_number = self.highest_acknowledged;
+
+        for i in 0..self.window.size {
+            sequence_number = self.highest_acknowledged + i;
+
+            if sequence_number >= segments {
+                break;
+            }
+
+            // Construct frame
             let mut frame = Frame::default();
-            frame.set_sequence_number(self.highest_acknowledged + 1);
-
-            let data_lower_bound = current_segment * (MAX_DATA_SIZE / 8);
-            let data_upper_bound = min(data.len(), (current_segment + 1) * (MAX_DATA_SIZE / 8));
+            frame.set_sequence_number(sequence_number);
 
 
-            let data_segment = &data[data_lower_bound..data_upper_bound];
+            frame.set_acknowledgment_number(0);
+            frame.set_control_bits(0);
+            // Set Data
+
+            let buffer_shift = sequence_number * MAX_DATA_SIZE;
+
+            let buffer_left = data_buffer.len() as u32 - buffer_shift;
+
+            let data_lower_bound = buffer_shift as usize;
+            let data_upper_bound = (buffer_shift + min(buffer_left, MAX_DATA_SIZE)) as usize;
+
+            let data_segment = &data_buffer[data_lower_bound..data_upper_bound];
             frame.set_data(data_segment);
-            info!("Sent frame with sequence number {}", self.highest_acknowledged + 1);
+
+
+            // Send frame
+            info!("Sent frame with sequence number {}", sequence_number);
             self.socket.send(frame.get_buffer())?;
-            current_segment += 1;
         }
         Ok(0)
     }

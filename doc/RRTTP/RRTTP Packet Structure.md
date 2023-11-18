@@ -58,22 +58,13 @@
     <tr>
         <th>0
         </th>
-        <th>0
-        </th>
-        <td colspan="16">Source port</td>
-        <td colspan="16">Destination port
-        </td>
-    </tr>
-    <tr>
-        <th>4
-        </th>
         <th>32
         </th>
         <td colspan="32">Sequence number
         </td>
     </tr>
     <tr>
-        <th>8
+        <th>4
         </th>
         <th>64
         </th>
@@ -81,7 +72,7 @@
         </td>
     </tr>
     <tr>
-        <th>12
+        <th>8
         </th>
         <th>96
         </th>
@@ -109,42 +100,60 @@
         <td><span
                 style="writing-mode: vertical-lr; text-orientation: upright; letter-spacing: -0.12em; line-height:1em; width:1em;">RES</span>
         </td>
-        <td colspan="24">Reserved</td>
+        <td colspan="16">Segmented Data Identifier</td>
+        <td colspan="8">Data Offset</td>
     </tr>
     <tr>
         <th>
-            16
+            12
         </th>
         <td>
             128
         </td>
-        <td rowspan="3" colspan="32">Options</td>
+        <td rowspan="2" colspan="32">Options</td>
     </tr>
     <tr>
         <td>...</td>
         <td>...</td>
     </tr>
     <tr>
-        <td>28</td>
-        <td>224</td>
+        <td>24</td>
+        <td>192</td>
+        <td rowspan="2" colspan="32">
+Data
+</td>
+</tr>
+    <tr>
+        <td>...</td>
+        <td>...</td>
     </tr>
+<tr>
+<td>152</td>
+<td>1216</td>
+</tr>
     </tbody>
 </table>
 
-
-
-
-### Source port (16 bits)
-identifies the sending port
-### Destination port (16 bits)
-identifies the receiving port
-
 ### Sequence number (32 bits)
+
 this is the accumulated sequence number.
+
 ### Acknowledgment number (32 bits)
-if the ACK flag is set then the value of this field is the next sequence number that the sender of the ACK is expecting. This acknowledges receipt of all prior bytes (if any). The first ACK sent by each end acknowledges the other end's initial sequence number itself, but no data.
-### Data offset (4 bits)
-Offset from the start of the segment to the actual data.
+
+if the ACK flag is set then the value of this field is the next sequence number that the sender of the ACK is expecting.
+This acknowledges receipt of all prior bytes (if any). The first ACK sent by each end acknowledges the other end's
+initial sequence number itself, but no data.
+
+
 ### Control bits (8 bits)
+
 * ACK - Acknowledgment field significant
 * RES - Reserved for future use
+
+### Segmented Data Identifier (16 bits)
+
+Identifies the segmented data.
+
+### Data offset (4 bits)
+
+Offset from the start of the packet to the actual data.
