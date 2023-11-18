@@ -1,7 +1,7 @@
 use crate::constants::WINDOW_SIZE;
 
 pub mod transmitter;
-mod receiver;
+pub mod receiver;
 
 pub struct Window {
     sequence_number: usize,

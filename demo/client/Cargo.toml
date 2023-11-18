@@ -7,3 +7,6 @@ edition = "2021"
 
 [dependencies]
 lib_rrttp = { path = "../../lib_rrttp" }
+fern = "0.6.2"
+humantime = "2.1.0"
+log = { version = "0.4.20", features = [] }

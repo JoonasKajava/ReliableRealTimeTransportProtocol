@@ -77,3 +77,11 @@ impl Default for Frame {
         }
     }
 }
+
+impl From<&[u8]> for Frame {
+    fn from(buffer: &[u8]) -> Self {
+        let mut frame = Frame::default();
+        frame.frame[..buffer.len()].copy_from_slice(buffer);
+        frame
+    }
+}

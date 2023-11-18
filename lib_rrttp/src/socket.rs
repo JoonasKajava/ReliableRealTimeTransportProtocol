@@ -22,6 +22,7 @@ impl Socket {
     pub fn receive(&mut self) -> std::io::Result<(usize, &[u8], std::net::SocketAddr)> {
         match self.socket.recv_from(&mut self.buffer) {
             Ok(result) => {
+
                 let slice = &self.buffer[..result.0];
                 Ok((result.0, slice, result.1))
             }

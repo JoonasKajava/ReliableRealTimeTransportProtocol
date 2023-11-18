@@ -16,10 +16,12 @@ pub struct Transmitter {
 
 
 impl Transmitter {
-    pub fn new(addr: &str) -> std::io::Result<Self> {
+    pub fn new(local_addr: &str, remote_addr: &str) -> std::io::Result<Self> {
+        let socket = Socket::bind(local_addr)?;
+        socket.connect(remote_addr)?;
         Ok(Self {
             window: Window::default(),
-            socket: Socket::bind(addr)?,
+            socket,
             highest_acknowledged: 0,
         })
     }

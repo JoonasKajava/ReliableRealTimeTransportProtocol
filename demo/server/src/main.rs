@@ -28,8 +28,7 @@ fn setup_logger() -> Result<(), fern::InitError> {
 
 fn main() {
     setup_logger().expect("Failed to setup logger");
-    let mut transmitter = Transmitter::new(ADDR).expect("Failed to bind socket");
-    transmitter.socket.connect("127.0.0.1:54321").expect("Failed to connect");
+    let mut transmitter = Transmitter::new(ADDR, "127.0.0.1:54321").expect("Failed to bind socket");
     info!("Transmitter bound to {}", ADDR);
 
     let file = fs::read("test-payload.txt").expect("Failed to read file");
