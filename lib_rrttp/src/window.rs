@@ -9,6 +9,7 @@ use log::{error, info};
 use crate::constants::{MAX_DATA_SIZE, WINDOW_SIZE};
 use crate::control_bits::ControlBits;
 use crate::frame::Frame;
+use crate::option::{FrameOption, OptionKind};
 use crate::socket::Socket;
 
 pub struct Window {
@@ -89,8 +90,15 @@ impl Window {
     }
 
     pub fn send(&mut self, data_buffer: &[u8]) -> std::io::Result<usize> {
-        let segments = data_buffer.len() as f32 / MAX_DATA_SIZE as f32;
+        let data_size = data_buffer.len();
+        let segments = data_size as f32 / MAX_DATA_SIZE as f32;
         let segments = segments.ceil() as u32;
+
+        let mut frame = Frame::default();
+
+
+        let be_data_size = data_size.to_be_bytes();
+        frame.set_options(&[FrameOption::new(OptionKind::BufferSize, &be_data_size)]);
 
         for i in 0..self.window_size {
             let sequence_number = {
@@ -102,7 +110,7 @@ impl Window {
             }
 
             // Construct frame
-            let mut frame = Frame::default();
+
             frame.set_sequence_number(sequence_number);
 
 
@@ -112,7 +120,7 @@ impl Window {
 
             let buffer_shift = (sequence_number - 1) * MAX_DATA_SIZE as u32;
 
-            let buffer_left = data_buffer.len() as u32 - buffer_shift;
+            let buffer_left = data_size as u32 - buffer_shift;
 
             let data_lower_bound = buffer_shift as usize;
             let data_upper_bound = (buffer_shift + min(buffer_left, MAX_DATA_SIZE as u32)) as usize;
@@ -124,6 +132,9 @@ impl Window {
             // Send frame
             info!("Sent frame with sequence number {}", sequence_number);
             self.socket.send(frame.get_buffer())?;
+
+            // Reset frame
+            frame = Frame::default();
         }
         Ok(0)
     }

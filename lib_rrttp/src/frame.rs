@@ -1,15 +1,19 @@
 use crate::constants::{MAX_FRAME_SIZE, MIN_FRAME_SIZE};
+use crate::option::{FrameOption, OptionKind};
 
 #[derive(Debug)]
 pub struct Frame {
     frame: [u8; MAX_FRAME_SIZE],
     data_size: usize,
+
+    /// In bytes
     options_size: usize,
 }
 
 const SEQUENCE_NUMBER_OCTET: usize = 0;
 const ACKNOWLEDGMENT_NUMBER_OCTET: usize = 4;
 const CONTROL_BITS_OCTET: usize = 8;
+const OPTIONS_OCTET: usize = 12;
 
 impl Frame {
     pub fn set_sequence_number(&mut self, sequence_number: u32) {
@@ -42,6 +46,41 @@ impl Frame {
 
     pub fn get_control_bits(&self) -> u8 {
         self.frame[CONTROL_BITS_OCTET]
+    }
+
+    pub fn set_options(&mut self, options: &[FrameOption]) {
+        self.options_size = 0;
+
+        for option in options {
+            let start_offset = OPTIONS_OCTET + self.options_size;
+            self.frame[start_offset] = option.kind.clone() as u8;
+            let len = option.data.len();
+            self.frame[start_offset + 1] = len as u8;
+            let data_offset = start_offset + 2;
+            self.frame[data_offset..data_offset +len].copy_from_slice(option.data);
+            self.options_size += 2 + len;
+        }
+    }
+
+    pub fn get_options(&self) -> Option<Vec<FrameOption>> {
+        let mut options = Vec::new();
+        let offset = OPTIONS_OCTET;
+
+        let options_size = self.get_data_offset() as usize - MIN_FRAME_SIZE;
+
+        if options_size == 0 {
+            return None;
+        }
+        let mut options_read = 0;
+        while options_read < options_size {
+            let kind:OptionKind = OptionKind::from(self.frame[offset]);
+            let len = self.frame[offset + 1] as usize;
+            let data_offset = offset + 2;
+            let data = &self.frame[data_offset..data_offset + len];
+            options.push(FrameOption::new(kind, data));
+            options_read += 2 + len;
+        }
+        Some(options)
     }
 
     pub fn set_data_offset(&mut self, data_offset: u8) {
