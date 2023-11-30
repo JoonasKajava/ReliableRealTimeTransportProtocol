@@ -19,7 +19,7 @@ pub struct Window {
     highest_acknowledged: Arc<Mutex<u32>>,
 
     /// The highest sequence number that has been received.
-    highest_received: u32,
+    highest_received: Arc<Mutex<u32>>,
 }
 
 impl Window {
@@ -31,13 +31,14 @@ impl Window {
             window_size: WINDOW_SIZE as u32,
             socket: Arc::new(socket),
             highest_acknowledged: Arc::new(Mutex::new(0)),
-            highest_received: 0,
+            highest_received: Arc::new(Mutex::new(0))
         })
     }
 
     pub fn read(&mut self) -> JoinHandle<()> {
         let socket = Arc::clone(&self.socket);
         let highest_acknowledged = Arc::clone(&self.highest_acknowledged);
+        let highest_received = Arc::clone(&self.highest_received);
         thread::spawn(move || {
             loop {
                 let (_, buffer, _) = match socket.receive() {
@@ -66,7 +67,13 @@ impl Window {
                 if let Err(e) = Window::send_ack(&socket, sequence_number) {
                     error!("Failed to send ACK: {}", e);
                 }
-
+                {
+                    let mut highest_received_guard = highest_received.lock().unwrap();
+                    if sequence_number > *highest_received_guard {
+                        info!("Received frame with sequence number {}", sequence_number);
+                        *highest_received_guard = sequence_number;
+                    }
+                }
                 let data = frame.get_data();
                 info!("Received frame with sequence number {} data: {}", sequence_number, from_utf8(data).unwrap());
             }

@@ -157,3 +157,6 @@ Identifies the segmented data.
 ### Data offset (4 bits)
 
 Offset from the start of the packet to the actual data.
+
+### Options (Variable 0-96 bits, in units of 48 bits)
+
