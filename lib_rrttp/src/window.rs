@@ -22,6 +22,9 @@ pub struct Window {
     /// The highest sequence number that has been received.
     highest_received: Arc<Mutex<u32>>,
 
+    /// The earliest sequence number that has not been received.
+    earliest_not_received: Arc<Mutex<u32>>,
+
     read_buffer: Arc<Mutex<Vec<u8>>>,
 }
 
@@ -35,6 +38,7 @@ impl Window {
             socket: Arc::new(socket),
             highest_acknowledged: Arc::new(Mutex::new(0)),
             highest_received: Arc::new(Mutex::new(0)),
+            earliest_not_received: Arc::new(Mutex::new(1)),
             read_buffer: Arc::new(Mutex::new(Vec::new())),
         })
     }
@@ -43,6 +47,7 @@ impl Window {
         let socket = Arc::clone(&self.socket);
         let highest_acknowledged = Arc::clone(&self.highest_acknowledged);
         let highest_received = Arc::clone(&self.highest_received);
+        let earliest_not_received = Arc::clone(&self.earliest_not_received);
         let read_buffer = Arc::clone(&self.read_buffer);
         thread::spawn(move || {
             loop {
@@ -69,9 +74,10 @@ impl Window {
                     }
                     continue;
                 }
-                if let Err(e) = Window::send_ack(&socket, sequence_number) {
-                    error!("Failed to send ACK: {}", e);
-                }
+                Window::send_ack(&socket, sequence_number);
+
+                Window::update_earliest_not_received(&earliest_not_received, sequence_number);
+
                 {
                     let mut highest_received_guard = highest_received.lock().unwrap();
                     if sequence_number > *highest_received_guard {
@@ -83,7 +89,7 @@ impl Window {
                     for option in options {
                         match option.kind {
                             OptionKind::BufferSize => {
-                                Window::sync_read_buffer(Arc::clone(&read_buffer), &option);
+                                Window::sync_read_buffer(&read_buffer, &option);
                             }
                         }
                     }
@@ -91,25 +97,61 @@ impl Window {
 
                 let data = frame.get_data();
 
-
+                Window::insert_data_into_buffer(&read_buffer, sequence_number, data);
                 info!("Received frame with sequence number {} data: {}", sequence_number, from_utf8(data).unwrap());
+
+                if control_bits.contains(ControlBits::EOM) {
+                    info!("Received EOM");
+                    Window::construct_message(&read_buffer);
+                    break;
+                }
+
             }
         })
     }
 
-    fn sync_read_buffer(read_buffer: Arc<Mutex<Vec<u8>>>, option: &FrameOption) {
+    fn insert_data_into_buffer(buffer: &Arc<Mutex<Vec<u8>>>, sequence_number: u32, data: &[u8]) {
+        let mut buffer_guard = buffer.lock().unwrap();
+        let buffer_shift = (sequence_number as usize - 1) * MAX_DATA_SIZE;
+        let data_upper_bound = buffer_shift + data.len();
+        buffer_guard[buffer_shift..data_upper_bound].copy_from_slice(data);
+    }
+
+    fn construct_message(buffer: &Arc<Mutex<Vec<u8>>>) {
+        let buffer_guard = buffer.lock().unwrap();
+        let mut message = String::new();
+        for byte in buffer_guard.iter() {
+            message.push(*byte as char);
+        }
+        info!("Received message: {}", message);
+    }
+
+
+    fn update_earliest_not_received(earliest_not_received: &Arc<Mutex<u32>>, sequence_number: u32) {
+        let mut earliest_not_received_guard = earliest_not_received.lock().unwrap();
+        if sequence_number == *earliest_not_received_guard + 1u32 {
+            *earliest_not_received_guard = sequence_number + 1;
+        }
+    }
+
+    fn sync_read_buffer(read_buffer: &Arc<Mutex<Vec<u8>>>, option: &FrameOption) {
         let buffer_size = u32::from_be_bytes(option.data.try_into().expect("Failed to convert buffer size to u32"));
         let mut read_buffer_guard = read_buffer.lock().unwrap();
         info!("Resizing read buffer to {}", buffer_size);
         read_buffer_guard.resize(buffer_size as usize, 0);
     }
 
-    pub fn send_ack(socket: &Socket, sequence_number: u32) -> std::io::Result<usize> {
-        let mut frame = Frame::default();
-        frame.set_sequence_number(0);
-        frame.set_acknowledgment_number(sequence_number);
-        frame.set_control_bits(ControlBits::ACK.bits());
-        socket.send(frame.get_buffer())
+    pub fn send_ack(socket: &Socket, sequence_number: u32) {
+        for _ in 0..3 {
+            let mut frame = Frame::default();
+            frame.set_sequence_number(0);
+            frame.set_acknowledgment_number(sequence_number);
+            frame.set_control_bits(ControlBits::ACK.bits());
+            match socket.send(frame.get_buffer()) {
+                Ok(_) => {}
+                Err(e) => error!("Failed to send ACK: {} trying again", e)
+            }
+        }
     }
 
     pub fn send(&mut self, data_buffer: &[u8]) -> std::io::Result<usize> {
@@ -138,7 +180,12 @@ impl Window {
 
 
             frame.set_acknowledgment_number(0);
-            frame.set_control_bits(0);
+
+            if sequence_number == segments {
+                frame.set_control_bits(ControlBits::EOM.bits());
+            } else {
+                frame.set_control_bits(0);
+            }
             // Set Data
 
             let buffer_shift = (sequence_number - 1) * MAX_DATA_SIZE as u32;

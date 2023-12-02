@@ -4,7 +4,7 @@ use crate::option::{FrameOption, OptionKind};
 #[derive(Debug)]
 pub struct Frame {
     frame: [u8; MAX_FRAME_SIZE],
-    data_size: usize,
+    data_length: usize,
 
     /// In bytes
     options_size: usize,
@@ -12,8 +12,17 @@ pub struct Frame {
 
 const SEQUENCE_NUMBER_OCTET: usize = 0;
 const ACKNOWLEDGMENT_NUMBER_OCTET: usize = 4;
+
 const CONTROL_BITS_OCTET: usize = 8;
+
+const DATA_OFFSET_OCTET: usize = 8;
+const DATA_OFFSET_OFFSET: usize = 3;
+
+const DATA_LENGTH_OCTET: usize = 8;
+const DATA_LENGTH_OFFSET: usize = 2;
+
 const OPTIONS_OCTET: usize = 12;
+
 
 impl Frame {
     pub fn set_sequence_number(&mut self, sequence_number: u32) {
@@ -83,27 +92,39 @@ impl Frame {
         Some(options)
     }
 
+    pub fn set_data_length(&mut self, data_length: u8) {
+        self.frame[DATA_LENGTH_OCTET + DATA_LENGTH_OFFSET] = data_length;
+    }
+
+    pub fn get_data_length(&self) -> u8 {
+        self.frame[DATA_LENGTH_OCTET + DATA_LENGTH_OFFSET]
+    }
+
     pub fn set_data_offset(&mut self, data_offset: u8) {
-        self.frame[CONTROL_BITS_OCTET + 3] = data_offset;
+        self.frame[DATA_OFFSET_OCTET + DATA_OFFSET_OFFSET] = data_offset;
     }
 
     pub fn get_data_offset(&self) -> u8 {
-        self.frame[CONTROL_BITS_OCTET + 3]
+        self.frame[DATA_OFFSET_OCTET + DATA_OFFSET_OFFSET]
     }
 
     pub fn set_data(&mut self, data: &[u8]) {
-        self.data_size = data.len();
+        self.data_length = data.len();
         let offset = MIN_FRAME_SIZE + self.options_size;
         self.set_data_offset(offset as u8);
-        self.frame[offset..(offset + self.data_size)].copy_from_slice(data);
+
+        self.set_data_length(self.data_length as u8);
+        self.frame[offset..(offset + self.data_length)].copy_from_slice(data);
     }
 
     pub fn get_data(&self) -> &[u8] {
-        &self.frame[self.get_data_offset() as usize..]
+        let offset = self.get_data_offset() as usize;
+        let length = self.get_data_length() as usize;
+        &self.frame[offset..offset + length]
     }
 
     pub fn get_buffer(&self) -> &[u8] {
-        &self.frame[0..MIN_FRAME_SIZE + self.options_size + self.data_size]
+        &self.frame[0..MIN_FRAME_SIZE + self.options_size + self.data_length]
     }
 }
 
@@ -111,7 +132,7 @@ impl Default for Frame {
     fn default() -> Self {
         Self {
             frame: [0; MAX_FRAME_SIZE],
-            data_size: 0,
+            data_length: 0,
             options_size: 0,
         }
     }
@@ -129,7 +150,7 @@ impl From<[u8; MAX_FRAME_SIZE]> for Frame {
     fn from(value: [u8; MAX_FRAME_SIZE]) -> Self {
         Self {
             frame: value,
-            data_size: 0,
+            data_length: 0,
             options_size: 0,
         }
     }

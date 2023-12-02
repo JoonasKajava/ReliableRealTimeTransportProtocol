@@ -9,6 +9,10 @@
 .idea/**/dictionaries
 .idea/**/shelf
 
+# Word, Excel, PowerPoint editor temp files
+~*
+
+
 # AWS User-specific
 .idea/**/aws.xml
 
