@@ -1,6 +1,6 @@
-use std::str::from_utf8;
 use std::cmp::min;
 use std::sync::{Arc, Mutex};
+use std::sync::mpsc::{channel, Receiver, Sender};
 use std::thread;
 use std::thread::JoinHandle;
 
@@ -26,6 +26,12 @@ pub struct Window {
     earliest_not_received: Arc<Mutex<u32>>,
 
     read_buffer: Arc<Mutex<Vec<u8>>>,
+
+    /// Channel to send messages to the application layer.
+    message_sender: Sender<String>,
+    /// Channel to receive messages from the application layer.
+    message_receiver: Receiver<String>,
+
 }
 
 impl Window {
@@ -33,6 +39,8 @@ impl Window {
         let socket = Socket::bind(local_addr)?;
         socket.connect(remote_addr)?;
 
+
+        let (tx, rx) = channel();
         Ok(Self {
             window_size: WINDOW_SIZE as u32,
             socket: Arc::new(socket),
@@ -40,15 +48,23 @@ impl Window {
             highest_received: Arc::new(Mutex::new(0)),
             earliest_not_received: Arc::new(Mutex::new(1)),
             read_buffer: Arc::new(Mutex::new(Vec::new())),
+            message_sender: tx,
+            message_receiver: rx,
         })
     }
 
-    pub fn read(&mut self) -> JoinHandle<()> {
+    pub fn incoming_messages(&self) -> &Receiver<String> {
+        &self.message_receiver
+    }
+
+    pub fn listen(&mut self) -> JoinHandle<()> {
         let socket = Arc::clone(&self.socket);
         let highest_acknowledged = Arc::clone(&self.highest_acknowledged);
         let highest_received = Arc::clone(&self.highest_received);
         let earliest_not_received = Arc::clone(&self.earliest_not_received);
         let read_buffer = Arc::clone(&self.read_buffer);
+
+        let channel = self.message_sender.clone();
         thread::spawn(move || {
             loop {
                 let (_, buffer, _) = match socket.receive() {
@@ -98,11 +114,10 @@ impl Window {
                 let data = frame.get_data();
 
                 Window::insert_data_into_buffer(&read_buffer, sequence_number, data);
-                info!("Received frame with sequence number {} data: {}", sequence_number, from_utf8(data).unwrap());
-
+                info!("Received frame with sequence number {}", sequence_number);
                 if control_bits.contains(ControlBits::EOM) {
                     info!("Received EOM");
-                    Window::construct_message(&read_buffer);
+                    Window::construct_message(&read_buffer, channel);
                     break;
                 }
 
@@ -117,13 +132,13 @@ impl Window {
         buffer_guard[buffer_shift..data_upper_bound].copy_from_slice(data);
     }
 
-    fn construct_message(buffer: &Arc<Mutex<Vec<u8>>>) {
+    fn construct_message(buffer: &Arc<Mutex<Vec<u8>>>, channel: Sender<String>) {
         let buffer_guard = buffer.lock().unwrap();
         let mut message = String::new();
         for byte in buffer_guard.iter() {
             message.push(*byte as char);
         }
-        info!("Received message: {}", message);
+        channel.send(message).unwrap();
     }
 
 

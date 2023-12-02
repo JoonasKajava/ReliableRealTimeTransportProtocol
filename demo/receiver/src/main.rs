@@ -32,5 +32,9 @@ fn main() {
     info!("Client bound to {}", ADDR);
     info!("Reading data from {}", REMOTE_ADDR);
 
-    client.read().join().unwrap();
+    client.listen().join().unwrap();
+
+    for message in client.incoming_messages() {
+        info!("Received message: {}", message);
+    }
 }

@@ -30,7 +30,7 @@ fn main() {
     let mut client = Window::new(ADDR, REMOTE_ADDR).expect("Failed to bind socket");
     info!("Client bound to {}", ADDR);
 
-    let listen_handle = client.read();
+    let listen_handle = client.listen();
 
     let file = fs::read("test-payload.txt").expect("Failed to read file");
     info!("Sending file to {}", REMOTE_ADDR);
