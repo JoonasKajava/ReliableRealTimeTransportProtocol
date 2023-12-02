@@ -28,9 +28,9 @@ pub struct Window {
     read_buffer: Arc<Mutex<Vec<u8>>>,
 
     /// Channel to send messages to the application layer.
-    message_sender: Sender<String>,
+    message_sender: Sender<Vec<u8>>,
     /// Channel to receive messages from the application layer.
-    message_receiver: Receiver<String>,
+    message_receiver: Receiver<Vec<u8>>,
 
 }
 
@@ -53,7 +53,7 @@ impl Window {
         })
     }
 
-    pub fn incoming_messages(&self) -> &Receiver<String> {
+    pub fn incoming_messages(&self) -> &Receiver<Vec<u8>> {
         &self.message_receiver
     }
 
@@ -116,7 +116,7 @@ impl Window {
                 Window::insert_data_into_buffer(&read_buffer, sequence_number, data);
                 info!("Received frame with sequence number {}", sequence_number);
                 if control_bits.contains(ControlBits::EOM) {
-                    info!("Received EOM");
+                    info!("Received End-of-Message");
                     Window::construct_message(&read_buffer, channel);
                     break;
                 }
@@ -132,13 +132,9 @@ impl Window {
         buffer_guard[buffer_shift..data_upper_bound].copy_from_slice(data);
     }
 
-    fn construct_message(buffer: &Arc<Mutex<Vec<u8>>>, channel: Sender<String>) {
+    fn construct_message(buffer: &Arc<Mutex<Vec<u8>>>, channel: Sender<Vec<u8>>) {
         let buffer_guard = buffer.lock().unwrap();
-        let mut message = String::new();
-        for byte in buffer_guard.iter() {
-            message.push(*byte as char);
-        }
-        channel.send(message).unwrap();
+        channel.send(buffer_guard.clone()).unwrap();
     }
 
 

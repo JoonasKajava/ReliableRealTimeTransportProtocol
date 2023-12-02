@@ -35,6 +35,6 @@ fn main() {
     client.listen().join().unwrap();
 
     for message in client.incoming_messages() {
-        info!("Received message: {}", message);
+        info!("Received message: {}", String::from_utf8(message).unwrap());
     }
 }
