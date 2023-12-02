@@ -1,7 +1,7 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Run server" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
-    <option name="command" value="run --package server --bin server" />
-    <option name="workingDirectory" value="file://$PROJECT_DIR$/demo/server" />
+  <configuration default="false" name="Run sender" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
+    <option name="command" value="run --package sender --bin sender" />
+    <option name="workingDirectory" value="file://$PROJECT_DIR$/demo/sender" />
     <option name="emulateTerminal" value="true" />
     <option name="channel" value="DEFAULT" />
     <option name="requiredFeatures" value="true" />
