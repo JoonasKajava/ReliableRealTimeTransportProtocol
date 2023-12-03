@@ -98,3 +98,4 @@ Cargo.lock
 *.pdb
 
 /demo/sender/large-payload.mp4
+/demo/receiver/received.gif

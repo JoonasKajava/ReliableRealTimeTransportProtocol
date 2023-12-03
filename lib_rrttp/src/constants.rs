@@ -1,7 +1,7 @@
 pub const BUFFER_SIZE: usize = 1024;
 
 /// Timeout in milliseconds, when to stop waiting for a response.
-pub const TIMEOUT: u128 = 1000;
+pub const TIMEOUT: u128 = 200;
 
 /// In bytes
 pub const MAX_DATA_SIZE: usize = 128;

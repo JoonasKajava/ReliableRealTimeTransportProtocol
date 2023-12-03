@@ -6,6 +6,7 @@ use std::thread::JoinHandle;
 use std::time::Instant;
 
 use log::{error, info, warn};
+use rand::{random, Rng};
 
 use crate::constants::{MAX_DATA_SIZE, TIMEOUT, WINDOW_SIZE};
 use crate::control_bits::ControlBits;
@@ -64,14 +65,19 @@ impl Window {
     }
 
     fn handle_acknowledgment(smallest_acknowledged_sequence_number: &Arc<Mutex<u32>>, window_frame_statuses: &Arc<Mutex<[FrameStatus; WINDOW_SIZE]>>, acknowledgment_number: u32) {
-        info!("Received ACK for sequence number {}", acknowledgment_number);
-        let mut window_frame_statuses_guard = window_frame_statuses.lock().unwrap();
         let smallest_acknowledged_sequence_number_guard = smallest_acknowledged_sequence_number.lock().unwrap();
+        let mut window_frame_statuses_guard = window_frame_statuses.lock().unwrap();
+        info!("Received ACK for sequence number {}", acknowledgment_number);
+        if acknowledgment_number <= *smallest_acknowledged_sequence_number_guard {
+            info!("Received ACK for sequence number {} which is smaller than the smallest acknowledged sequence number {}", acknowledgment_number, *smallest_acknowledged_sequence_number_guard);
+            return;
+        }
         let index = (acknowledgment_number - (*smallest_acknowledged_sequence_number_guard + 1)) as usize;
         if index >= WINDOW_SIZE {
             info!("Received ACK for sequence number {} which is outside of the window", acknowledgment_number);
             return;
         }
+        info!("Marking frame with sequence number {} as acknowledged", acknowledgment_number);
         window_frame_statuses_guard[index] = FrameStatus::Acknowledged;
 
     }
@@ -141,6 +147,7 @@ impl Window {
 
     fn shift_window(&mut self) {
         let mut window_frame_statuses_guard = self.window_frame_statuses.lock().unwrap();
+        let mut smallest_acknowledged_sequence_number_guard = self.smallest_acknowledged_sequence_number.lock().unwrap();
         match window_frame_statuses_guard[0] {
             FrameStatus::Acknowledged => {}
             _ => return
@@ -163,7 +170,6 @@ impl Window {
                 window_frame_statuses_guard[i] = window_frame_statuses_guard[shift_index];
             }
         }
-        let mut smallest_acknowledged_sequence_number_guard = self.smallest_acknowledged_sequence_number.lock().unwrap();
         info!("Shifting window by {}", shift_amount);
         *smallest_acknowledged_sequence_number_guard += shift_amount as u32;
         info!("New smallest acknowledged sequence number: {}", *smallest_acknowledged_sequence_number_guard);
@@ -197,6 +203,13 @@ impl Window {
     }
 
     pub fn send_ack(socket: &Socket, sequence_number: u32) {
+
+        // TODO: Drop ACKs randomly
+        if rand::thread_rng().gen_range(0..3) == 0 {
+            info!("Dropping ACK for sequence number {}", sequence_number);
+            return;
+        }
+
         for _ in 0..3 {
             let mut frame = Frame::default();
             frame.set_sequence_number(0);
