@@ -1,5 +1,6 @@
 extern crate lib_rrttp;
 
+use std::fs;
 use std::time::SystemTime;
 use log::info;
 use lib_rrttp::window::Window;
@@ -35,6 +36,6 @@ fn main() {
     client.listen().join().unwrap();
 
     for message in client.incoming_messages() {
-        info!("Received message: {}", String::from_utf8(message).unwrap());
+        fs::write("received.gif", message).expect("Failed to write file");
     }
 }

@@ -32,7 +32,7 @@ fn main() {
 
     let listen_handle = client.listen();
 
-    let file = fs::read("test-payload.txt").expect("Failed to read file");
+    let file = fs::read("large-payload2.gif").expect("Failed to read file");
     info!("Sending file to {}", REMOTE_ADDR);
     client.send(file.as_slice()).expect("Failed to send data");
 

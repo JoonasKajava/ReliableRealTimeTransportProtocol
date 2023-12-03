@@ -4,6 +4,7 @@ pub mod window;
 pub mod frame;
 pub mod control_bits;
 mod option;
+mod frame_status;
 
 pub fn add(left: usize, right: usize) -> usize {
     left + right
