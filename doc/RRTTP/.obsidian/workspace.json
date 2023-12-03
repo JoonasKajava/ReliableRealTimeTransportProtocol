@@ -18,8 +18,21 @@
                 "source": false
               }
             }
+          },
+          {
+            "id": "d63ce5d96413d753",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Deadlocks.md",
+                "mode": "source",
+                "source": false
+              }
+            }
           }
-        ]
+        ],
+        "currentTab": 1
       }
     ],
     "direction": "vertical"
@@ -85,7 +98,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "Sliding Window.md",
+                "file": "Deadlocks.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -102,7 +115,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "Sliding Window.md",
+                "file": "Deadlocks.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -125,7 +138,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "Sliding Window.md"
+                "file": "Deadlocks.md"
               }
             }
           }
@@ -146,14 +159,20 @@
       "command-palette:Open command palette": false
     }
   },
-  "active": "5634ecae13406d0b",
+  "active": "d63ce5d96413d753",
   "lastOpenFiles": [
+    "Pasted image 20231203203445.png",
+    "Pasted image 20231203203427.png",
+    "Pasted image 20231203203323.png",
+    "Pasted image 20231203203134.png",
+    "9acc85f0648afac0a572787dffdcbd69.gif",
+    "Sliding Window.md",
+    "Deadlocks.md",
     "RRTTP Packet Structure.md",
     "Receiver.md",
     "Flow Control.md",
     "Udp-packet.png",
     "UDP Implementation.md",
-    "Sliding Window.md",
     "5C2D8100",
     "BB2D8100",
     "0B2D8100",
