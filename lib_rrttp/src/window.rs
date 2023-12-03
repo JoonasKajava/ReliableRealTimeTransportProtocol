@@ -6,7 +6,7 @@ use std::thread::JoinHandle;
 use std::time::Instant;
 
 use log::{error, info, warn};
-use rand::{random, Rng};
+use rand::Rng;
 
 use crate::constants::{MAX_DATA_SIZE, TIMEOUT, WINDOW_SIZE};
 use crate::control_bits::ControlBits;
@@ -146,8 +146,8 @@ impl Window {
     }
 
     fn shift_window(&mut self) {
-        let mut window_frame_statuses_guard = self.window_frame_statuses.lock().unwrap();
         let mut smallest_acknowledged_sequence_number_guard = self.smallest_acknowledged_sequence_number.lock().unwrap();
+        let mut window_frame_statuses_guard = self.window_frame_statuses.lock().unwrap();
         match window_frame_statuses_guard[0] {
             FrameStatus::Acknowledged => {}
             _ => return
@@ -287,7 +287,7 @@ impl Window {
 
 
                 // Send frame
-                info!("Sent frame with sequence number {}", sequence_number);
+                info!("Sent frame with sequence number {}/{}", sequence_number, segments);
                 self.socket.send(frame.get_buffer())?;
                 self.window_frame_statuses.lock().unwrap()[i as usize] = FrameStatus::Sent(Instant::now());
                 // Reset frame

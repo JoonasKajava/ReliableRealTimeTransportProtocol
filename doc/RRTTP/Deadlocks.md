@@ -14,3 +14,6 @@ It is very likely that given unfortunate timing, these mutexes will be cross loc
 
 ## Fix
 I will rework this behaviour. I will most likely encapsulate these variables into a single struct and wrap that inside a Mutex.
+
+# See later:
+- https://www.geeksforgeeks.org/deadlock-prevention/
