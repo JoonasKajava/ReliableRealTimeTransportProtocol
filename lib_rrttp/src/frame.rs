@@ -116,13 +116,14 @@ impl Frame {
         self.set_data_length(self.data_length as u8);
         self.frame[offset..(offset + self.data_length)].copy_from_slice(data);
     }
-
     pub fn get_data(&self) -> &[u8] {
         let offset = self.get_data_offset() as usize;
         let length = self.get_data_length() as usize;
         &self.frame[offset..offset + length]
     }
 
+    /// Returns the buffer.
+    /// The buffer is a slice of the frame.
     pub fn get_buffer(&self) -> &[u8] {
         &self.frame[0..MIN_FRAME_SIZE + self.options_size + self.data_length]
     }
