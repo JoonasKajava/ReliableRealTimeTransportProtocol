@@ -29,6 +29,9 @@ pub struct Receiver {
 }
 
 impl Receiver {
+    /// Returns a reference to the channel to receive complete messages.
+    /// Listening function reads data from the socket and stores it in a buffer.
+    /// When the End-of-Message control bit is received, the buffer is sent to the application layer using this channel.
     pub fn incoming_messages(&self) -> &std::sync::mpsc::Receiver<Vec<u8>> {
         &self.message_receiver
     }
@@ -44,6 +47,10 @@ impl Receiver {
             message_receiver: rx,
         }
     }
+
+    /// Listens for incoming segments from network.
+    /// When a segment is received, it is stored in a buffer.
+    /// When the End-of-Message control bit is received, the buffer is sent using incoming_messages channel.
     pub fn listen(&self) -> JoinHandle<()> {
         let socket = Arc::clone(&self.socket);
         let earliest_not_received = Arc::clone(&self.earliest_not_received);
@@ -99,11 +106,13 @@ impl Receiver {
         })
     }
 
+    /// Constructs a message from the buffer and sends it to the application layer.
     fn construct_message(buffer: &Arc<Mutex<Vec<u8>>>, channel: Sender<Vec<u8>>) {
         let buffer_guard = buffer.lock().unwrap();
         channel.send(buffer_guard.clone()).unwrap();
     }
 
+    /// Inserts data into the buffer at the position derived from sequence number.
     fn insert_data_into_buffer(buffer: &Arc<Mutex<Vec<u8>>>, sequence_number: u32, data: &[u8]) {
         let mut buffer_guard = buffer.lock().unwrap();
         let buffer_shift = (sequence_number as usize - 1) * MAX_DATA_SIZE;
@@ -111,6 +120,8 @@ impl Receiver {
         buffer_guard[buffer_shift..data_upper_bound].copy_from_slice(data);
     }
 
+    /// Resizes the buffer to the size specified in the option.
+    /// This operation is performed when the first frame is received.
     fn sync_read_buffer(read_buffer: &Arc<Mutex<Vec<u8>>>, option: &FrameOption) {
         let buffer_size = u32::from_be_bytes(option.data.try_into().expect("Failed to convert buffer size to u32"));
         let mut read_buffer_guard = read_buffer.lock().unwrap();
@@ -118,6 +129,8 @@ impl Receiver {
         read_buffer_guard.resize(buffer_size as usize, 0);
     }
 
+    /// Updates the earliest_not_received value.
+    /// Earliest not received is updated only if the sequence number is the next expected sequence number.
     fn update_earliest_not_received(earliest_not_received: &Arc<RwLock<u32>>, sequence_number: u32) {
         let mut earliest_not_received_guard = earliest_not_received.write().unwrap();
         if sequence_number == *earliest_not_received_guard + 1u32 {

@@ -14,7 +14,6 @@ pub struct Transmitter {
     /// The smallest sequence number that has been acknowledged.
     /// Also marks the beginning of the window.
     smallest_acknowledged_sequence_number: RwLock<u32>,
-
     socket: Arc<Socket>,
 
     /// The status of each frame in the window.
@@ -31,6 +30,8 @@ impl Transmitter {
         }
     }
 
+    /// Handles an acknowledgment.
+    /// This is called when an acknowledgment is received by Receiver listen function.
     pub fn handle_acknowledgment(&self, acknowledgment_number: u32) {
         info!("Received ACK for sequence number {}", acknowledgment_number);
         let mut window_frame_statuses_guard = self.window_frame_statuses.lock().unwrap();
@@ -44,6 +45,7 @@ impl Transmitter {
         window_frame_statuses_guard[index] = FrameStatus::Acknowledged;
     }
 
+    /// Shifts the window by the number of acknowledged frames in the front of the window.
     pub fn shift_window(&self) {
         let mut window_frame_statuses = self.window_frame_statuses.lock().unwrap();
         match window_frame_statuses[0] {
@@ -73,6 +75,7 @@ impl Transmitter {
         info!("New smallest acknowledged sequence number: {}", smallest_acknowledged_sequence_number_lock);
     }
 
+    /// Sends an acknowledgment.
     pub fn send_ack(&self, sequence_number: u32) {
         for _ in 0..3 {
             let mut frame = Frame::default();
@@ -89,6 +92,8 @@ impl Transmitter {
         }
     }
 
+    /// Sends data.
+    /// This is called by the application layer.
     pub fn send(&self, data_buffer: &[u8]) -> std::io::Result<usize> {
         let data_size = data_buffer.len() as u32;
         let segments = data_size as f32 / MAX_DATA_SIZE as f32;
