@@ -1,9 +1,13 @@
+mod ui;
+
 extern crate lib_rrttp;
 
 use std::fs;
 use std::time::SystemTime;
+use iced::{Sandbox, Settings};
 use log::info;
 use lib_rrttp::window::Window;
+use crate::ui::rrtp_application::RRTPApplication;
 
 const ADDR: &str = "127.0.0.1:12345";
 
@@ -26,6 +30,10 @@ fn setup_logger() -> Result<(), fern::InitError> {
 
 fn main() {
     setup_logger().expect("Failed to setup logger");
+
+    RRTPApplication::run(Settings::default()).expect("Unable to run application");
+    
+    return;
     const REMOTE_ADDR: &str = "127.0.0.1:54321";
     let mut client = Window::new(ADDR, REMOTE_ADDR).expect("Failed to bind socket");
     info!("Client bound to {}", ADDR);

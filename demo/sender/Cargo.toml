@@ -8,5 +8,6 @@ edition = "2021"
 [dependencies]
 fern = "0.6.2"
 humantime = "2.1.0"
+iced = "0.10.0"
 lib_rrttp = { path = "../../lib_rrttp" }
 log = "0.4.20"
