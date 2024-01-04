@@ -1,3 +1,4 @@
+use std::net::UdpSocket;
 use std::sync::{Arc, Mutex, RwLock};
 use std::sync::mpsc::{channel, Sender};
 use std::thread;
@@ -13,7 +14,7 @@ use crate::socket::Socket;
 use crate::transmitter::Transmitter;
 
 pub struct Receiver {
-    socket: Arc<Socket>,
+    socket: Arc<RwLock<Socket>>,
 
     transmitter: Arc<Transmitter>,
     /// The earliest sequence number that has not been received.
@@ -36,7 +37,11 @@ impl Receiver {
         &self.message_receiver
     }
 
-    pub fn new(socket: Arc<Socket>, transmitter: Arc<Transmitter>) -> Self {
+    pub fn bind(&self, addr: &str) -> std::io::Result<()> {
+        self.socket.write().unwrap().bind(addr)
+    }
+
+    pub fn new(socket: Arc<RwLock<Socket>>, transmitter: Arc<Transmitter>) -> Self {
         let (tx, rx) = channel();
         Self {
             socket,
@@ -62,7 +67,7 @@ impl Receiver {
         let channel = self.message_sender.clone();
         thread::spawn(move || {
             loop {
-                let (_, buffer, _) = match socket.receive() {
+                let (_, buffer, _) = match socket.read().expect("Unable to get socket").receive() {
                     Ok(data) => data,
                     Err(error) => {
                         error!("Failed to receive data: {} trying again in one second", error);

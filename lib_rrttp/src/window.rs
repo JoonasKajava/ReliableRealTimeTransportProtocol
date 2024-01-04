@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::sync::{Arc, RwLock};
 use std::thread::JoinHandle;
 
 use crate::receiver::Receiver;
@@ -8,21 +8,31 @@ use crate::transmitter::Transmitter;
 pub struct Window {
     transmitter: Arc<Transmitter>,
 
-    receiver: Arc<Receiver>,
+    receiver: Receiver,
 
 }
 
-impl Window {
-    pub fn new(local_addr: &str, remote_addr: &str) -> std::io::Result<Self> {
-        let socket = Socket::bind(local_addr)?;
-        socket.connect(remote_addr)?;
-        let arc_socket = Arc::new(socket);
+impl Default for Window {
+    fn default() -> Self {
+        let socket = Socket::new();
+        let arc_socket = Arc::new(RwLock::new(socket));
         let transmitter = Arc::new(Transmitter::new(arc_socket.clone()));
-        Ok(Self {
-            transmitter: transmitter.clone(),
-            receiver: Arc::new(Receiver::new(arc_socket, transmitter)),
+        let receiver = Receiver::new(arc_socket, transmitter.clone());
+        Self {
+            transmitter,
+            receiver,
 
-        })
+        }
+    }
+}
+
+impl Window {
+    pub fn bind_local_socket(&mut self, local_addr: &str) -> std::io::Result<()> {
+        self.receiver.bind(local_addr)
+    }
+
+    pub fn connect(&self, remote_addr: &str) -> std::io::Result<()> {
+        self.transmitter.connect(remote_addr)
     }
 
     pub fn listen(&self) -> JoinHandle<()> {

@@ -14,7 +14,7 @@ pub struct Transmitter {
     /// The smallest sequence number that has been acknowledged.
     /// Also marks the beginning of the window.
     smallest_acknowledged_sequence_number: RwLock<u32>,
-    socket: Arc<Socket>,
+    socket: Arc<RwLock<Socket>>,
 
     /// The status of each frame in the window.
     window_frame_statuses: Mutex<[FrameStatus; WINDOW_SIZE]>,
@@ -22,12 +22,16 @@ pub struct Transmitter {
 
 
 impl Transmitter {
-    pub fn new(socket: Arc<Socket>) -> Self {
+    pub fn new(socket: Arc<RwLock<Socket>>) -> Self {
         Self {
             socket,
             smallest_acknowledged_sequence_number: RwLock::new(0),
             window_frame_statuses: Mutex::new([FrameStatus::NotSent; WINDOW_SIZE]),
         }
+    }
+
+    pub fn connect(&self, addr: &str) -> std::io::Result<()> {
+        self.socket.read().unwrap().connect(addr)
     }
 
     /// Handles an acknowledgment.
@@ -82,7 +86,7 @@ impl Transmitter {
             frame.set_sequence_number(0);
             frame.set_acknowledgment_number(sequence_number);
             frame.set_control_bits(ControlBits::ACK.bits());
-            match self.socket.send(frame.get_buffer()) {
+            match self.socket.read().unwrap().send(frame.get_buffer()) {
                 Ok(_) => {
                     info!("Sent ACK for sequence number {}", sequence_number);
                     break;
@@ -154,7 +158,7 @@ impl Transmitter {
 
                 // Send frame
                 info!("Sent frame with sequence number {}/{}", sequence_number, segments);
-                self.socket.send(frame.get_buffer())?;
+                self.socket.read().unwrap().send(frame.get_buffer())?;
                 { self.window_frame_statuses.lock().unwrap()[i] = FrameStatus::Sent(Instant::now()); }
                 // Reset frame
                 frame = Frame::default();

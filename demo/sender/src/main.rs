@@ -22,7 +22,7 @@ fn setup_logger() -> Result<(), fern::InitError> {
                 message
             ))
         })
-        .level(log::LevelFilter::Debug)
+        .level(log::LevelFilter::Info)
         .chain(std::io::stdout())
         .apply()?;
     Ok(())
@@ -35,7 +35,7 @@ fn main() {
     
     return;
     const REMOTE_ADDR: &str = "127.0.0.1:54321";
-    let mut client = Window::new(ADDR, REMOTE_ADDR).expect("Failed to bind socket");
+/*    let mut client = Window::new(ADDR, REMOTE_ADDR).expect("Failed to bind socket");
     info!("Client bound to {}", ADDR);
 
     let listen_handle = client.listen();
@@ -44,5 +44,5 @@ fn main() {
     info!("Sending file to {}", REMOTE_ADDR);
     client.send(file.as_slice()).expect("Failed to send data");
 
-    listen_handle.join().unwrap()
+    listen_handle.join().unwrap()*/
 }
