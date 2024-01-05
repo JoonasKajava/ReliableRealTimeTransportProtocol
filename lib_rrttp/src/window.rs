@@ -1,4 +1,4 @@
-use std::sync::{Arc, RwLock};
+use std::sync::{Arc, Mutex, RwLock};
 use std::thread::JoinHandle;
 
 use crate::receiver::Receiver;
@@ -39,7 +39,7 @@ impl Window {
         self.receiver.listen()
     }
 
-    pub fn incoming_messages(&self) -> &std::sync::mpsc::Receiver<Vec<u8>> {
+    pub fn incoming_messages(&self) -> Arc<Mutex<std::sync::mpsc::Receiver<Vec<u8>>>> {
         self.receiver.incoming_messages()
     }
 

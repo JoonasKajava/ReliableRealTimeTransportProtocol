@@ -26,15 +26,15 @@ pub struct Receiver {
     /// Channel to send messages to the application layer.
     message_sender: Sender<Vec<u8>>,
     /// Channel to receive messages from the application layer.
-    message_receiver: std::sync::mpsc::Receiver<Vec<u8>>,
+    message_receiver: Arc<Mutex<std::sync::mpsc::Receiver<Vec<u8>>>>,
 }
 
 impl Receiver {
     /// Returns a reference to the channel to receive complete messages.
     /// Listening function reads data from the socket and stores it in a buffer.
     /// When the End-of-Message control bit is received, the buffer is sent to the application layer using this channel.
-    pub fn incoming_messages(&self) -> &std::sync::mpsc::Receiver<Vec<u8>> {
-        &self.message_receiver
+    pub fn incoming_messages(&self) -> Arc<Mutex<std::sync::mpsc::Receiver<Vec<u8>>>> {
+        self.message_receiver.clone()
     }
 
     pub fn bind(&self, addr: &str) -> std::io::Result<()> {
@@ -49,7 +49,7 @@ impl Receiver {
             earliest_not_received: Arc::new(RwLock::new(0)),
             read_buffer: Arc::new(Mutex::new(vec![])),
             message_sender: tx,
-            message_receiver: rx,
+            message_receiver: Arc::new(Mutex::new(rx)),
         }
     }
 

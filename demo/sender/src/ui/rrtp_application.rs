@@ -1,8 +1,11 @@
+use std::sync::{Arc, Mutex, RwLock};
+use std::thread;
 use std::time::SystemTime;
-use iced::{Alignment, Color, Element, Sandbox, Theme};
+use iced::{Alignment, Application, Color, Command, Element, Executor, executor, Sandbox, Theme};
 use iced::widget::{button, column, container, row, scrollable, text, text_input};
 use log::error;
 use lib_rrttp::window::Window;
+use crate::ui::message_subscriber::{Event, subscribe_to_messages};
 
 use crate::ui::status::{ConnectionStatus, LocalSocketStatus};
 
@@ -12,17 +15,40 @@ pub struct RRTPApplication {
 
     message_to_send: String,
 
-    sending_window: Window,
+    sending_window: Arc<RwLock<Window>>,
 
     local_socket_status: LocalSocketStatus,
     connection_status: ConnectionStatus,
 
-    log: Vec<String>,
+    socket_listen_handle: Option<thread::JoinHandle<()>>,
+    socket_message_reader_handle: Option<thread::JoinHandle<()>>,
+
+    log: Arc<Mutex<Vec<String>>>,
 }
 
 impl RRTPApplication {
-    pub fn append_log(&mut self, message: String) {
-        self.log.push(format!("[{}] {}", humantime::format_rfc3339_seconds(SystemTime::now()), message));
+    pub fn append_log(&self, message: String) {
+        let mut log = self.log.lock().unwrap();
+        log.push(format!("[{}] {}", humantime::format_rfc3339_seconds(SystemTime::now()), message));
+    }
+
+    pub fn append_to_log_vector(log: &Arc<Mutex<Vec<String>>>, message: String) {
+        let mut log = log.lock().unwrap();
+        log.push(format!("[{}] {}", humantime::format_rfc3339_seconds(SystemTime::now()), message));
+    }
+
+    pub fn read_incoming_messages(&mut self) {
+        self.socket_listen_handle = Some(self.sending_window.read().unwrap().listen());
+
+        let sending_window = Arc::clone(&self.sending_window);
+        let incoming = sending_window.read().unwrap().incoming_messages().clone();
+        let log = Arc::clone(&self.log);
+        self.socket_message_reader_handle =  Some(thread::spawn(move || {
+            loop {
+                let message_body = incoming.lock().unwrap().recv().unwrap();
+                RRTPApplication::append_to_log_vector(&log,format!("Received message: {}", String::from_utf8_lossy(message_body.as_slice())));
+            }
+        }));
     }
 }
 
@@ -32,6 +58,7 @@ pub enum Message {
     LocalAddressChanged(String),
     RemoteAddressChanged(String),
     OnMessageChanged(String),
+    IncomingMessage(Event),
     SendMessage,
     StartLocalSocket,
     StopLocalSocket,
@@ -39,11 +66,11 @@ pub enum Message {
     Disconnect,
 }
 
-impl Sandbox for RRTPApplication {
+impl Application for RRTPApplication {
     type Message = Message;
 
-    fn new() -> Self {
-        Self {
+    fn new(_flags: Self::Flags) -> (Self, Command<Message>) {
+        (Self {
             local_address: "".to_string(),
             remote_address: "".to_string(),
             message_to_send: "".to_string(),
@@ -51,17 +78,19 @@ impl Sandbox for RRTPApplication {
             connection_status: Default::default(),
             local_socket_status: Default::default(),
             log: Default::default(),
-        }
+            socket_listen_handle: None,
+            socket_message_reader_handle: None,
+        }, Command::none())
     }
 
     fn title(&self) -> String {
         "RRTTP".to_string()
     }
 
-    fn update(&mut self, message: Self::Message) {
+    fn update(&mut self, message: Self::Message) -> Command<Message> {
         match message {
             Message::Connect => {
-                match self.sending_window.connect(self.remote_address.as_str()) {
+                match self.sending_window.read().unwrap().connect(self.remote_address.as_str()) {
                     Ok(_) => {
                         self.append_log(format!("Connected to {}", self.remote_address));
                         self.connection_status = ConnectionStatus::Connected;
@@ -81,10 +110,17 @@ impl Sandbox for RRTPApplication {
             }
             Message::StopLocalSocket => {}
             Message::StartLocalSocket => {
-                match self.sending_window.bind_local_socket(self.local_address.as_str()) {
+                let bind_result =
+                {
+                    let mut sending_window = self.sending_window.write().unwrap();
+                     sending_window.bind_local_socket(self.local_address.as_str())
+                };
+                match bind_result {
                     Ok(_) => {
                         self.append_log(format!("Bound to {}", self.local_address));
                         self.local_socket_status = LocalSocketStatus::Started;
+                        self.read_incoming_messages();
+
                     }
                     Err(e) =>
                         {
@@ -97,7 +133,7 @@ impl Sandbox for RRTPApplication {
                 self.message_to_send = message;
             }
             Message::SendMessage => {
-                match self.sending_window.send(self.message_to_send.as_bytes()) {
+                match self.sending_window.write().unwrap().send(self.message_to_send.as_bytes()) {
                     Ok(_) => {
                         self.append_log(format!("Sent message: {}", self.message_to_send));
                     }
@@ -107,7 +143,13 @@ impl Sandbox for RRTPApplication {
                     }
                 }
             }
-        }
+            Message::IncomingMessage(message) => {
+                match message {
+                    Event::MessageReceived(content) => self.append_log(content),
+                }
+            }
+        };
+        Command::none()
     }
 
     fn view(&self) -> Element<'_, Self::Message> {
@@ -156,7 +198,7 @@ impl Sandbox for RRTPApplication {
 
         let mut log_items = column![];
 
-        for item in self.log.iter() {
+        for item in self.log.lock().unwrap().iter() {
             log_items = log_items.push(text(item));
         }
 
@@ -197,7 +239,21 @@ impl Sandbox for RRTPApplication {
             .explain(Color::BLACK)
     }
 
+    fn subscription(&self) -> iced::Subscription<Self::Message> {
+        let arc = self.sending_window.read().unwrap().incoming_messages();
+        let message = arc.lock().unwrap();
+        for item in message.iter() {
+
+            self.append_log(format!("Received message: {}", String::from_utf8_lossy(item.as_slice())));
+        }
+        subscribe_to_messages().map(Message::IncomingMessage)
+    }
+
     fn theme(&self) -> Theme {
         Theme::Dark
     }
+
+    type Executor = executor::Default;
+    type Theme = Theme;
+    type Flags = ();
 }

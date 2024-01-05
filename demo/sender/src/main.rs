@@ -1,13 +1,12 @@
-mod ui;
-
 extern crate lib_rrttp;
 
-use std::fs;
 use std::time::SystemTime;
-use iced::{Sandbox, Settings};
-use log::info;
-use lib_rrttp::window::Window;
+
+use iced::{Application, Sandbox, Settings};
+
 use crate::ui::rrtp_application::RRTPApplication;
+
+mod ui;
 
 const ADDR: &str = "127.0.0.1:12345";
 
