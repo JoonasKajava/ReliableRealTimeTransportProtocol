@@ -3,6 +3,7 @@ import {useRecoilState} from "recoil";
 import {connectionStatusState} from "./main.tsx";
 import {useCallback, useState} from "react";
 import {useLog} from "./RRTPLog.tsx";
+import {invoke} from "@tauri-apps/api";
 
 export const RRTPConnectionSettings = () => {
     const [connectionStatus, setConnectionStatus] = useRecoilState(connectionStatusState);
@@ -15,8 +16,15 @@ export const RRTPConnectionSettings = () => {
 
 
     const onBindClick = useCallback(() => {
-        setConnectionStatus((prev) => ({...prev, local: true}));
-        setLog("Local Socket Bound", `Bound to ${localAddress}`);
+
+        invoke<string>("bind", {address: localAddress}).then((result) => {
+            setLog("Local Socket Bound", result);
+            setConnectionStatus((prev) => ({...prev, local: true}));
+        }).catch((err) => {
+            setLog("Local Socket Bind Failed", err);
+            setConnectionStatus((prev) => ({...prev, local: false}));
+        });
+
     }, [setConnectionStatus, setLog, localAddress]);
 
 
