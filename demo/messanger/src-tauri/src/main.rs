@@ -4,7 +4,7 @@
 use std::sync::Mutex;
 use std::time::SystemTime;
 
-use commands::bind;
+use commands::{bind, connect, send_message};
 use lib_rrttp::window::Window;
 
 mod commands;
@@ -51,7 +51,7 @@ fn main() {
     setup_logger().expect("Failed to setup logger");
     tauri::Builder::default()
         .manage(AppState::default())
-        .invoke_handler(tauri::generate_handler![bind])
+        .invoke_handler(tauri::generate_handler![bind, connect, send_message])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

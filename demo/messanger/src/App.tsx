@@ -3,6 +3,7 @@ import {Col, ConfigProvider, Row, theme} from "antd";
 import {RRTPStatus} from "./RRTPStatus.tsx";
 import {RRTPConnectionSettings} from "./RRTPConnectionSettings.tsx";
 import {RRTPLog} from "./RRTPLog.tsx";
+import {RRTPMessageSendingInputs} from "./RRTPMessageSendingInputs.tsx";
 
 
 function App() {
@@ -15,12 +16,12 @@ function App() {
                 <RRTPStatus/>
             </Col>
         </Row>
-        <Row>
-            <Col span={18}>
+        <Row gutter={16} >
+            <Col span={12}>
                 <RRTPLog/>
             </Col>
-            <Col span={6}>
-
+            <Col span={12}>
+                <RRTPMessageSendingInputs/>
             </Col>
         </Row>
     </ConfigProvider>

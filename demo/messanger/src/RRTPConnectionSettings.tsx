@@ -29,9 +29,18 @@ export const RRTPConnectionSettings = () => {
 
 
     const onConnectClick = useCallback(() => {
-        setConnectionStatus((prev) => ({...prev, remote: true}));
-        setLog("Connected To Remote", `Connected to ${remoteAddress}`);
+
+        invoke<string>("connect", {address: remoteAddress}).then((result) => {
+            setLog("Connection Successful", result);
+            setConnectionStatus((prev) => ({...prev, remote: true}));
+        }).catch((err) => {
+            setLog("Connection To Remote Failed", err);
+            setConnectionStatus((prev) => ({...prev, remote: false}));
+        });
+
     }, [setConnectionStatus, setLog, remoteAddress]);
+
+
 
 
     return (
@@ -45,10 +54,10 @@ export const RRTPConnectionSettings = () => {
             </Form.Item>
             <Form.Item name="remote_addr" label="Remote Address">
                 <Space>
-                    <Input disabled={connectionStatus.remote} value={remoteAddress}
+                    <Input disabled={connectionStatus.remote || !connectionStatus.local} value={remoteAddress}
                            onChange={(e) => setRemoteAddress(e.target.value)}
                            placeholder="127.0.0.1:12345"/>
-                    <Button disabled={connectionStatus.remote} type="primary" onClick={onConnectClick}>Connect</Button>
+                    <Button disabled={connectionStatus.remote || !connectionStatus.local} type="primary" onClick={onConnectClick}>Connect</Button>
                 </Space>
             </Form.Item>
         </Form>
