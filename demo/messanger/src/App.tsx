@@ -1,29 +1,26 @@
 import "./App.css";
-import {Button, Col, ConfigProvider, Form, Input, Row, Space, theme} from "antd";
+import {Col, ConfigProvider, Row, theme} from "antd";
 import {RRTPStatus} from "./RRTPStatus.tsx";
+import {RRTPConnectionSettings} from "./RRTPConnectionSettings.tsx";
+import {RRTPLog} from "./RRTPLog.tsx";
+
 
 function App() {
-
     return <ConfigProvider theme={{algorithm: theme.darkAlgorithm}}>
         <Row>
             <Col span={12}>
-                <Form>
-                    <Form.Item name="local_addr" label="Local Address">
-                        <Space>
-                            <Input placeholder="127.0.0.1:12345"/>
-                            <Button type="primary">Bind</Button>
-                        </Space>
-                    </Form.Item>
-                    <Form.Item name="remote_addr" label="Remote Address">
-                        <Space>
-                            <Input placeholder="127.0.0.1:12345"/>
-                            <Button type="primary">Connect</Button>
-                        </Space>
-                    </Form.Item>
-                </Form>
+                <RRTPConnectionSettings/>
             </Col>
             <Col span={12}>
                 <RRTPStatus/>
+            </Col>
+        </Row>
+        <Row>
+            <Col span={18}>
+                <RRTPLog/>
+            </Col>
+            <Col span={6}>
+
             </Col>
         </Row>
     </ConfigProvider>
