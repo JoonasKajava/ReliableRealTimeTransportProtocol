@@ -1,4 +1,3 @@
-use std::net::UdpSocket;
 use std::sync::{Arc, Mutex, RwLock};
 use std::sync::mpsc::{channel, Sender};
 use std::thread;
@@ -14,7 +13,7 @@ use crate::socket::Socket;
 use crate::transmitter::Transmitter;
 
 pub struct Receiver {
-    socket: Arc<RwLock<Socket>>,
+    socket: Arc<Socket>,
 
     transmitter: Arc<Transmitter>,
     /// The earliest sequence number that has not been received.
@@ -25,49 +24,33 @@ pub struct Receiver {
 
     /// Channel to send messages to the application layer.
     message_sender: Sender<Vec<u8>>,
-    /// Channel to receive messages from the application layer.
-    message_receiver: Arc<Mutex<std::sync::mpsc::Receiver<Vec<u8>>>>,
 }
 
 impl Receiver {
-    /// Returns a reference to the channel to receive complete messages.
-    /// Listening function reads data from the socket and stores it in a buffer.
-    /// When the End-of-Message control bit is received, the buffer is sent to the application layer using this channel.
-    pub fn incoming_messages(&self) -> Arc<Mutex<std::sync::mpsc::Receiver<Vec<u8>>>> {
-        self.message_receiver.clone()
-    }
-
-    pub fn bind(&self, addr: &str) -> std::io::Result<()> {
-        self.socket.write().unwrap().bind(addr)
-    }
-
-    pub fn new(socket: Arc<RwLock<Socket>>, transmitter: Arc<Transmitter>) -> Self {
+    pub fn new(socket: Arc<Socket>, transmitter: Arc<Transmitter>) -> (Self, std::sync::mpsc::Receiver<Vec<u8>>) {
         let (tx, rx) = channel();
-        Self {
+        (Self {
             socket,
             transmitter,
             earliest_not_received: Arc::new(RwLock::new(0)),
             read_buffer: Arc::new(Mutex::new(vec![])),
             message_sender: tx,
-            message_receiver: Arc::new(Mutex::new(rx)),
-        }
+        }, rx)
     }
 
     /// Listens for incoming segments from network.
     /// When a segment is received, it is stored in a buffer.
     /// When the End-of-Message control bit is received, the buffer is sent using incoming_messages channel.
     pub fn listen(&self) -> JoinHandle<()> {
-        let socket = Arc::clone(&self.socket);
         let earliest_not_received = Arc::clone(&self.earliest_not_received);
         let read_buffer = Arc::clone(&self.read_buffer);
 
-
-        let transmitter = Arc::clone(&self.transmitter);
-
+        let socket_clone = self.socket.clone();
+        let transmitter_clone = self.transmitter.clone();
         let channel = self.message_sender.clone();
         thread::spawn(move || {
             loop {
-                let (_, buffer, _) = match socket.read().expect("Unable to get socket").receive() {
+                let (_, buffer, _) = match socket_clone.receive() {
                     Ok(data) => data,
                     Err(error) => {
                         error!("Failed to receive data: {} trying again in one second", error);
@@ -81,10 +64,10 @@ impl Receiver {
                 let sequence_number = frame.get_sequence_number();
                 if control_bits.contains(ControlBits::ACK) {
                     let acknowledgment_number = frame.get_acknowledgment_number();
-                    transmitter.handle_acknowledgment(acknowledgment_number);
+                    transmitter_clone.handle_acknowledgment(acknowledgment_number);
                     continue;
                 }
-                transmitter.send_ack(sequence_number);
+                transmitter_clone.send_ack(sequence_number);
 
                 Receiver::update_earliest_not_received(&earliest_not_received, sequence_number);
 

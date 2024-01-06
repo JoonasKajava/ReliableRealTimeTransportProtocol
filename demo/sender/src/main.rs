@@ -4,8 +4,6 @@ use std::time::SystemTime;
 
 use iced::{Application, Sandbox, Settings};
 
-use crate::ui::rrtp_application::RRTPApplication;
-
 mod ui;
 
 const ADDR: &str = "127.0.0.1:12345";
@@ -30,7 +28,7 @@ fn setup_logger() -> Result<(), fern::InitError> {
 fn main() {
     setup_logger().expect("Failed to setup logger");
 
-    RRTPApplication::run(Settings::default()).expect("Unable to run application");
+    //RRTPApplication::run(Settings::default()).expect("Unable to run application");
     
     return;
     const REMOTE_ADDR: &str = "127.0.0.1:54321";
