@@ -10,6 +10,8 @@ pub struct Window {
 
     socket: Arc<Socket>,
 
+    listen_handle: JoinHandle<()>,
+
     receiver: Receiver,
 
 }
@@ -22,6 +24,7 @@ impl Window {
         Ok((Self {
             socket,
             transmitter: transmitter1,
+            listen_handle: receiver1.0.listen(),
             receiver: receiver1.0,
         }, receiver1.1))
     }
@@ -30,10 +33,6 @@ impl Window {
 impl Window {
     pub fn connect(&self, remote_addr: &str) -> std::io::Result<()> {
         self.transmitter.connect(remote_addr)
-    }
-
-    pub fn listen(&self) -> JoinHandle<()> {
-        self.receiver.listen()
     }
 
     pub fn send(&mut self, data_buffer: &[u8]) -> std::io::Result<usize> {

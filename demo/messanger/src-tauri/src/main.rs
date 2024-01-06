@@ -1,15 +1,46 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-mod commands;
-
-
 use std::sync::Mutex;
+use std::time::SystemTime;
+
 use commands::bind;
 use lib_rrttp::window::Window;
+
+mod commands;
+
+fn setup_logger() -> Result<(), fern::InitError> {
+    fern::Dispatch::new()
+        .format(|out, message, record| {
+            out.finish(format_args!(
+                "[{} {} {}] {}",
+                humantime::format_rfc3339_seconds(SystemTime::now()),
+                record.level(),
+                record.target(),
+                message
+            ))
+        })
+        .level(log::LevelFilter::Debug)
+        .chain(std::io::stdout())
+        .apply()?;
+    Ok(())
+}
+
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 
-struct AppState(Mutex<RRTPStateMutex>);
+struct AppState {
+    pub window_state: Mutex<RRTPStateMutex>,
+}
+
+impl Default for AppState {
+    fn default() -> Self {
+        Self {
+            window_state: Mutex::new(RRTPStateMutex {
+                window: None,
+            }),
+        }
+    }
+}
 
 struct RRTPStateMutex {
     window: Option<Window>,
@@ -17,10 +48,9 @@ struct RRTPStateMutex {
 
 
 fn main() {
+    setup_logger().expect("Failed to setup logger");
     tauri::Builder::default()
-        .manage(AppState (Mutex::new(RRTPStateMutex {
-            window: None,
-        })))
+        .manage(AppState::default())
         .invoke_handler(tauri::generate_handler![bind])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

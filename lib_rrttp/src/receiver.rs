@@ -48,6 +48,9 @@ impl Receiver {
         let socket_clone = self.socket.clone();
         let transmitter_clone = self.transmitter.clone();
         let channel = self.message_sender.clone();
+
+        info!("Starting listening thread");
+
         thread::spawn(move || {
             loop {
                 let (_, buffer, _) = match socket_clone.receive() {
