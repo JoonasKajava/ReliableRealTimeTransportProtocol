@@ -1,6 +1,7 @@
 use std::cmp::min;
-use std::sync::{Arc, Mutex, RwLock};
+use std::sync::{Mutex, RwLock};
 use std::time::Instant;
+
 use log::{error, info, warn};
 
 use crate::constants::{MAX_DATA_SIZE, TIMEOUT, WINDOW_SIZE};
@@ -8,13 +9,12 @@ use crate::control_bits::ControlBits;
 use crate::frame::Frame;
 use crate::frame_status::FrameStatus;
 use crate::option::{FrameOption, OptionKind};
-use crate::socket::Socket;
+use crate::window::Window;
 
 pub struct Transmitter {
     /// The smallest sequence number that has been acknowledged.
     /// Also marks the beginning of the window.
     smallest_acknowledged_sequence_number: RwLock<u32>,
-    socket: Arc<Socket>,
 
     /// The status of each frame in the window.
     window_frame_statuses: Mutex<[FrameStatus; WINDOW_SIZE]>,
@@ -22,16 +22,11 @@ pub struct Transmitter {
 
 
 impl Transmitter {
-    pub fn new(socket: Arc<Socket>) -> Self {
+    pub fn new() -> Self {
         Self {
-            socket,
             smallest_acknowledged_sequence_number: RwLock::new(0),
             window_frame_statuses: Mutex::new([FrameStatus::NotSent; WINDOW_SIZE]),
         }
-    }
-
-    pub fn connect(&self, addr: &str) -> std::io::Result<()> {
-        self.socket.connect(addr)
     }
 
     /// Handles an acknowledgment.
@@ -80,13 +75,13 @@ impl Transmitter {
     }
 
     /// Sends an acknowledgment.
-    pub fn send_ack(&self, sequence_number: u32) {
+    pub fn send_ack(&self, sequence_number: u32, window: &Window) {
         for _ in 0..3 {
             let mut frame = Frame::default();
             frame.set_sequence_number(0);
             frame.set_acknowledgment_number(sequence_number);
             frame.set_control_bits(ControlBits::ACK.bits());
-            match self.socket.send(frame.get_buffer()) {
+            match window.send_frame(frame) {
                 Ok(_) => {
                     info!("Sent ACK for sequence number {}", sequence_number);
                     break;
@@ -98,7 +93,7 @@ impl Transmitter {
 
     /// Sends data.
     /// This is called by the application layer.
-    pub fn send(&self, data_buffer: &[u8]) -> std::io::Result<usize> {
+    pub fn send(&self, data_buffer: &[u8], window: &Window) -> std::io::Result<usize> {
         let data_size = data_buffer.len() as u32;
         let segments = data_size as f32 / MAX_DATA_SIZE as f32;
         let segments = segments.ceil() as u32;
@@ -158,7 +153,7 @@ impl Transmitter {
 
                 // Send frame
                 info!("Sent frame with sequence number {}/{}", sequence_number, segments);
-                self.socket.send(frame.get_buffer())?;
+                window.send_frame(frame)?;
                 { self.window_frame_statuses.lock().unwrap()[i] = FrameStatus::Sent(Instant::now()); }
                 // Reset frame
                 frame = Frame::default();

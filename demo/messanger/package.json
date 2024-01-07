@@ -16,7 +16,9 @@
     "rc-virtual-list": "^3.11.3",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "recoil": "^0.7.7"
+    "recoil": "^0.7.7",
+    "@react-buddy/ide-toolbox": "^2.4.0",
+    "@react-buddy/palette-antd": "^5.3.0"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^1.5.8",

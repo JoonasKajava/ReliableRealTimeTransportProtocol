@@ -9,13 +9,9 @@ use crate::constants::MAX_DATA_SIZE;
 use crate::control_bits::ControlBits;
 use crate::frame::Frame;
 use crate::option::{FrameOption, OptionKind};
-use crate::socket::Socket;
-use crate::transmitter::Transmitter;
+use crate::window::Window;
 
 pub struct Receiver {
-    socket: Arc<Socket>,
-
-    transmitter: Arc<Transmitter>,
     /// The earliest sequence number that has not been received.
     earliest_not_received: Arc<RwLock<u32>>,
 
@@ -27,11 +23,9 @@ pub struct Receiver {
 }
 
 impl Receiver {
-    pub fn new(socket: Arc<Socket>, transmitter: Arc<Transmitter>) -> (Self, std::sync::mpsc::Receiver<Vec<u8>>) {
+    pub fn new() -> (Self, std::sync::mpsc::Receiver<Vec<u8>>) {
         let (tx, rx) = channel();
         (Self {
-            socket,
-            transmitter,
             earliest_not_received: Arc::new(RwLock::new(0)),
             read_buffer: Arc::new(Mutex::new(vec![])),
             message_sender: tx,
@@ -41,19 +35,16 @@ impl Receiver {
     /// Listens for incoming segments from network.
     /// When a segment is received, it is stored in a buffer.
     /// When the End-of-Message control bit is received, the buffer is sent using incoming_messages channel.
-    pub fn listen(&self) -> JoinHandle<()> {
+    pub fn listen(&self, window: Arc<Window>) -> JoinHandle<()> {
         let earliest_not_received = Arc::clone(&self.earliest_not_received);
         let read_buffer = Arc::clone(&self.read_buffer);
-
-        let socket_clone = self.socket.clone();
-        let transmitter_clone = self.transmitter.clone();
         let channel = self.message_sender.clone();
 
         info!("Starting listening thread");
 
         thread::spawn(move || {
             loop {
-                let (_, buffer, _) = match socket_clone.receive() {
+                let (_, buffer, _) = match window.receive() {
                     Ok(data) => data,
                     Err(error) => {
                         error!("Failed to receive data: {} trying again in one second", error);
@@ -67,10 +58,10 @@ impl Receiver {
                 let sequence_number = frame.get_sequence_number();
                 if control_bits.contains(ControlBits::ACK) {
                     let acknowledgment_number = frame.get_acknowledgment_number();
-                    transmitter_clone.handle_acknowledgment(acknowledgment_number);
+                    window.handle_acknowledgment(acknowledgment_number);
                     continue;
                 }
-                transmitter_clone.send_ack(sequence_number);
+                window.send_ack(sequence_number);
 
                 Receiver::update_earliest_not_received(&earliest_not_received, sequence_number);
 

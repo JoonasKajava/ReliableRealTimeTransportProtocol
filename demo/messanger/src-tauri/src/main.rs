@@ -1,7 +1,7 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
 use std::time::SystemTime;
 
 use commands::{bind, connect, send_message};
@@ -43,7 +43,7 @@ impl Default for AppState {
 }
 
 struct RRTPStateMutex {
-    window: Option<Window>,
+    window: Option<Arc<Window>>,
 }
 
 
