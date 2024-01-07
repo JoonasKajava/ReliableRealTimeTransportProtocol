@@ -19,14 +19,14 @@ pub struct Window {
 impl Window {
     pub fn new(local_addr: &str) -> std::io::Result<(Window, std::sync::mpsc::Receiver<Vec<u8>>)> {
         let socket = Arc::new(Socket::bind(local_addr)?);
-        let transmitter1 = Arc::new(Transmitter::new(socket.clone()));
-        let receiver1 = Receiver::new(socket.clone(), transmitter1.clone());
+        let transmitter = Arc::new(Transmitter::new(socket.clone()));
+        let receiver = Receiver::new(socket.clone(), transmitter.clone());
         Ok((Self {
             socket,
-            transmitter: transmitter1,
-            listen_handle: receiver1.0.listen(),
-            receiver: receiver1.0,
-        }, receiver1.1))
+            transmitter,
+            listen_handle: receiver.0.listen(),
+            receiver: receiver.0,
+        }, receiver.1))
     }
 }
 
