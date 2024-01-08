@@ -2,7 +2,7 @@ extern crate lib_rrttp;
 
 use std::time::SystemTime;
 
-use iced::{Application, Sandbox, Settings};
+use iced::{Application, Sandbox};
 
 mod ui;
 

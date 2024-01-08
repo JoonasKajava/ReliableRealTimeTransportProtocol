@@ -65,11 +65,16 @@ impl Receiver {
 
                 Receiver::update_earliest_not_received(&earliest_not_received, sequence_number);
 
+                let mut buffer_offset = 1u32;
+
                 if let Some(options) = frame.get_options() {
                     for option in options {
                         match option.kind {
                             OptionKind::BufferSize => {
                                 Receiver::sync_read_buffer(&read_buffer, &option);
+                            },
+                            OptionKind::SegmentNumber => {
+                                buffer_offset = u32::from_be_bytes(option.data.try_into().expect("Failed to convert buffer size to u32"));
                             }
                         }
                     }
@@ -77,27 +82,26 @@ impl Receiver {
 
                 let data = frame.get_data();
 
-                Receiver::insert_data_into_buffer(&read_buffer, sequence_number, data);
+                Receiver::insert_data_into_buffer(&read_buffer, buffer_offset, data);
                 info!("Received frame with sequence number {}", sequence_number);
                 if control_bits.contains(ControlBits::EOM) {
                     info!("Received End-of-Message");
-                    Receiver::construct_message(&read_buffer, channel);
-                    break;
+                    Receiver::construct_message(&read_buffer, &channel);
                 }
             }
         })
     }
 
     /// Constructs a message from the buffer and sends it to the application layer.
-    fn construct_message(buffer: &Arc<Mutex<Vec<u8>>>, channel: Sender<Vec<u8>>) {
+    fn construct_message(buffer: &Arc<Mutex<Vec<u8>>>, channel: &Sender<Vec<u8>>) {
         let buffer_guard = buffer.lock().unwrap();
         channel.send(buffer_guard.clone()).unwrap();
     }
 
-    /// Inserts data into the buffer at the position derived from sequence number.
-    fn insert_data_into_buffer(buffer: &Arc<Mutex<Vec<u8>>>, sequence_number: u32, data: &[u8]) {
+    /// Inserts data into the buffer at the position derived from buffer offset.
+    fn insert_data_into_buffer(buffer: &Arc<Mutex<Vec<u8>>>, buffer_offset: u32, data: &[u8]) {
         let mut buffer_guard = buffer.lock().unwrap();
-        let buffer_shift = (sequence_number as usize - 1) * MAX_DATA_SIZE;
+        let buffer_shift = (buffer_offset as usize - 1) * MAX_DATA_SIZE;
         let data_upper_bound = buffer_shift + data.len();
         buffer_guard[buffer_shift..data_upper_bound].copy_from_slice(data);
     }

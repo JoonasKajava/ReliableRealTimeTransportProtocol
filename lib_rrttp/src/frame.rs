@@ -71,6 +71,17 @@ impl Frame {
         }
     }
 
+    /// call before setting data
+    pub fn append_option(&mut self, option: FrameOption) {
+        let start_offset = OPTIONS_OCTET + self.options_size;
+        self.frame[start_offset] = option.kind.clone() as u8;
+        let len = option.data.len();
+        self.frame[start_offset + 1] = len as u8;
+        let data_offset = start_offset + 2;
+        self.frame[data_offset..data_offset +len].copy_from_slice(option.data);
+        self.options_size += 2 + len;
+    }
+
     pub fn get_options(&self) -> Option<Vec<FrameOption>> {
         let mut options = Vec::new();
         let offset = OPTIONS_OCTET;

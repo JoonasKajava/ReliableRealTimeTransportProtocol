@@ -144,7 +144,6 @@ if the ACK flag is set then the value of this field is the next sequence number 
 This acknowledges receipt of all prior bytes (if any). The first ACK sent by each end acknowledges the other end's
 initial sequence number itself, but no data.
 
-
 ### Control bits (8 bits)
 
 * ACK - Acknowledgment field significant
@@ -160,3 +159,32 @@ Offset from the start of the packet to the actual data.
 
 ### Options (Variable 0-96 bits, in units of 48 bits)
 
+<table border="1">
+<tr>
+<th>
+Option Kind (8 bits)
+</th>
+<th>
+Option Length (8 bits)
+</th>
+<th>
+Option Data (Variable based on Option Length)
+</th>
+</tr>
+<tr>
+<td>
+BufferSize (1)
+</td>
+<td>
+2 
+</td>
+<td>
+Size of the buffer presented as a 32 bit unsigned integer.
+</td>
+</tr>
+<tr>
+<td>Segment Number</td>
+<td>2</td>
+<td>Segment number presented as a 32 bit unsigned integer.</td>
+</tr>
+</table>

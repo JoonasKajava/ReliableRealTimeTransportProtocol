@@ -1,5 +1,6 @@
 use std::cmp::min;
-use std::sync::{Mutex, RwLock};
+use std::sync::atomic::{AtomicU32, Ordering};
+use std::sync::Mutex;
 use std::time::Instant;
 
 use log::{error, info, warn};
@@ -14,7 +15,7 @@ use crate::window::Window;
 pub struct Transmitter {
     /// The smallest sequence number that has been acknowledged.
     /// Also marks the beginning of the window.
-    smallest_acknowledged_sequence_number: RwLock<u32>,
+    smallest_acknowledged_sequence_number: AtomicU32,
 
     /// The status of each frame in the window.
     window_frame_statuses: Mutex<[FrameStatus; WINDOW_SIZE]>,
@@ -24,7 +25,7 @@ pub struct Transmitter {
 impl Transmitter {
     pub fn new() -> Self {
         Self {
-            smallest_acknowledged_sequence_number: RwLock::new(0),
+            smallest_acknowledged_sequence_number: AtomicU32::new(0),
             window_frame_statuses: Mutex::new([FrameStatus::NotSent; WINDOW_SIZE]),
         }
     }
@@ -34,12 +35,12 @@ impl Transmitter {
     pub fn handle_acknowledgment(&self, acknowledgment_number: u32) {
         info!("Received ACK for sequence number {}", acknowledgment_number);
         let mut window_frame_statuses_guard = self.window_frame_statuses.lock().unwrap();
-        let smallest_acknowledged_sequence_number_guard = self.smallest_acknowledged_sequence_number.read().unwrap();
-        if acknowledgment_number <= *smallest_acknowledged_sequence_number_guard {
-            info!("Received ACK for sequence number {} which is smaller than the smallest acknowledged sequence number {}", acknowledgment_number, *smallest_acknowledged_sequence_number_guard);
+        let smallest_acknowledged_sequence_number_guard = self.smallest_acknowledged_sequence_number.load(Ordering::Relaxed);
+        if acknowledgment_number <= smallest_acknowledged_sequence_number_guard {
+            info!("Received ACK for sequence number {} which is smaller than the smallest acknowledged sequence number {}", acknowledgment_number, smallest_acknowledged_sequence_number_guard);
             return;
         }
-        let index = (acknowledgment_number - (*smallest_acknowledged_sequence_number_guard + 1)) as usize;
+        let index = (acknowledgment_number - (smallest_acknowledged_sequence_number_guard + 1)) as usize;
         info!("Marking frame with sequence number {} as acknowledged", acknowledgment_number);
         window_frame_statuses_guard[index] = FrameStatus::Acknowledged;
     }
@@ -69,9 +70,8 @@ impl Transmitter {
             }
         }
         info!("Shifting window by {}", shift_amount);
-        let mut smallest_acknowledged_sequence_number_lock = self.smallest_acknowledged_sequence_number.write().unwrap();
-        *smallest_acknowledged_sequence_number_lock += shift_amount as u32;
-        info!("New smallest acknowledged sequence number: {}", smallest_acknowledged_sequence_number_lock);
+        self.smallest_acknowledged_sequence_number.fetch_add(shift_amount as u32, Ordering::Relaxed);
+        info!("New smallest acknowledged sequence number: {}", self.smallest_acknowledged_sequence_number.load(Ordering::Relaxed));
     }
 
     /// Sends an acknowledgment.
@@ -98,6 +98,11 @@ impl Transmitter {
         let segments = data_size as f32 / MAX_DATA_SIZE as f32;
         let segments = segments.ceil() as u32;
 
+        let mut segments_sent = 1;
+
+        let starting_sequence_number = self.smallest_acknowledged_sequence_number.load(Ordering::Relaxed);
+        info!("Sending {} segments, starting sequence number of {}", segments, starting_sequence_number);
+
         let mut frame = Frame::default();
 
 
@@ -110,9 +115,7 @@ impl Transmitter {
             for i in 0..WINDOW_SIZE {
                 let frame_status = { self.window_frame_statuses.lock().unwrap()[i] };
 
-                let sequence_number = {
-                    *self.smallest_acknowledged_sequence_number.read().unwrap() + i as u32 + 1
-                };
+                let sequence_number = self.smallest_acknowledged_sequence_number.load(Ordering::Relaxed) + i as u32 + 1;
                 match frame_status {
                     FrameStatus::Sent(timestamp) if timestamp.elapsed().as_millis() <= TIMEOUT => continue,
                     FrameStatus::Sent(_) => warn!("Frame with sequence number {} timed out", sequence_number),
@@ -121,26 +124,31 @@ impl Transmitter {
                 }
 
 
-                if sequence_number > segments {
+                // TODO: Must check that all frames have been acknowledged
+                if segments_sent > segments {
                     info!("Finished sending");
                     break 'sending;
                 }
 
                 // Construct frame
 
+                if segments > 1 {
+                    frame.append_option(FrameOption::new(OptionKind::SegmentNumber, &segments_sent.to_be_bytes()));
+                }
+
                 frame.set_sequence_number(sequence_number);
 
 
                 frame.set_acknowledgment_number(0);
 
-                if sequence_number == segments {
+                if segments_sent == segments {
                     frame.set_control_bits(ControlBits::EOM.bits());
                 } else {
                     frame.set_control_bits(0);
                 }
                 // Set Data
 
-                let buffer_shift = (sequence_number - 1) * MAX_DATA_SIZE as u32;
+                let buffer_shift = (segments_sent - 1) * MAX_DATA_SIZE as u32;
 
                 let buffer_left = data_size - buffer_shift;
 
@@ -152,13 +160,18 @@ impl Transmitter {
 
 
                 // Send frame
-                info!("Sent frame with sequence number {}/{}", sequence_number, segments);
+                info!("Sent frame with sequence number {}. Segment of {}/{}", sequence_number, segments_sent, segments);
                 window.send_frame(frame)?;
+                segments_sent += 1;
+
                 { self.window_frame_statuses.lock().unwrap()[i] = FrameStatus::Sent(Instant::now()); }
                 // Reset frame
                 frame = Frame::default();
             }
         }
+
+        self.window_frame_statuses.lock().unwrap().iter_mut().for_each(|status| *status = FrameStatus::NotSent);
+
         Ok(0)
     }
 }

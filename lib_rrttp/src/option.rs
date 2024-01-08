@@ -2,12 +2,14 @@
 #[derive(Debug, Clone)]
 pub enum OptionKind {
     BufferSize = 0,
+    SegmentNumber = 1,
 }
 
 impl From<u8> for OptionKind {
     fn from(kind: u8) -> Self {
         match kind {
             0 => Self::BufferSize,
+            1 => Self::SegmentNumber,
             _ => panic!("Unknown option kind {}", kind)
         }
     }

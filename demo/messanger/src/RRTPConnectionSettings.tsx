@@ -10,9 +10,9 @@ export const RRTPConnectionSettings = () => {
 
     const setLog = useLog();
 
-    const [localAddress, setLocalAddress] = useState("")
+    const [localAddress, setLocalAddress] = useState("localhost:12345")
 
-    const [remoteAddress, setRemoteAddress] = useState("")
+    const [remoteAddress, setRemoteAddress] = useState("localhost:12345")
 
 
     const onBindClick = useCallback(() => {
