@@ -59,3 +59,18 @@ pub fn send_message(message: &str, state: State<AppState>) -> Result<String, Str
         }
     };
 }
+
+
+#[tauri::command]
+pub fn send_file(file_path: &str, state: State<AppState>) -> Result<String, String> {
+    let mut guard = state.window_state.lock().unwrap();
+    return match &mut guard.window {
+        None => Err("Local socket has not been bound yet".to_string()),
+        Some(window) => {
+            match window.send_file(file_path) {
+                Ok(_) => Ok(format!("Send file: {}", file_path)),
+                Err(e) => Err(format!("Failed to send file: {}", e)),
+            }
+        }
+    };
+}

@@ -1,3 +1,4 @@
+use std::fs;
 use std::sync::Arc;
 use std::thread::JoinHandle;
 use crate::constants::MAX_FRAME_SIZE;
@@ -44,15 +45,21 @@ impl Window {
         self.socket.send(frame.get_buffer())
     }
 
-    pub fn send(&self, data: &[u8]) -> std::io::Result<usize> {
-        self.transmitter.send(data, self)
-    }
-
     pub fn handle_acknowledgment(&self, acknowledgment_number: u32) {
         self.transmitter.handle_acknowledgment(acknowledgment_number);
     }
 
     pub fn send_ack(&self, sequence_number: u32) {
         self.transmitter.send_ack(sequence_number, self);
+    }
+
+    pub fn send(&self, data: &[u8]) -> std::io::Result<usize> {
+        self.transmitter.send(data, self)
+    }
+
+    pub fn send_file(&self, file_path: &str) -> std::io::Result<usize> {
+        let file = fs::read(file_path)?;
+
+        self.transmitter.send(file.as_slice(), self)
     }
 }
