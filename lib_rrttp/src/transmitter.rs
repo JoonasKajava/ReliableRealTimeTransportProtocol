@@ -162,6 +162,7 @@ impl Transmitter {
                 // Send frame
                 info!("Sent frame with sequence number {}. Segment of {}/{}", sequence_number, segments_sent, segments);
                 window.send_frame(frame)?;
+                // TODO: this kind of segment counting fails
                 segments_sent += 1;
 
                 { self.window_frame_statuses.lock().unwrap()[i] = FrameStatus::Sent(Instant::now()); }

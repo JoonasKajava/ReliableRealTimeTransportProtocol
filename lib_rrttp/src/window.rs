@@ -59,7 +59,6 @@ impl Window {
 
     pub fn send_file(&self, file_path: &str) -> std::io::Result<usize> {
         let file = fs::read(file_path)?;
-
         self.transmitter.send(file.as_slice(), self)
     }
 }
