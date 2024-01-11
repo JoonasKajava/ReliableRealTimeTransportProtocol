@@ -1,10 +1,6 @@
 extern crate lib_rrttp;
 
-use std::fs;
 use std::time::SystemTime;
-use log::info;
-use lib_rrttp::window::Window;
-
 
 //noinspection DuplicatedCode
 fn setup_logger() -> Result<(), fern::InitError> {
@@ -29,13 +25,13 @@ const ADDR: &str = "127.0.0.1:54321";
 fn main() {
     setup_logger().expect("Failed to setup logger");
     const REMOTE_ADDR: &str = "127.0.0.1:12345";
-    let client = Window::new(ADDR, REMOTE_ADDR).expect("Failed to bind socket");
-    info!("Client bound to {}", ADDR);
-    info!("Reading data from {}", REMOTE_ADDR);
+    /*    let client = Window::new(ADDR, REMOTE_ADDR).expect("Failed to bind socket");
+        info!("Client bound to {}", ADDR);
+        info!("Reading data from {}", REMOTE_ADDR);
 
-    client.listen().join().unwrap();
+        client.listen().join().unwrap();
 
-    for message in client.incoming_messages() {
-        fs::write("received.gif", message).expect("Failed to write file");
-    }
+        for message in client.incoming_messages() {
+            fs::write("received.gif", message).expect("Failed to write file");
+        }*/
 }

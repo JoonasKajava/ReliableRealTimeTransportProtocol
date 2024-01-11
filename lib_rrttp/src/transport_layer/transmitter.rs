@@ -5,12 +5,12 @@ use std::time::Instant;
 
 use log::{error, info, warn};
 
-use crate::constants::{MAX_DATA_SIZE, TIMEOUT, WINDOW_SIZE};
-use crate::control_bits::ControlBits;
-use crate::frame::Frame;
-use crate::frame_status::FrameStatus;
-use crate::option::{FrameOption, OptionKind};
-use crate::window::Window;
+use crate::transport_layer::constants::{MAX_DATA_SIZE, TIMEOUT, WINDOW_SIZE};
+use crate::transport_layer::control_bits::ControlBits;
+use crate::transport_layer::frame::Frame;
+use crate::transport_layer::frame_status::FrameStatus;
+use crate::transport_layer::option::{FrameOption, OptionKind};
+use crate::transport_layer::window::Window;
 
 pub struct Transmitter {
     /// The smallest sequence number that has been acknowledged.

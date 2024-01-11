@@ -1,11 +1,11 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use std::sync::{Arc, Mutex};
+use std::sync::Mutex;
 use std::time::SystemTime;
 
-use commands::{bind, connect, send_message, send_file};
-use lib_rrttp::window::Window;
+use commands::{bind, connect, send_file, send_message};
+use lib_rrttp::application_layer::connector::Connector;
 
 mod commands;
 
@@ -28,29 +28,25 @@ fn setup_logger() -> Result<(), fern::InitError> {
 
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 
-struct AppState {
-    pub window_state: Mutex<RRTPStateMutex>,
+struct AppStateInner {
+    pub connector: Option<Connector>,
 }
 
-impl Default for AppState {
+struct AppState(Mutex<AppStateInner>);
+
+impl Default for AppStateInner {
     fn default() -> Self {
         Self {
-            window_state: Mutex::new(RRTPStateMutex {
-                window: None,
-            }),
+            connector: None
         }
     }
-}
-
-struct RRTPStateMutex {
-    window: Option<Arc<Window>>,
 }
 
 
 fn main() {
     setup_logger().expect("Failed to setup logger");
     tauri::Builder::default()
-        .manage(AppState::default())
+        .manage(AppState(Mutex::new(AppStateInner::default())))
         .invoke_handler(tauri::generate_handler![bind, connect, send_message, send_file])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

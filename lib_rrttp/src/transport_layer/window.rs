@@ -1,12 +1,12 @@
 use std::fs;
 use std::sync::Arc;
 use std::thread::JoinHandle;
-use crate::constants::MAX_FRAME_SIZE;
+use crate::transport_layer::constants::MAX_FRAME_SIZE;
 
-use crate::frame::Frame;
-use crate::receiver::Receiver;
-use crate::socket::Socket;
-use crate::transmitter::Transmitter;
+use crate::transport_layer::frame::Frame;
+use crate::transport_layer::receiver::Receiver;
+use crate::transport_layer::socket::Socket;
+use crate::transport_layer::transmitter::Transmitter;
 
 pub struct Window {
     transmitter: Transmitter,

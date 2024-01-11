@@ -1,12 +1,5 @@
-pub mod socket;
-pub mod constants;
-pub mod window;
-pub mod frame;
-pub mod control_bits;
-mod option;
-mod frame_status;
-mod transmitter;
-mod receiver;
+mod transport_layer;
+pub mod application_layer;
 
 pub fn add(left: usize, right: usize) -> usize {
     left + right
@@ -14,7 +7,7 @@ pub fn add(left: usize, right: usize) -> usize {
 
 #[cfg(test)]
 mod tests {
-    use crate::socket::Socket;
+    use crate::transport_layer::socket::Socket;
 
     #[test]
     fn bind_socket() {

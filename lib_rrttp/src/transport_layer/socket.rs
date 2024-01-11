@@ -1,6 +1,6 @@
 use std::net::UdpSocket;
 
-use crate::constants::MAX_FRAME_SIZE;
+use crate::transport_layer::constants::MAX_FRAME_SIZE;
 
 pub struct Socket {
     socket: UdpSocket,

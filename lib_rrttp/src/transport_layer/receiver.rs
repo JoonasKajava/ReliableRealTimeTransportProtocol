@@ -1,24 +1,25 @@
-use std::sync::{Arc, Mutex, RwLock};
+use std::sync::{Arc, Mutex};
+use std::sync::atomic::{AtomicU32, Ordering};
 use std::sync::mpsc::{channel, Sender};
 use std::thread;
 use std::thread::JoinHandle;
 
 use log::{error, info};
 
-use crate::constants::MAX_DATA_SIZE;
-use crate::control_bits::ControlBits;
-use crate::frame::Frame;
-use crate::option::{FrameOption, OptionKind};
-use crate::window::Window;
+use crate::transport_layer::constants::MAX_DATA_SIZE;
+use crate::transport_layer::control_bits::ControlBits;
+use crate::transport_layer::frame::Frame;
+use crate::transport_layer::option::{FrameOption, OptionKind};
+use crate::transport_layer::window::Window;
 
 pub struct Receiver {
     /// The earliest sequence number that has not been received.
-    earliest_not_received: Arc<RwLock<u32>>,
+    earliest_not_received: Arc<AtomicU32>,
 
     /// Buffer to store received data.
     read_buffer: Arc<Mutex<Vec<u8>>>,
 
-    /// Channel to send messages to the application layer.
+    /// Channel to send frame data to the application layer in correct order.
     message_sender: Sender<Vec<u8>>,
 }
 
@@ -26,7 +27,7 @@ impl Receiver {
     pub fn new() -> (Self, std::sync::mpsc::Receiver<Vec<u8>>) {
         let (tx, rx) = channel();
         (Self {
-            earliest_not_received: Arc::new(RwLock::new(0)),
+            earliest_not_received: Arc::new(AtomicU32::new(0)),
             read_buffer: Arc::new(Mutex::new(vec![])),
             message_sender: tx,
         }, rx)
@@ -36,13 +37,14 @@ impl Receiver {
     /// When a segment is received, it is stored in a buffer.
     /// When the End-of-Message control bit is received, the buffer is sent using incoming_messages channel.
     pub fn listen(&self, window: Arc<Window>) -> JoinHandle<()> {
-        let earliest_not_received = Arc::clone(&self.earliest_not_received);
         let read_buffer = Arc::clone(&self.read_buffer);
         let channel = self.message_sender.clone();
-
+        let earliest_not_received_clone = self.earliest_not_received.clone();
         info!("Starting listening thread");
 
         thread::spawn(move || {
+
+            let mut eom_sequence_number: Option<u32> = None;
             loop {
                 let (_, buffer, _) = match window.receive() {
                     Ok(data) => data,
@@ -53,9 +55,21 @@ impl Receiver {
                     }
                 };
                 let frame: Frame = buffer.into();
+                let sequence_number = frame.get_sequence_number();
+
+                if let Some(eom_number) = eom_sequence_number {
+                    let i = earliest_not_received_clone.load(Ordering::Relaxed);
+                    info!("Received frame with sequence number {} while waiting for EOM with sequence number {}", sequence_number, eom_number);
+                    if eom_number < i {
+                        Receiver::construct_message(&read_buffer, &channel);
+                        eom_sequence_number = None;
+                        continue;
+                    }
+                }
+
+
                 let control_bits = ControlBits::from_bits(frame.get_control_bits()).expect("Failed to parse control bits");
 
-                let sequence_number = frame.get_sequence_number();
                 if control_bits.contains(ControlBits::ACK) {
                     let acknowledgment_number = frame.get_acknowledgment_number();
                     window.handle_acknowledgment(acknowledgment_number);
@@ -63,7 +77,7 @@ impl Receiver {
                 }
                 window.send_ack(sequence_number);
 
-                Receiver::update_earliest_not_received(&earliest_not_received, sequence_number);
+                Receiver::update_earliest_not_received(&earliest_not_received_clone, sequence_number);
 
                 let mut buffer_offset = 1u32;
 
@@ -85,8 +99,8 @@ impl Receiver {
                 Receiver::insert_data_into_buffer(&read_buffer, buffer_offset, data);
                 info!("Received frame with sequence number {}", sequence_number);
                 if control_bits.contains(ControlBits::EOM) {
+                    eom_sequence_number = Some(sequence_number);
                     info!("Received End-of-Message");
-                    Receiver::construct_message(&read_buffer, &channel);
                 }
             }
         })
@@ -117,10 +131,10 @@ impl Receiver {
 
     /// Updates the earliest_not_received value.
     /// Earliest not received is updated only if the sequence number is the next expected sequence number.
-    fn update_earliest_not_received(earliest_not_received: &Arc<RwLock<u32>>, sequence_number: u32) {
-        let mut earliest_not_received_guard = earliest_not_received.write().unwrap();
-        if sequence_number == *earliest_not_received_guard + 1u32 {
-            *earliest_not_received_guard = sequence_number + 1;
+    fn update_earliest_not_received(earliest_not_received: &Arc<AtomicU32>, sequence_number: u32) {
+        let earliest_not_received_value = earliest_not_received.load(Ordering::Relaxed);
+        if sequence_number == earliest_not_received_value + 1u32 {
+            earliest_not_received.store(sequence_number + 1, Ordering::Relaxed);
         }
     }
 }
