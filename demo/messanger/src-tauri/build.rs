@@ -4,6 +4,6 @@ fn main() {
     Command::new("typeshare")
         .arg("./")
         .arg("--lang=typescript")
-        .arg("--output-file=my_typescript_definitions.ts").status().unwrap();
+        .arg("--output-file=../src/rust_type_definitions.ts").status().unwrap();
     tauri_build::build()
 }
