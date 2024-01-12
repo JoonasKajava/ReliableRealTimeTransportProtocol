@@ -21,6 +21,8 @@ log = "0.4.20"
 fern = "0.6.2"
 humantime = "2.1.0"
 typeshare = "1.0.1"
+bincode = "1.3.3"
+infer = "0.15.0"
 
 [features]
 # this feature is used for production builds or when `devPath` points to the filesystem

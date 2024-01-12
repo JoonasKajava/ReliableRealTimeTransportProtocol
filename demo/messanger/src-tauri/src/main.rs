@@ -7,7 +7,10 @@ use std::time::SystemTime;
 use commands::{bind, connect, send_file, send_message};
 use lib_rrttp::application_layer::connector::Connector;
 
+use crate::models::message_type::MessageType;
+
 mod commands;
+mod models;
 
 fn setup_logger() -> Result<(), fern::InitError> {
     fern::Dispatch::new()
@@ -29,7 +32,7 @@ fn setup_logger() -> Result<(), fern::InitError> {
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 
 struct AppStateInner {
-    pub connector: Option<Connector>,
+    pub connector: Option<Connector<MessageType>>,
 }
 
 struct AppState(Mutex<AppStateInner>);
