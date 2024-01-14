@@ -1,0 +1,12 @@
+\babel@toc {finnish}{}\relax 
+\contentsline {section}{\numberline {1}Johdanto}{1}{}%
+\contentsline {section}{\numberline {2}Verkkosovitin}{1}{}%
+\contentsline {section}{\numberline {3}Verkkopistoke}{1}{}%
+\contentsline {section}{\numberline {4}TCP/IP}{2}{}%
+\contentsline {subsection}{\numberline {4.1}Kuljetuskerros}{2}{}%
+\contentsline {subsection}{\numberline {4.2}Sovelluskerros}{2}{}%
+\contentsline {section}{\numberline {5}UDP}{3}{}%
+\contentsline {section}{\numberline {6}Liukuva ikkuna}{3}{}%
+\contentsline {subsection}{\numberline {6.1}Valikoiva toisto}{3}{}%
+\contentsline {subsection}{\numberline {6.2}Kuittaus}{4}{}%
+\contentsline {section}{\numberline {7}Virheenkorjaus}{4}{}%
