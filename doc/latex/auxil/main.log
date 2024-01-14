@@ -1,0 +1,239 @@
+This is pdfTeX, Version 3.141592653-2.6-1.40.25 (MiKTeX 23.12) (preloaded format=pdflatex 2024.1.14)  14 JAN 2024 20:38
+entering extended mode
+ restricted \write18 enabled.
+ file:line:error style messages enabled.
+ %&-line parsing enabled.
+**./main.tex
+(main.tex
+LaTeX2e <2023-11-01>
+L3 programming layer <2024-01-04>
+(C:\Users\joona\AppData\Local\Programs\MiKTeX\tex/latex/base\article.cls
+Document Class: article 2023/05/17 v1.4n Standard LaTeX document class
+(C:\Users\joona\AppData\Local\Programs\MiKTeX\tex/latex/base\size10.clo
+File: size10.clo 2023/05/17 v1.4n Standard LaTeX file (size option)
+)
+\c@part=\count187
+\c@section=\count188
+\c@subsection=\count189
+\c@subsubsection=\count190
+\c@paragraph=\count191
+\c@subparagraph=\count192
+\c@figure=\count193
+\c@table=\count194
+\abovecaptionskip=\skip48
+\belowcaptionskip=\skip49
+\bibindent=\dimen140
+)
+(C:\Users\joona\AppData\Local\Programs\MiKTeX\tex/generic/babel\babel.sty
+Package: babel 2023/12/10 v3.99 The Babel package
+\babel@savecnt=\count195
+\U@D=\dimen141
+\l@unhyphenated=\language79
+
+(C:\Users\joona\AppData\Local\Programs\MiKTeX\tex/generic/babel\txtbabel.def)
+\bbl@readstream=\read2
+\bbl@dirlevel=\count196
+
+*************************************
+* Local config file bblopts.cfg used
+*
+(C:\Users\joona\AppData\Local\Programs\MiKTeX\tex/latex/arabi\bblopts.cfg
+File: bblopts.cfg 2005/09/08 v0.1 add Arabic and Farsi to "declared" options of
+ babel
+)
+(C:\Users\joona\AppData\Local\Programs\MiKTeX\tex/latex/babel-finnish\finnish.l
+df
+Language: finnish 2021/02/06 v1.3s Finnish support from the babel system
+Package babel Info: Making " an active character on input line 85.
+))
+(C:\Users\joona\AppData\Local\Programs\MiKTeX\tex/generic/babel/locale/fi\babel
+-finnish.tex
+Package babel Info: Importing font and identification data for finnish
+(babel)             from babel-fi.ini. Reported on input line 11.
+)
+(C:\Users\joona\AppData\Local\Programs\MiKTeX\tex/latex/tools\layout.sty
+Package: layout 2023-08-20 v1.2e Show layout parameters
+\oneinch=\count197
+\cnt@paperwidth=\count198
+\cnt@paperheight=\count199
+\cnt@hoffset=\count266
+\cnt@voffset=\count267
+\cnt@textheight=\count268
+\cnt@textwidth=\count269
+\cnt@topmargin=\count270
+\cnt@oddsidemargin=\count271
+\cnt@evensidemargin=\count272
+\cnt@headheight=\count273
+\cnt@headsep=\count274
+\cnt@marginparsep=\count275
+\cnt@marginparwidth=\count276
+\cnt@marginparpush=\count277
+\cnt@footskip=\count278
+\fheight=\count279
+\ref@top=\count280
+\ref@hoffset=\count281
+\ref@voffset=\count282
+\ref@head=\count283
+\ref@body=\count284
+\ref@foot=\count285
+\ref@margin=\count286
+\ref@marginwidth=\count287
+\ref@marginpar=\count288
+\Interval=\count289
+\ExtraYPos=\count290
+\PositionX=\count291
+\PositionY=\count292
+\ArrowLength=\count293
+)
+(C:\Users\joona\AppData\Local\Programs\MiKTeX\tex/latex/eso-pic\showframe.sty
+Package: showframe 2020/10/14 v0.1j showframe (new impl., RN)
+
+(C:\Users\joona\AppData\Local\Programs\MiKTeX\tex/latex/eso-pic\eso-pic.sty
+Package: eso-pic 2023/05/03 v3.0c eso-pic (RN)
+\ESO@tempdima=\dimen142
+\ESO@tempdimb=\dimen143
+
+(C:\Users\joona\AppData\Local\Programs\MiKTeX\tex/latex/graphics\keyval.sty
+Package: keyval 2022/05/29 v1.15 key=value parser (DPC)
+\KV@toks@=\toks17
+)
+(C:\Users\joona\AppData\Local\Programs\MiKTeX\tex/latex/xcolor\xcolor.sty
+Package: xcolor 2023/11/15 v3.01 LaTeX color extensions (UK)
+
+(C:\Users\joona\AppData\Local\Programs\MiKTeX\tex/latex/graphics-cfg\color.cfg
+File: color.cfg 2016/01/02 v1.6 sample color configuration
+)
+Package xcolor Info: Driver file: pdftex.def on input line 274.
+
+(C:\Users\joona\AppData\Local\Programs\MiKTeX\tex/latex/graphics-def\pdftex.def
+File: pdftex.def 2022/09/22 v1.2b Graphics/color driver for pdftex
+)
+(C:\Users\joona\AppData\Local\Programs\MiKTeX\tex/latex/graphics\mathcolor.ltx)
+Package xcolor Info: Model `cmy' substituted by `cmy0' on input line 1350.
+Package xcolor Info: Model `hsb' substituted by `rgb' on input line 1354.
+Package xcolor Info: Model `RGB' extended on input line 1366.
+Package xcolor Info: Model `HTML' substituted by `rgb' on input line 1368.
+Package xcolor Info: Model `Hsb' substituted by `hsb' on input line 1369.
+Package xcolor Info: Model `tHsb' substituted by `hsb' on input line 1370.
+Package xcolor Info: Model `HSB' substituted by `hsb' on input line 1371.
+Package xcolor Info: Model `Gray' substituted by `gray' on input line 1372.
+Package xcolor Info: Model `wave' substituted by `hsb' on input line 1373.
+))
+\SF@tempdima=\dimen144
+)
+(C:\Users\joona\AppData\Local\Programs\MiKTeX\tex/latex/graphics\graphicx.sty
+Package: graphicx 2021/09/16 v1.2d Enhanced LaTeX Graphics (DPC,SPQR)
+
+(C:\Users\joona\AppData\Local\Programs\MiKTeX\tex/latex/graphics\graphics.sty
+Package: graphics 2022/03/10 v1.4e Standard LaTeX Graphics (DPC,SPQR)
+
+(C:\Users\joona\AppData\Local\Programs\MiKTeX\tex/latex/graphics\trig.sty
+Package: trig 2021/08/11 v1.11 sin cos tan (DPC)
+)
+(C:\Users\joona\AppData\Local\Programs\MiKTeX\tex/latex/graphics-cfg\graphics.c
+fg
+File: graphics.cfg 2016/06/04 v1.11 sample graphics configuration
+)
+Package graphics Info: Driver file: pdftex.def on input line 107.
+)
+\Gin@req@height=\dimen145
+\Gin@req@width=\dimen146
+)
+(C:\Users\joona\AppData\Local\Programs\MiKTeX\tex/latex/l3backend\l3backend-pdf
+tex.def
+File: l3backend-pdftex.def 2024-01-04 L3 backend support: PDF output (pdfTeX)
+\l__color_backend_stack_int=\count294
+\l__pdf_internal_box=\box51
+)
+(D:/Projects\ReliableRealTimeTransportProtocol\doc\latex\auxil\main.aux)
+\openout1 = `main.aux'.
+
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 13.
+LaTeX Font Info:    ... okay on input line 13.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 13.
+LaTeX Font Info:    ... okay on input line 13.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 13.
+LaTeX Font Info:    ... okay on input line 13.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 13.
+LaTeX Font Info:    ... okay on input line 13.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 13.
+LaTeX Font Info:    ... okay on input line 13.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 13.
+LaTeX Font Info:    ... okay on input line 13.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 13.
+LaTeX Font Info:    ... okay on input line 13.
+
+(C:\Users\joona\AppData\Local\Programs\MiKTeX\tex/context/base/mkii\supp-pdf.mk
+ii
+[Loading MPS to PDF converter (version 2006.09.02).]
+\scratchcounter=\count295
+\scratchdimen=\dimen147
+\scratchbox=\box52
+\nofMPsegments=\count296
+\nofMParguments=\count297
+\everyMPshowfont=\toks18
+\MPscratchCnt=\count298
+\MPscratchDim=\dimen148
+\MPnumerator=\count299
+\makeMPintoPDFobject=\count300
+\everyMPtoPDFconversion=\toks19
+)
+(C:\Users\joona\AppData\Local\Programs\MiKTeX\tex/latex/epstopdf-pkg\epstopdf-b
+ase.sty
+Package: epstopdf-base 2020-01-24 v2.11 Base part for package epstopdf
+Package epstopdf-base Info: Redefining graphics rule for `.eps' on input line 4
+85.
+
+(C:\Users\joona\AppData\Local\Programs\MiKTeX\tex/latex/00miktex\epstopdf-sys.c
+fg
+File: epstopdf-sys.cfg 2021/03/18 v2.0 Configuration of epstopdf for MiKTeX
+))
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <12> on input line 14.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <8> on input line 14.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <6> on input line 14.
+ [1
+
+{C:/Users/joona/AppData/Local/MiKTeX/fonts/map/pdftex/pdftex.map}]
+(D:/Projects\ReliableRealTimeTransportProtocol\doc\latex\auxil\main.bbl
+
+LaTeX Warning: Empty `thebibliography' environment on input line 3.
+
+)
+One-sided document style.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <5> on input line 24.
+[2] (D:/Projects\ReliableRealTimeTransportProtocol\doc\latex\auxil\main.aux)
+ ***********
+LaTeX2e <2023-11-01>
+L3 programming layer <2024-01-04>
+ ***********
+ ) 
+Here is how much of TeX's memory you used:
+ 3112 strings out of 474485
+ 53386 string characters out of 5743734
+ 1944528 words of memory out of 5000000
+ 25390 multiletter control sequences out of 15000+600000
+ 561877 words of font info for 49 fonts, out of 8000000 for 9000
+ 1141 hyphenation exceptions out of 8191
+ 71i,14n,79p,288b,204s stack positions out of 10000i,1000n,20000p,200000b,200000s
+<C:/Users/joona/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/
+cmbx12.pfb><C:/Users/joona/AppData/Local/Programs/MiKTeX/fonts/type1/public/ams
+fonts/cm/cmr10.pfb><C:/Users/joona/AppData/Local/Programs/MiKTeX/fonts/type1/pu
+blic/amsfonts/cm/cmr12.pfb><C:/Users/joona/AppData/Local/Programs/MiKTeX/fonts/
+type1/public/amsfonts/cm/cmr17.pfb><C:/Users/joona/AppData/Local/Programs/MiKTe
+X/fonts/type1/public/amsfonts/cm/cmr5.pfb><C:/Users/joona/AppData/Local/Program
+s/MiKTeX/fonts/type1/public/amsfonts/cm/cmr8.pfb><C:/Users/joona/AppData/Local/
+Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmtt8.pfb><C:/Users/joona/AppDat
+a/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/latxfont/lcircle1.pfb><C:/U
+sers/joona/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/latxfont/l
+ine10.pfb>
+Output written on D:/Projects\ReliableRealTimeTransportProtocol\doc\latex\out\m
+ain.pdf (2 pages, 84763 bytes).
+PDF statistics:
+ 54 PDF objects out of 1000 (max. 8388607)
+ 0 named destinations out of 1000 (max. 500000)
+ 1 words of extra memory for PDF output out of 10000 (max. 10000000)
+

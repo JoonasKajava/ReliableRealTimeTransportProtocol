@@ -9,6 +9,8 @@
 .idea/**/dictionaries
 .idea/**/shelf
 
+doc/latex/.idea
+
 # Word, Excel, PowerPoint editor temp files
 ~*
 
