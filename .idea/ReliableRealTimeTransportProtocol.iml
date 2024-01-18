@@ -10,6 +10,12 @@
       <excludeFolder url="file://$MODULE_DIR$/demo/receiver/target" />
       <excludeFolder url="file://$MODULE_DIR$/demo/sender/target" />
       <excludeFolder url="file://$MODULE_DIR$/demo/messanger/src-tauri/target" />
+      <excludeFolder url="file://$MODULE_DIR$/.idea/sonarlint" />
+      <excludeFolder url="file://$MODULE_DIR$/demo/sender/.idea/sonarlint" />
+      <excludeFolder url="file://$MODULE_DIR$/doc/latex/.idea/sonarlint" />
+      <excludeFolder url="file://$MODULE_DIR$/doc/latex/out" />
+      <excludeFolder url="file://$MODULE_DIR$/lib_rrttp/.idea/sonarlint" />
+      <excludeFolder url="file://$MODULE_DIR$/out" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
