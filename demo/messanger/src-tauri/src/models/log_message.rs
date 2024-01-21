@@ -9,11 +9,14 @@ pub type LogMessageResult = Result<LogSuccessMessage, LogErrorMessage>;
 #[derive(Clone, Serialize, Deserialize)]
 #[serde(tag = "type", content = "content")]
 pub enum LogSuccessMessage {
+    UnknownMessage(String),
     MessageReceived(String),
     MessageSent(String),
     LocalSocketBindSuccess(String),
     ConnectedToRemote(String),
     FileInfoSent(NetworkFileInfo),
+    FileInfoReceived(NetworkFileInfo),
+    ReceivedAcknowledgement,
 }
 
 #[typeshare]

@@ -70,17 +70,19 @@ pub fn send_file_info(file_path: &str, state: State<AppState>) -> LogMessageResu
         file_mime: file_kind.map(|e| e.mime_type().to_string()),
         file_size_in_bytes: file.len() as u32,
     };
-    let bin = bincode::serialize(&file_info).map_err(|e| LogErrorMessage::FileSendError(e.to_string()))?;
+
+    let file_info_clone = file_info.clone();
+    let bin: Result<Vec<u8>, String> = file_info.try_into();
 
     let message = Message {
         message_type: MessageType::FileInfo,
-        payload: bin,
+        payload: bin.map_err(|e| LogErrorMessage::FileSendError(e))?,
     };
 
     let app_state_guard = state.connector_state.lock().unwrap();
     let guard = app_state_guard.connector.as_ref().unwrap();
     return match guard.send(message) {
-        Ok(_) => Ok(LogSuccessMessage::FileInfoSent(file_info)),
+        Ok(_) => Ok(LogSuccessMessage::FileInfoSent(file_info_clone)),
         Err(e) => Err(LogErrorMessage::FileSendError(e.to_string()))
     };
 }

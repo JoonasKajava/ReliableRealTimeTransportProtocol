@@ -4,7 +4,7 @@ use lib_rrttp::application_layer::message::MessageTypeTrait;
 #[derive(Debug, Clone, Copy)]
 pub enum MessageType {
     Message = 0,
-    ReceivedMessage = 1,
+    Acknowledgement = 1,
     FileInfo = 2,
 }
 
@@ -20,7 +20,7 @@ impl From<u8> for MessageType {
     fn from(value: u8) -> Self {
         match value {
             0 => Self::Message,
-            1 => Self::ReceivedMessage,
+            1 => Self::Acknowledgement,
             2 => Self::FileInfo,
             _ => panic!("Unknown request {}", value)
         }

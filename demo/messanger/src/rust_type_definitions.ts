@@ -9,13 +9,16 @@ export interface NetworkFileInfo {
 }
 
 export type LogSuccessMessage =
+	| { type: "UnknownMessage", content: string }
 	| { type: "MessageReceived", content: string }
 	| { type: "MessageSent", content: string }
 	| { type: "LocalSocketBindSuccess", content: string }
 	| { type: "ConnectedToRemote", content: string }
-	| { type: "FileInfoSent", content: NetworkFileInfo };
+	| { type: "FileInfoSent", content: NetworkFileInfo }
+	| { type: "FileInfoReceived", content: NetworkFileInfo }
+	| { type: "ReceivedAcknowledgement", content?: undefined };
 
-export type LogErrorMessage =
+export type LogErrorMessage = 
 	| { type: "MessageSendError", content: string }
 	| { type: "LocalSocketBindFailed", content: string }
 	| { type: "LocalSocketNotBound", content?: undefined }

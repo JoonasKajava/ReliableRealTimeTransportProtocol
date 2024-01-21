@@ -5,7 +5,7 @@ import {useRecoilValue} from "recoil";
 import {connectionStatusState} from "./main.tsx";
 import {useCallback, useState} from "react";
 import {invoke} from "@tauri-apps/api";
-import {LogMessageTitleMap, useLog} from "./RRTPLog.tsx";
+import {useLog} from "./RRTPLog.tsx";
 import {open} from "@tauri-apps/api/dialog";
 import {LogErrorMessage, LogSuccessMessage} from "./rust_type_definitions.ts";
 
@@ -19,9 +19,9 @@ export const RRTPMessageSendingInputs = () => {
 
     const onMessageSendClick = useCallback(() => {
         invoke<LogSuccessMessage>("send_message", {message: message}).then((result) => {
-            setLog(LogMessageTitleMap[result.type], result.content as string);
+            setLog(result);
         }).catch((err: LogErrorMessage) => {
-            setLog(LogMessageTitleMap[err.type], err.content as string)
+            setLog(err);
         });
     }, [setLog, message]);
 
@@ -36,10 +36,10 @@ export const RRTPMessageSendingInputs = () => {
 
 
     const onFileSendClick = useCallback(() => {
-        invoke<LogSuccessMessage>("send_file", {filePath: selectedFile}).then((result) => {
-            setLog(LogMessageTitleMap[result.type], result.content as string);
+        invoke<LogSuccessMessage>("send_file_info", {filePath: selectedFile}).then((result) => {
+            setLog(result);
         }).catch((err: LogErrorMessage) => {
-            setLog(LogMessageTitleMap[err.type], err.content as string)
+            setLog(err);
         });
 
     }, [setLog, selectedFile]);

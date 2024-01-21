@@ -8,7 +8,7 @@ use std::time::SystemTime;
 use log::error;
 use tauri::Manager;
 
-use commands::{bind, connect, send_file, send_message};
+use commands::{bind, connect, send_file, send_file_info, send_message};
 use lib_rrttp::application_layer::connector::Connector;
 
 use crate::models::log_message::LogSuccessMessage;
@@ -82,7 +82,7 @@ fn main() {
             app.manage(app_state);
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![bind, connect, send_message, send_file])
+        .invoke_handler(tauri::generate_handler![bind, connect, send_message, send_file, send_file_info])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

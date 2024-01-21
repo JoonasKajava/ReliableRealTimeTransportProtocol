@@ -16,6 +16,9 @@ export const logState = atom<{ title: string, description: string, timestamp: da
 
 
 export const LogMessageTitleMap: Record<LogSuccessMessage['type'] | LogErrorMessage['type'], string> = {
+    FileInfoReceived: "Received File Info",
+    ReceivedAcknowledgement: "Received Acknowledgment",
+    UnknownMessage: "Unknown Event occurred",
     ConnectedToRemote: "Connected To Remote",
     ConnectionError: "Connection Error",
     FileInfoSent: "Sent File Info",
@@ -25,7 +28,7 @@ export const LogMessageTitleMap: Record<LogSuccessMessage['type'] | LogErrorMess
     LocalSocketNotBound: "Local Socket Not Bound",
     MessageReceived: "Received Message",
     MessageSendError: "Sending Message Failed",
-    MessageSent: "Sent Message",
+    MessageSent: "Sent Message"
 
 
 }
@@ -37,7 +40,7 @@ export const RRTPLog = () => {
 
     useEffect(() => {
         const unlisten = listen<LogSuccessMessage>("log", (event) => {
-            setLog(LogMessageTitleMap[event.payload.type], event.payload.content as string);
+            setLog(event.payload);
         });
         return () => {
             unlisten.then((unlisten) => unlisten());
@@ -58,11 +61,11 @@ export const RRTPLog = () => {
 
 export function useLog() {
     const setLog = useSetRecoilState(logState);
-    return (title: string, description: string) => {
+    return (message: LogSuccessMessage | LogErrorMessage) => {
         setLog((prev) => [{
             timestamp: dayjs(),
-            title,
-            description
+            title: LogMessageTitleMap[message.type],
+            description: JSON.stringify(message.content)
         }, ...prev]);
     }
 }
