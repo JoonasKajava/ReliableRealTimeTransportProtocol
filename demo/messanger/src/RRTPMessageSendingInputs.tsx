@@ -1,12 +1,13 @@
 import {Button, Form, Space, Tag} from "antd";
 import TextArea from "antd/es/input/TextArea";
-import {UploadOutlined, ClockCircleOutlined} from '@ant-design/icons';
+import {ClockCircleOutlined, UploadOutlined} from '@ant-design/icons';
 import {useRecoilValue} from "recoil";
 import {connectionStatusState} from "./main.tsx";
 import {useCallback, useState} from "react";
 import {invoke} from "@tauri-apps/api";
-import {useLog} from "./RRTPLog.tsx";
+import {LogMessageTitleMap, useLog} from "./RRTPLog.tsx";
 import {open} from "@tauri-apps/api/dialog";
+import {LogErrorMessage, LogSuccessMessage} from "./rust_type_definitions.ts";
 
 export const RRTPMessageSendingInputs = () => {
 
@@ -17,10 +18,10 @@ export const RRTPMessageSendingInputs = () => {
     const [selectedFile, setSelectedFile] = useState<null | string>(null)
 
     const onMessageSendClick = useCallback(() => {
-        invoke<string>("send_message", {message: message}).then((result) => {
-            setLog("Message Sent", result);
-        }).catch((err) => {
-            setLog("Sending Message Failed", err);
+        invoke<LogSuccessMessage>("send_message", {message: message}).then((result) => {
+            setLog(LogMessageTitleMap[result.type], result.content as string);
+        }).catch((err: LogErrorMessage) => {
+            setLog(LogMessageTitleMap[err.type], err.content as string)
         });
     }, [setLog, message]);
 
@@ -35,10 +36,10 @@ export const RRTPMessageSendingInputs = () => {
 
 
     const onFileSendClick = useCallback(() => {
-        invoke<string>("send_file", {filePath: selectedFile}).then((result) => {
-            setLog("File Sent", result);
-        }).catch((err) => {
-            setLog("Sending File Failed", err);
+        invoke<LogSuccessMessage>("send_file", {filePath: selectedFile}).then((result) => {
+            setLog(LogMessageTitleMap[result.type], result.content as string);
+        }).catch((err: LogErrorMessage) => {
+            setLog(LogMessageTitleMap[err.type], err.content as string)
         });
 
     }, [setLog, selectedFile]);

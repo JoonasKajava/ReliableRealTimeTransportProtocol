@@ -1,6 +1,8 @@
 use serde::{Deserialize, Serialize};
+use typeshare::typeshare;
 
-#[derive(Serialize, Deserialize, PartialEq)]
+#[derive(Clone, Serialize, Deserialize, PartialEq)]
+#[typeshare]
 pub struct NetworkFileInfo {
     pub file_name: String,
     pub file_mime: Option<String>,

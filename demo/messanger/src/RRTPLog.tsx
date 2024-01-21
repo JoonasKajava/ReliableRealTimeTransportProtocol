@@ -1,11 +1,12 @@
 import {List} from "antd";
 import VirtualList from 'rc-virtual-list';
 import {atom, useRecoilValue, useSetRecoilState} from "recoil";
-import * as dayjs from "dayjs";
+import dayjs from "dayjs";
 import {useEffect} from "react";
 import {listen} from "@tauri-apps/api/event";
 
 import localizedFormat from "dayjs/plugin/localizedFormat";
+import {LogErrorMessage, LogSuccessMessage} from "./rust_type_definitions.ts";
 
 dayjs.extend(localizedFormat)
 export const logState = atom<{ title: string, description: string, timestamp: dayjs.Dayjs }[]>({
@@ -13,6 +14,21 @@ export const logState = atom<{ title: string, description: string, timestamp: da
     default: []
 })
 
+
+export const LogMessageTitleMap: Record<LogSuccessMessage['type'] | LogErrorMessage['type'], string> = {
+    ConnectedToRemote: "Connected To Remote",
+    ConnectionError: "Connection Error",
+    FileInfoSent: "Sent File Info",
+    FileSendError: "Error Sending File",
+    LocalSocketBindFailed: "Binding Local Socket Failed",
+    LocalSocketBindSuccess: "Binding Local Socket Successful",
+    LocalSocketNotBound: "Local Socket Not Bound",
+    MessageReceived: "Received Message",
+    MessageSendError: "Sending Message Failed",
+    MessageSent: "Sent Message",
+
+
+}
 export const RRTPLog = () => {
 
     const log = useRecoilValue(logState);
