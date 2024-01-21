@@ -10,10 +10,6 @@ impl From<ConnectorEvents<MessageType>> for LogSuccessMessage {
                 let network_message = String::from_utf8(message.payload).unwrap_or_else(|e| e.to_string());
                 LogSuccessMessage::MessageReceived(network_message)
             }
-            ConnectorEvents::MessageSent(message) => {
-                let network_message = String::from_utf8(message.payload).unwrap_or_else(|e| e.to_string());
-                LogSuccessMessage::MessageSent(network_message)
-            }
         }
     }
 }

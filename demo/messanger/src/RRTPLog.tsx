@@ -36,8 +36,8 @@ export const RRTPLog = () => {
     const setLog = useLog();
 
     useEffect(() => {
-        const unlisten = listen<string>("message", (event) => {
-            setLog("Message Received", event.payload);
+        const unlisten = listen<LogSuccessMessage>("log", (event) => {
+            setLog(LogMessageTitleMap[event.payload.type], event.payload.content as string);
         });
         return () => {
             unlisten.then((unlisten) => unlisten());

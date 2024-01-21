@@ -2,7 +2,7 @@ import {Button, Form, Input, Space} from "antd";
 import {useRecoilState} from "recoil";
 import {connectionStatusState} from "./main.tsx";
 import {useCallback, useState} from "react";
-import {useLog} from "./RRTPLog.tsx";
+import {LogMessageTitleMap, useLog} from "./RRTPLog.tsx";
 import {invoke} from "@tauri-apps/api";
 import {LogErrorMessage, LogSuccessMessage} from "./rust_type_definitions.ts";
 
@@ -19,17 +19,11 @@ export const RRTPConnectionSettings = () => {
     const onBindClick = useCallback(() => {
 
         invoke<LogSuccessMessage>("bind", {address: localAddress}).then((result) => {
-            if (result.type === "LocalSocketBindSuccess") {
-                setLog("Local Socket Bound", result.content);
-                setConnectionStatus((prev) => ({...prev, local: true}));
-            }
+            setLog(LogMessageTitleMap[result.type], result.content as string);
+            setConnectionStatus((prev) => ({...prev, local: true}));
 
         }).catch((err: LogErrorMessage) => {
-            if (err.type != "LocalSocketBindFailed") {
-                console.error(err);
-                return;
-            }
-            setLog("Local Socket Bind Failed", err.content);
+            setLog(LogMessageTitleMap[err.type], err.content as string);
             setConnectionStatus((prev) => ({...prev, local: false}));
         });
 
@@ -39,18 +33,10 @@ export const RRTPConnectionSettings = () => {
     const onConnectClick = useCallback(() => {
 
         invoke<LogSuccessMessage>("connect", {address: remoteAddress}).then((result) => {
-            if (result.type != "ConnectedToRemote") {
-                console.error(result);
-                return;
-            }
-            setLog("Connection Successful", result.content);
+            setLog(LogMessageTitleMap[result.type], result.content as string);
             setConnectionStatus((prev) => ({...prev, remote: true}));
         }).catch((err: LogErrorMessage) => {
-            if (err.type != "ConnectionError") {
-                console.error(err);
-                return;
-            }
-            setLog("Connection To Remote Failed", err.content);
+            setLog(LogMessageTitleMap[err.type], err.content as string);
             setConnectionStatus((prev) => ({...prev, remote: false}));
         });
 

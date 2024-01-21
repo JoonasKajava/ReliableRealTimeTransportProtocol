@@ -8,7 +8,6 @@ use crate::transport_layer::window::Window;
 #[derive(Debug)]
 pub enum ConnectorEvents<TMessage: MessageTypeTrait> {
     MessageReceived(Message<TMessage>),
-    MessageSent(Message<TMessage>),
 }
 
 pub struct Connector<TMessage: MessageTypeTrait> {
@@ -44,7 +43,6 @@ impl<TMessage: MessageTypeTrait + 'static> Connector<TMessage> {
     }
 
     pub fn send(&self, request: Message<TMessage>) -> std::io::Result<usize> {
-        self.connector_events_sender.send(ConnectorEvents::MessageSent(request.clone())).unwrap();
         let payload = request.consume_udp_data();
         let result = self.window.send(payload.as_slice());
         result
