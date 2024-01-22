@@ -8,7 +8,7 @@ export interface NetworkFileInfo {
 	file_size_in_bytes: number;
 }
 
-export type LogSuccessMessage =
+export type LogSuccessMessage = 
 	| { type: "UnknownMessage", content: string }
 	| { type: "MessageReceived", content: string }
 	| { type: "MessageSent", content: string }
@@ -16,7 +16,10 @@ export type LogSuccessMessage =
 	| { type: "ConnectedToRemote", content: string }
 	| { type: "FileInfoSent", content: NetworkFileInfo }
 	| { type: "FileInfoReceived", content: NetworkFileInfo }
-	| { type: "ReceivedAcknowledgement", content?: undefined };
+	| { type: "ReceivedAcknowledgement", content?: undefined }
+	| { type: "FileRejected", content?: undefined }
+	| { type: "FileAccepted", content?: undefined }
+	| { type: "FileResponseSent", content?: undefined };
 
 export type LogErrorMessage = 
 	| { type: "MessageSendError", content: string }

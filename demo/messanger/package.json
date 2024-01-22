@@ -10,15 +10,17 @@
     "tauri": "tauri"
   },
   "dependencies": {
+    "@react-buddy/ide-toolbox": "^2.4.0",
+    "@react-buddy/palette-antd": "^5.3.0",
     "@tauri-apps/api": "^1.5.2",
+    "ahooks": "^3.7.8",
     "antd": "^5.12.8",
     "dayjs": "^1.11.10",
+    "pretty-bytes": "^6.1.1",
     "rc-virtual-list": "^3.11.3",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "recoil": "^0.7.7",
-    "@react-buddy/ide-toolbox": "^2.4.0",
-    "@react-buddy/palette-antd": "^5.3.0"
+    "recoil": "^0.7.7"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^1.5.8",

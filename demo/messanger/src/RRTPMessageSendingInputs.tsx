@@ -61,7 +61,7 @@ export const RRTPMessageSendingInputs = () => {
                         <Button disabled={!connectionStatus.remote} icon={<UploadOutlined/>}
                                 onClick={onFileSelectClick}>Click
                             to Upload</Button>
-                        <Button disabled={!connectionStatus.remote} type="primary"
+                        <Button disabled={!connectionStatus.remote || !selectedFile} type="primary"
                                 onClick={onFileSendClick}>Send</Button>
                     </Space>
                     <Space>

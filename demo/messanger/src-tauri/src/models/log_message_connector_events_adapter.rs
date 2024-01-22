@@ -19,7 +19,9 @@ impl From<ConnectorEvents<MessageType>> for LogSuccessMessage {
                         };
                         return LogSuccessMessage::FileInfoReceived(network_file_info);
                     }
-                    MessageType::Acknowledgement => LogSuccessMessage::ReceivedAcknowledgement
+                    MessageType::Acknowledgement => LogSuccessMessage::ReceivedAcknowledgement,
+                    MessageType::FileRejected => LogSuccessMessage::FileRejected,
+                    MessageType::FileAccepted => LogSuccessMessage::FileAccepted
                 }
             }
         }

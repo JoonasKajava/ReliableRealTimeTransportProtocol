@@ -11,6 +11,9 @@
   },
   "tauri": {
     "allowlist": {
+      "path": {
+        "all": true
+      },
       "all": false,
       "dialog": {
         "open": true
@@ -40,8 +43,8 @@
         "fullscreen": false,
         "resizable": true,
         "title": "messanger",
-        "width": 800,
-        "height": 600
+        "width": 1200,
+        "height": 800
       }
     ]
   }

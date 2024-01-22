@@ -17,6 +17,10 @@ pub enum LogSuccessMessage {
     FileInfoSent(NetworkFileInfo),
     FileInfoReceived(NetworkFileInfo),
     ReceivedAcknowledgement,
+    FileRejected,
+    FileAccepted,
+    FileResponseSent,
+
 }
 
 #[typeshare]
@@ -28,4 +32,5 @@ pub enum LogErrorMessage {
     LocalSocketNotBound,
     ConnectionError(String),
     FileSendError(String),
+    InvalidFileResponse(String)
 }

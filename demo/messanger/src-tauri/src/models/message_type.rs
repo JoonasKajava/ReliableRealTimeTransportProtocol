@@ -6,6 +6,8 @@ pub enum MessageType {
     Message = 0,
     Acknowledgement = 1,
     FileInfo = 2,
+    FileRejected = 3,
+    FileAccepted = 4,
 }
 
 impl Into<u8> for MessageType {
@@ -22,6 +24,8 @@ impl From<u8> for MessageType {
             0 => Self::Message,
             1 => Self::Acknowledgement,
             2 => Self::FileInfo,
+            3 => Self::FileRejected,
+            4 => Self::FileAccepted,
             _ => panic!("Unknown request {}", value)
         }
     }

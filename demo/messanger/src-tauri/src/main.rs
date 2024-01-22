@@ -8,7 +8,7 @@ use std::time::SystemTime;
 use log::error;
 use tauri::Manager;
 
-use commands::{bind, connect, send_file, send_file_info, send_message};
+use commands::{bind, connect, respond_to_file_info, send_file, send_file_info, send_message};
 use lib_rrttp::application_layer::connector::Connector;
 
 use crate::models::log_message::LogSuccessMessage;
@@ -43,6 +43,7 @@ struct ConnectorState {
 struct AppState {
     pub connector_state: Mutex<ConnectorState>,
     pub log_sender: Sender<LogSuccessMessage>,
+    pub path_to_write_new_file: Mutex<Option<String>>,
 }
 
 impl AppState {
@@ -50,6 +51,7 @@ impl AppState {
         Self {
             connector_state: Default::default(),
             log_sender,
+            path_to_write_new_file: Default::default(),
         }
     }
 }
@@ -82,7 +84,7 @@ fn main() {
             app.manage(app_state);
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![bind, connect, send_message, send_file, send_file_info])
+        .invoke_handler(tauri::generate_handler![bind, connect, send_message, send_file, send_file_info, respond_to_file_info])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

@@ -88,6 +88,31 @@ pub fn send_file_info(file_path: &str, state: State<AppState>) -> LogMessageResu
 }
 
 #[tauri::command]
+pub fn respond_to_file_info(ready: bool, file: &str, state: State<AppState>) -> LogMessageResult {
+    let connector_guard = state.connector_state.lock().unwrap();
+    let guard = connector_guard.connector.as_ref().unwrap();
+    if ready {
+        if Path::new(file).exists() {
+            return Err(LogErrorMessage::InvalidFileResponse("File already exists".to_string()));
+        }
+
+        state.path_to_write_new_file.lock().unwrap().replace(file.to_string());
+    }
+
+    let message = Message {
+        message_type: match ready {
+            true => MessageType::FileAccepted,
+            false => MessageType::FileRejected,
+        },
+        payload: vec![],
+    };
+    return match guard.send(message) {
+        Ok(_) => Ok(LogSuccessMessage::FileResponseSent),
+        Err(e) => Err(LogErrorMessage::InvalidFileResponse(e.to_string()))
+    };
+}
+
+#[tauri::command]
 pub fn send_file(file_path: &str, state: State<AppState>) -> Result<String, String> {
     /*        let mut guard = state.0.lock().unwrap();
             return match &mut guard.connector {
