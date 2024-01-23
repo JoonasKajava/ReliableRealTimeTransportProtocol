@@ -21,7 +21,8 @@ impl From<ConnectorEvents<MessageType>> for LogSuccessMessage {
                     }
                     MessageType::Acknowledgement => LogSuccessMessage::ReceivedAcknowledgement,
                     MessageType::FileRejected => LogSuccessMessage::FileRejected,
-                    MessageType::FileAccepted => LogSuccessMessage::FileAccepted
+                    MessageType::FileAccepted => LogSuccessMessage::FileAccepted,
+                    MessageType::FileData => LogSuccessMessage::FileDataReceived,
                 }
             }
         }

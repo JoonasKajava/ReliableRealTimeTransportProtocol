@@ -4,6 +4,7 @@ import {RRTPStatus} from "./RRTPStatus.tsx";
 import {RRTPConnectionSettings} from "./RRTPConnectionSettings.tsx";
 import {RRTPLog} from "./RRTPLog.tsx";
 import {RRTPMessageSendingInputs} from "./RRTPMessageSendingInputs.tsx";
+import {FileManager} from "./FileManager.tsx";
 
 
 function App() {
@@ -18,6 +19,7 @@ function App() {
         </Row>
         <Row gutter={16} >
             <Col span={12}>
+                <FileManager/>
                 <RRTPLog/>
             </Col>
             <Col span={12}>

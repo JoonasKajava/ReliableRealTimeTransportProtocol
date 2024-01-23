@@ -43,6 +43,7 @@ struct ConnectorState {
 struct AppState {
     pub connector_state: Mutex<ConnectorState>,
     pub log_sender: Sender<LogSuccessMessage>,
+    pub file_to_send: Mutex<Option<String>>,
     pub path_to_write_new_file: Mutex<Option<String>>,
 }
 
@@ -51,6 +52,7 @@ impl AppState {
         Self {
             connector_state: Default::default(),
             log_sender,
+            file_to_send: Default::default(),
             path_to_write_new_file: Default::default(),
         }
     }
@@ -75,16 +77,31 @@ fn main() {
             tauri::async_runtime::spawn(async move {
                 loop {
                     let message = log_receiver.recv().unwrap();
+                    match &message {
+                        LogSuccessMessage::FileRejected => {
+                            handle.state::<AppState>().file_to_send.lock().unwrap().take();
+                        },
+                        LogSuccessMessage::FileAccepted => {
+                            match handle.state::<AppState>().file_to_send.lock().unwrap().take() {
+                                None => {}
+                                Some(file) => {
+                                    let _ = send_file(&file, &handle);
+                                }
+                            }
+                        },
+                        _ => {}
+                    }
                     match handle.emit_all("log", message) {
                         Ok(_) => {}
                         Err(e) => error!("Failed to emit log message: {}", e)
                     }
+
                 }
             });
             app.manage(app_state);
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![bind, connect, send_message, send_file, send_file_info, respond_to_file_info])
+        .invoke_handler(tauri::generate_handler![bind, connect, send_message, send_file_info, respond_to_file_info])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

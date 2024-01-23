@@ -1,7 +1,8 @@
 use std::fs;
 use std::path::Path;
 
-use tauri::State;
+use tauri::{Manager, State};
+use tauri::AppHandle;
 
 use lib_rrttp::application_layer::connector::Connector;
 use lib_rrttp::application_layer::message::Message;
@@ -82,7 +83,11 @@ pub fn send_file_info(file_path: &str, state: State<AppState>) -> LogMessageResu
     let app_state_guard = state.connector_state.lock().unwrap();
     let guard = app_state_guard.connector.as_ref().unwrap();
     return match guard.send(message) {
-        Ok(_) => Ok(LogSuccessMessage::FileInfoSent(file_info_clone)),
+        Ok(_) => {
+            let mut guard = state.file_to_send.lock().unwrap();
+            guard.replace(file_path.to_string());
+            Ok(LogSuccessMessage::FileInfoSent(file_info_clone))
+        }
         Err(e) => Err(LogErrorMessage::FileSendError(e.to_string()))
     };
 }
@@ -112,18 +117,21 @@ pub fn respond_to_file_info(ready: bool, file: &str, state: State<AppState>) -> 
     };
 }
 
-#[tauri::command]
-pub fn send_file(file_path: &str, state: State<AppState>) -> Result<String, String> {
-    /*        let mut guard = state.0.lock().unwrap();
-            return match &mut guard.connector {
-                None => Err("Local socket has not been bound yet".to_string()),
-                Some(connector) => {
-                    match connector.send_file(file_path) {
-                        Ok(_) => Ok(format!("Send file: {}", file_path)),
-                        Err(e) => Err(format!("Failed to send file: {}", e)),
-                    }
-                }
-            };*/
+pub fn send_file(file_path: &str, app_handle: &AppHandle) -> Result<String, String> {
+    let state = app_handle.state::<AppState>();
+    let mut guard = state.connector_state.lock().unwrap();
+    return match &mut guard.connector {
+        None => Err("Local socket has not been bound yet".to_string()),
+        Some(connector) => {
+            let message = Message {
+                message_type: MessageType::FileData,
+                payload: fs::read(file_path).map_err(|e| e.to_string())?,
+            };
 
-    Ok(format!("Connected to remote: "))
+            match connector.send(message) {
+                Ok(_) => Ok(format!("Send file: {}", file_path)),
+                Err(e) => Err(format!("Failed to send file: {}", e)),
+            }
+        }
+    };
 }

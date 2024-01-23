@@ -16,6 +16,7 @@ pub enum LogSuccessMessage {
     ConnectedToRemote(String),
     FileInfoSent(NetworkFileInfo),
     FileInfoReceived(NetworkFileInfo),
+    FileDataReceived,
     ReceivedAcknowledgement,
     FileRejected,
     FileAccepted,
