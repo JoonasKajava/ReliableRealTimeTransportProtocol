@@ -1,17 +1,24 @@
 use std::sync::Arc;
+use std::sync::atomic::AtomicU32;
 use std::sync::mpsc::{Receiver, Sender};
 use std::thread;
+
 use crate::transport_layer::control_bits::ControlBits;
 use crate::transport_layer::frame::Frame;
-use crate::transport_layer::receiving_window_manager::ReceivingWindowManager;
+use crate::transport_layer::receiver_window::ReceiverWindow;
 use crate::transport_layer::socket::Socket;
+use crate::transport_layer::transmitter_window::TransmitterWindow;
+use crate::transport_layer::window_manager::WindowManager;
 
-
-pub enum PacketType {
-    Complete(Frame),
+pub enum ConnectionEventType {
+    ReceivedComplete(Frame),
     // These fragments are always in order
-    Fragment(Frame),
-    Ack,
+    ReceivedFragment(Frame),
+    ReceivedAck(Frame),
+    SentAck(Frame),
+
+    SentComplete(Frame),
+    SentFragment(Frame),
 }
 
 pub struct ConnectionManager {
@@ -19,25 +26,29 @@ pub struct ConnectionManager {
 }
 
 impl ConnectionManager {
-    pub fn start(local_addr: &str) -> std::io::Result<(Self, Receiver<PacketType>)> {
+    pub fn start(local_addr: &str) -> std::io::Result<(Self, Receiver<ConnectionEventType>)> {
         let (message_queue_sender, messages_to_send) = std::sync::mpsc::channel();
 
-        let (incoming_message_sender, incoming_message_receiver) = std::sync::mpsc::channel();
+        let (connection_events_sender, connection_events_receiver) = std::sync::mpsc::channel();
 
         let listen_socket = Arc::new(Socket::bind(local_addr)?);
         let ack_socket = listen_socket.clone();
         let sender_socket = listen_socket.clone();
+
+        let connection_events_sender_receiver = connection_events_sender.clone();
+        let connection_events_sender_transmitter = connection_events_sender.clone();
+
         thread::spawn(move || {
-            let mut receiving_window_manager = ReceivingWindowManager::default();
+            let mut receiving_window_manager: WindowManager<ReceiverWindow> = WindowManager::default();
             loop {
                 receiving_window_manager.shift_all_windows().into_iter().for_each(|(channel_id, fragments_or_message)| {
                     // TODO: Handle incoming messages where they are in order, but k != 0 are not complete
                     for i in fragments_or_message.into_iter() {
                         let packet = match channel_id {
-                            0 => PacketType::Complete(i),
-                            _ => PacketType::Fragment(i),
+                            0 => ConnectionEventType::ReceivedComplete(i),
+                            _ => ConnectionEventType::ReceivedFragment(i),
                         };
-                        incoming_message_sender.send(packet).unwrap();
+                        connection_events_sender_receiver.send(packet).unwrap();
                     }
                 });
 
@@ -54,10 +65,10 @@ impl ConnectionManager {
                 if !control_bits.contains(ControlBits::ACK) {
                     let ack_frame = ConnectionManager::construct_ack_frame(channel_id, sequence_number);
                     ack_socket.send(ack_frame.get_buffer()).unwrap();
-
+                    connection_events_sender_receiver.send(ConnectionEventType::SentAck(frame.clone())).unwrap();
                     receiving_window_manager.handle_incoming_frame(frame);
                 } else {
-                    incoming_message_sender.send(PacketType::Ack).unwrap();
+                    connection_events_sender_receiver.send(ConnectionEventType::ReceivedAck(frame)).unwrap();
                 }
 
 
@@ -66,17 +77,38 @@ impl ConnectionManager {
         });
 
         thread::spawn(move || {
+            let mut sending_window_manager: WindowManager<TransmitterWindow> = WindowManager::default();
+            let mut fragment_channel_id = 1u32;
             loop {
+                sending_window_manager.shift_main_channel_window();
                 let next_message: Vec<u8> = messages_to_send.recv().unwrap();
-                sender_socket.send(next_message.as_slice()).unwrap();
+
+                let data_size = next_message.len();
+
+                if sending_window_manager.needs_fragmentation(data_size) {
+                    // TODO: spawn a thread to send the fragments
+                    let fragment_channel_id_clone = fragment_channel_id;
+                    fragment_channel_id += 1;
+
+                    let connection_events_sender_frag = connection_events_sender_transmitter.clone();
+                    thread::spawn(move || {
+                        let channel_id = fragment_channel_id_clone;
+                        let mut channel = TransmitterWindow::default();
+                        // TODO: Somehow handle acks
+                        channel.handle_outgoing_data(channel_id, next_message, connection_events_sender_frag);
+                    });
+                } else {
+                    // TODO: send message without additional thread
+                }
+
             }
         });
         Ok((Self {
             message_queue: message_queue_sender,
-        }, incoming_message_receiver))
+        }, connection_events_receiver))
     }
 
-    fn construct_ack_frame(channel_id: u8, sequence_number: u32) -> Frame {
+    fn construct_ack_frame(channel_id: u32, sequence_number: u32) -> Frame {
         let mut frame = Frame::default();
         frame.set_sequence_number(sequence_number);
         frame.set_control_bits(ControlBits::ACK.bits());

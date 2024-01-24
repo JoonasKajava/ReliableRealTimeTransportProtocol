@@ -3,8 +3,8 @@ use crate::transport_layer::window::NewWindow;
 
 #[derive(Default)]
 pub struct ReceiverWindow {
-    pub inner_window: NewWindow,
-    pub buffer: Vec<Option<Frame>>,
+    inner_window: NewWindow,
+    buffer: Vec<Option<Frame>>,
 }
 
 
@@ -15,7 +15,7 @@ impl ReceiverWindow {
     }
 
     pub fn is_within_window(&self, sequence_number: u32) -> bool {
-        self.is_within_window(sequence_number)
+        self.inner_window.is_within_window(sequence_number)
     }
 
     pub fn shift_window(&mut self) -> Vec<Frame> {

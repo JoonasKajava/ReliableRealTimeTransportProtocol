@@ -79,7 +79,6 @@ impl Transmitter {
         for _ in 0..3 {
             let mut frame = Frame::default();
             frame.set_sequence_number(0);
-            frame.set_acknowledgment_number(sequence_number);
             frame.set_control_bits(ControlBits::ACK.bits());
             match window.send_frame(frame) {
                 Ok(_) => {
@@ -138,8 +137,6 @@ impl Transmitter {
 
                 frame.set_sequence_number(sequence_number);
 
-
-                frame.set_acknowledgment_number(0);
 
                 if segments_sent == segments {
                     frame.set_control_bits(ControlBits::EOM.bits());

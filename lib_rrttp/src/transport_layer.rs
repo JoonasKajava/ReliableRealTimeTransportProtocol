@@ -8,8 +8,9 @@ pub mod socket;
 pub mod transmitter;
 pub mod window;
 mod connection_manager;
-mod receiving_window_manager;
 mod receiver_window;
+mod transmitter_window;
+mod window_manager;
 
 
 pub trait ExtractUDPData {

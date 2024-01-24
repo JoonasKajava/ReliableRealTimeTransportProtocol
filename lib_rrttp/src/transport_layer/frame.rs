@@ -11,19 +11,18 @@ pub struct Frame {
 }
 
 const SEQUENCE_NUMBER_OCTET: usize = 0;
+const CHANNEL_ID_OCTET: usize = 4;
 
-const CONTROL_BITS_OCTET: usize = 4;
+const CONTROL_BITS_OCTET: usize = 8;
 
-const DATA_OFFSET_OCTET: usize = 4;
+const DATA_OFFSET_OCTET: usize = 8;
 const DATA_OFFSET_OFFSET: usize = 3;
 
-const DATA_LENGTH_OCTET: usize = 4;
+const DATA_LENGTH_OCTET: usize = 8;
 const DATA_LENGTH_OFFSET: usize = 2;
 
-const CHANNEL_ID_OCTET: usize = 4;
-const CHANNEL_ID_OFFSET: usize = 1;
 
-const OPTIONS_OCTET: usize = 8;
+const OPTIONS_OCTET: usize = 12;
 
 
 impl Frame {
@@ -47,12 +46,16 @@ impl Frame {
         self.frame[CONTROL_BITS_OCTET]
     }
 
-    pub fn set_channel_id(&mut self, channel_id: u8) {
-        self.frame[CHANNEL_ID_OCTET + CHANNEL_ID_OFFSET] = channel_id;
+    pub fn set_channel_id(&mut self, channel_id: u32) {
+        let net_channel_id = channel_id.to_be_bytes();
+        self.frame[CHANNEL_ID_OCTET] = net_channel_id[0];
+        self.frame[CHANNEL_ID_OCTET + 1] = net_channel_id[1];
+        self.frame[CHANNEL_ID_OCTET + 2] = net_channel_id[2];
+        self.frame[CHANNEL_ID_OCTET + 3] = net_channel_id[3];
     }
 
-    pub fn get_channel_id(&self) -> u8 {
-        self.frame[CHANNEL_ID_OCTET + CHANNEL_ID_OFFSET]
+    pub fn get_channel_id(&self) -> u32 {
+        u32::from_be_bytes(self.frame[CHANNEL_ID_OCTET..CHANNEL_ID_OCTET + 4].try_into().expect("Failed to convert sequence number to u32"))
     }
 
     pub fn set_options(&mut self, options: &[FrameOption]) {
@@ -64,7 +67,7 @@ impl Frame {
             let len = option.data.len();
             self.frame[start_offset + 1] = len as u8;
             let data_offset = start_offset + 2;
-            self.frame[data_offset..data_offset +len].copy_from_slice(option.data);
+            self.frame[data_offset..data_offset + len].copy_from_slice(option.data);
             self.options_size += 2 + len;
         }
     }
@@ -76,7 +79,7 @@ impl Frame {
         let len = option.data.len();
         self.frame[start_offset + 1] = len as u8;
         let data_offset = start_offset + 2;
-        self.frame[data_offset..data_offset +len].copy_from_slice(option.data);
+        self.frame[data_offset..data_offset + len].copy_from_slice(option.data);
         self.options_size += 2 + len;
     }
 
@@ -91,7 +94,7 @@ impl Frame {
         }
         let mut options_read = 0;
         while options_read < options_size {
-            let kind:OptionKind = OptionKind::from(self.frame[offset]);
+            let kind: OptionKind = OptionKind::from(self.frame[offset]);
             let len = self.frame[offset + 1] as usize;
             let data_offset = offset + 2;
             let data = &self.frame[data_offset..data_offset + len];

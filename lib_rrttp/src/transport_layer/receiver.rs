@@ -71,7 +71,7 @@ impl Receiver {
                 let control_bits = ControlBits::from_bits(frame.get_control_bits()).expect("Failed to parse control bits");
 
                 if control_bits.contains(ControlBits::ACK) {
-                    let acknowledgment_number = frame.get_acknowledgment_number();
+                    let acknowledgment_number = 0;
                     window.handle_acknowledgment(acknowledgment_number);
                     continue;
                 }

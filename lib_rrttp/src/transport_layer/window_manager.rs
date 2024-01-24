@@ -1,17 +1,17 @@
 use std::collections::HashMap;
+use crate::transport_layer::constants::MAX_DATA_SIZE;
 use crate::transport_layer::frame::Frame;
 use crate::transport_layer::receiver_window::ReceiverWindow;
+use crate::transport_layer::transmitter_window::TransmitterWindow;
+
 
 #[derive(Default)]
-pub struct ReceivingWindowManager {
-    // If message channel id is 0, this channel will handle the message
-    main_channel: ReceiverWindow,
-    // If message channel id is not 0, find channel with that id if it exists, if not create it
-    // Then message is completed, send it to application layer and remove channel. Send Remove channel message to other side
-    fragment_channels: HashMap<u8, ReceiverWindow>,
+pub struct WindowManager<TWindow> {
+    main_channel: TWindow,
+    fragment_channels: HashMap<u32, TWindow>,
 }
 
-impl ReceivingWindowManager {
+impl WindowManager<ReceiverWindow> {
     pub fn handle_incoming_frame(&mut self, frame: Frame) {
         if frame.get_channel_id() == 0 {
             self.main_channel.handle_incoming_frame(frame); // main channel
@@ -23,13 +23,22 @@ impl ReceivingWindowManager {
             fragment_channel.handle_incoming_frame(frame);
         }
     }
-
-    pub fn shift_all_windows(&mut self) -> HashMap<u8, Vec<Frame>> {
-        let mut all_shifted_frames: HashMap<u8, Vec<Frame>> = Default::default();
+    pub fn shift_all_windows(&mut self) -> HashMap<u32, Vec<Frame>> {
+        let mut all_shifted_frames: HashMap<u32, Vec<Frame>> = Default::default();
         all_shifted_frames.insert(0, self.main_channel.shift_window());
         for (k, fragment_channel) in self.fragment_channels.iter_mut() {
             all_shifted_frames.insert(*k, fragment_channel.shift_window());
         }
         all_shifted_frames
+    }
+}
+
+impl WindowManager<TransmitterWindow> {
+    pub fn shift_main_channel_window(&mut self) {
+        self.main_channel.shift_window();
+    }
+
+    pub fn needs_fragmentation(&self, data_size: usize) -> bool {
+        data_size > MAX_DATA_SIZE
     }
 }
