@@ -1,8 +1,7 @@
 use crate::transport_layer::constants::{MAX_FRAME_SIZE, MIN_FRAME_SIZE};
-use crate::transport_layer::ExtractUDPData;
 use crate::transport_layer::option::{FrameOption, OptionKind};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Frame {
     frame: [u8; MAX_FRAME_SIZE],
     data_length: usize,
@@ -12,17 +11,19 @@ pub struct Frame {
 }
 
 const SEQUENCE_NUMBER_OCTET: usize = 0;
-const ACKNOWLEDGMENT_NUMBER_OCTET: usize = 4;
 
-const CONTROL_BITS_OCTET: usize = 8;
+const CONTROL_BITS_OCTET: usize = 4;
 
-const DATA_OFFSET_OCTET: usize = 8;
+const DATA_OFFSET_OCTET: usize = 4;
 const DATA_OFFSET_OFFSET: usize = 3;
 
-const DATA_LENGTH_OCTET: usize = 8;
+const DATA_LENGTH_OCTET: usize = 4;
 const DATA_LENGTH_OFFSET: usize = 2;
 
-const OPTIONS_OCTET: usize = 12;
+const CHANNEL_ID_OCTET: usize = 4;
+const CHANNEL_ID_OFFSET: usize = 1;
+
+const OPTIONS_OCTET: usize = 8;
 
 
 impl Frame {
@@ -38,24 +39,20 @@ impl Frame {
         u32::from_be_bytes(self.frame[SEQUENCE_NUMBER_OCTET..SEQUENCE_NUMBER_OCTET + 4].try_into().expect("Failed to convert sequence number to u32"))
     }
 
-    pub fn set_acknowledgment_number(&mut self, acknowledgment_number: u32) {
-        let net_acknowledgment_number = acknowledgment_number.to_be_bytes();
-        self.frame[ACKNOWLEDGMENT_NUMBER_OCTET] = net_acknowledgment_number[0];
-        self.frame[ACKNOWLEDGMENT_NUMBER_OCTET + 1] = net_acknowledgment_number[1];
-        self.frame[ACKNOWLEDGMENT_NUMBER_OCTET + 2] = net_acknowledgment_number[2];
-        self.frame[ACKNOWLEDGMENT_NUMBER_OCTET + 3] = net_acknowledgment_number[3];
-    }
-
-    pub fn get_acknowledgment_number(&self) -> u32 {
-        u32::from_be_bytes(self.frame[ACKNOWLEDGMENT_NUMBER_OCTET..ACKNOWLEDGMENT_NUMBER_OCTET + 4].try_into().expect("Failed to convert acknowledgment number to u32"))
-    }
-
     pub fn set_control_bits(&mut self, control_bits: u8) {
         self.frame[CONTROL_BITS_OCTET] = control_bits;
     }
 
     pub fn get_control_bits(&self) -> u8 {
         self.frame[CONTROL_BITS_OCTET]
+    }
+
+    pub fn set_channel_id(&mut self, channel_id: u8) {
+        self.frame[CHANNEL_ID_OCTET + CHANNEL_ID_OFFSET] = channel_id;
+    }
+
+    pub fn get_channel_id(&self) -> u8 {
+        self.frame[CHANNEL_ID_OCTET + CHANNEL_ID_OFFSET]
     }
 
     pub fn set_options(&mut self, options: &[FrameOption]) {

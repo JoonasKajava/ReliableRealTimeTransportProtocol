@@ -11,7 +11,8 @@ pub enum ConnectorEvents<TMessage: MessageTypeTrait> {
 }
 
 pub struct Connector<TMessage: MessageTypeTrait> {
-    window: Arc<Window>,
+    fast_channel: Arc<Window>,
+    fragment_channel: Vec<Arc<Window>>,
     connector_events_sender: Sender<ConnectorEvents<TMessage>>,
 }
 
@@ -22,8 +23,9 @@ impl<TMessage: MessageTypeTrait + 'static> Connector<TMessage> {
         let new_window = Arc::new(window.0);
         let (sender, receiver) = std::sync::mpsc::channel();
         let connector = Self {
-            window: new_window.clone(),
+            fast_channel: new_window.clone(),
             connector_events_sender: sender,
+            fragment_channel: vec![],
         };
         
 
@@ -44,12 +46,12 @@ impl<TMessage: MessageTypeTrait + 'static> Connector<TMessage> {
 
     pub fn send(&self, request: Message<TMessage>) -> std::io::Result<usize> {
         let payload = request.consume_udp_data();
-        let result = self.window.send(payload.as_slice());
+        let result = self.fast_channel.send(payload.as_slice());
         result
     }
 
     pub fn connect(&self, remote_addr: &str) -> std::io::Result<()> {
-        self.window.connect(remote_addr)
+        self.fast_channel.connect(remote_addr)
     }
 
 }

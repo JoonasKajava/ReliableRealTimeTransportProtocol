@@ -16,6 +16,7 @@ export type LogSuccessMessage =
 	| { type: "ConnectedToRemote", content: string }
 	| { type: "FileInfoSent", content: NetworkFileInfo }
 	| { type: "FileInfoReceived", content: NetworkFileInfo }
+	| { type: "FileDataReceived", content?: undefined }
 	| { type: "ReceivedAcknowledgement", content?: undefined }
 	| { type: "FileRejected", content?: undefined }
 	| { type: "FileAccepted", content?: undefined }
@@ -26,5 +27,6 @@ export type LogErrorMessage =
 	| { type: "LocalSocketBindFailed", content: string }
 	| { type: "LocalSocketNotBound", content?: undefined }
 	| { type: "ConnectionError", content: string }
-	| { type: "FileSendError", content: string };
+	| { type: "FileSendError", content: string }
+	| { type: "InvalidFileResponse", content: string };
 
