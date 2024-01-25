@@ -1,5 +1,5 @@
 use std::sync::mpsc::Sender;
-use crate::transport_layer::connection_manager::ConnectionEventType;
+use crate::transport_layer::connection_manager::{ConnectionEventType, SequenceNumber};
 use crate::transport_layer::frame::Frame;
 use crate::transport_layer::frame_status::FrameStatus;
 use crate::transport_layer::window::NewWindow;
@@ -20,15 +20,24 @@ impl TransmitterWindow {
     }
 
     pub fn shift_window(&mut self) -> usize {
-        self.inner_window.shift_window()
+        let shift_amount = self.inner_window.shift_window();
+        self.window_status.drain(0..shift_amount);
+        shift_amount
     }
 
-    pub fn handle_outgoing_data(&mut self, channel_id: u32, data: Vec<u8>, event_sender: Sender<ConnectionEventType>) {
+    pub fn handle_outgoing_data(&mut self, channel_id: u32, data: Vec<u8>, event_sender: Sender<ConnectionEventType>, ack_receiver: std::sync::mpsc::Receiver<SequenceNumber>) {
         loop {
+
+            for i in ack_receiver.try_iter() {
+                let index = self.inner_window.get_window_index(i);
+                self.window_status[index] = FrameStatus::Acknowledged;
+            }
+
             self.shift_window();
             let test = event_sender.send(ConnectionEventType::ReceivedAck(Frame::default()));
         }
     }
+
 
 
 }

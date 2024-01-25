@@ -1,7 +1,8 @@
-use std::sync::Arc;
-use std::sync::atomic::AtomicU32;
+use std::collections::HashMap;
+use std::sync::{Arc, Mutex};
 use std::sync::mpsc::{Receiver, Sender};
 use std::thread;
+use log::warn;
 
 use crate::transport_layer::control_bits::ControlBits;
 use crate::transport_layer::frame::Frame;
@@ -21,8 +22,12 @@ pub enum ConnectionEventType {
     SentFragment(Frame),
 }
 
+pub type SequenceNumber = u32;
+pub type ChannelId = u32;
+
 pub struct ConnectionManager {
     message_queue: Sender<Vec<u8>>,
+    ack_channel_senders: Arc<Mutex<HashMap<ChannelId, Sender<SequenceNumber>>>>,
 }
 
 impl ConnectionManager {
@@ -32,11 +37,16 @@ impl ConnectionManager {
         let (connection_events_sender, connection_events_receiver) = std::sync::mpsc::channel();
 
         let listen_socket = Arc::new(Socket::bind(local_addr)?);
+
+        let channel_senders_map = Arc::new(Mutex::new(HashMap::<ChannelId, Sender<SequenceNumber>>::new()));
+
         let ack_socket = listen_socket.clone();
         let sender_socket = listen_socket.clone();
 
         let connection_events_sender_receiver = connection_events_sender.clone();
         let connection_events_sender_transmitter = connection_events_sender.clone();
+
+        let channel_senders_map_clone = channel_senders_map.clone();
 
         thread::spawn(move || {
             let mut receiving_window_manager: WindowManager<ReceiverWindow> = WindowManager::default();
@@ -68,6 +78,10 @@ impl ConnectionManager {
                     connection_events_sender_receiver.send(ConnectionEventType::SentAck(frame.clone())).unwrap();
                     receiving_window_manager.handle_incoming_frame(frame);
                 } else {
+                    match channel_senders_map_clone.lock().unwrap().get(&channel_id) {
+                        None => warn!("Received ack for unknown channel {}", channel_id),
+                        Some(s) => s.send(frame.get_sequence_number()).unwrap()
+                    }
                     connection_events_sender_receiver.send(ConnectionEventType::ReceivedAck(frame)).unwrap();
                 }
 
@@ -76,6 +90,7 @@ impl ConnectionManager {
             }
         });
 
+        let channel_senders_for_frag = channel_senders_map.clone();
         thread::spawn(move || {
             let mut sending_window_manager: WindowManager<TransmitterWindow> = WindowManager::default();
             let mut fragment_channel_id = 1u32;
@@ -91,20 +106,25 @@ impl ConnectionManager {
                     fragment_channel_id += 1;
 
                     let connection_events_sender_frag = connection_events_sender_transmitter.clone();
+                    let fragment_channel_senders = channel_senders_for_frag.clone();
                     thread::spawn(move || {
                         let channel_id = fragment_channel_id_clone;
                         let mut channel = TransmitterWindow::default();
+                        let (sender, receiver) = std::sync::mpsc::channel();
+                        {
+                            fragment_channel_senders.lock().unwrap().insert(channel_id, sender);
+                        }
                         // TODO: Somehow handle acks
-                        channel.handle_outgoing_data(channel_id, next_message, connection_events_sender_frag);
+                        channel.handle_outgoing_data(channel_id, next_message, connection_events_sender_frag, receiver);
                     });
                 } else {
                     // TODO: send message without additional thread
                 }
-
             }
         });
         Ok((Self {
             message_queue: message_queue_sender,
+            ack_channel_senders: channel_senders_map,
         }, connection_events_receiver))
     }
 

@@ -22,14 +22,14 @@ impl ReceiverWindow {
         let shift_amount = self.inner_window.shift_window();
         let shifted_frames = self.buffer.drain(0..shift_amount);
 
-        shifted_frames.into_iter().filter_map(|e| e).collect()
+        shifted_frames.into_iter().flatten().collect()
     }
 
     pub fn handle_incoming_frame(&mut self, frame: Frame) {
         if !self.is_within_window(frame.get_sequence_number()) {
             return;
         }
-        let index = (frame.get_sequence_number() - self.inner_window.get_left_edge()) as usize;
+        let index = self.inner_window.get_window_index(frame.get_sequence_number());
         self.buffer[index] = Some(frame);
         self.inner_window.update_frame_status(index)
     }
