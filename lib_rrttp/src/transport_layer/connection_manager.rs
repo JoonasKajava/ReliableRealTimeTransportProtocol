@@ -18,8 +18,9 @@ pub enum ConnectionEventType {
     ReceivedAck(Frame),
     SentAck(Frame),
 
-    SentComplete(Frame),
+    SentSingleComplete(Frame),
     SentFragment(Frame),
+    AllFragmentsSent(ChannelId),
 }
 
 pub type SequenceNumber = u32;
@@ -107,6 +108,8 @@ impl ConnectionManager {
 
                     let connection_events_sender_frag = connection_events_sender_transmitter.clone();
                     let fragment_channel_senders = channel_senders_for_frag.clone();
+
+                    let sender_socket_clone = sender_socket.clone();
                     thread::spawn(move || {
                         let channel_id = fragment_channel_id_clone;
                         let mut channel = TransmitterWindow::default();
@@ -114,8 +117,10 @@ impl ConnectionManager {
                         {
                             fragment_channel_senders.lock().unwrap().insert(channel_id, sender);
                         }
-                        // TODO: Somehow handle acks
-                        channel.handle_outgoing_data(channel_id, next_message, connection_events_sender_frag, receiver);
+
+                        if let Err(e) = channel.send_fragmented_data(channel_id, next_message, connection_events_sender_frag, receiver, sender_socket_clone) {
+                            warn!("Failed to send fragmented data: {:?}", e);
+                        }
                     });
                 } else {
                     // TODO: send message without additional thread

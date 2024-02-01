@@ -83,6 +83,14 @@ impl NewWindow {
         self.window_size = size;
         self.frame_status.resize(size as usize, false);
     }
+
+    pub fn get_window_size(&self) -> u32 {
+        self.window_size
+    }
+
+    pub fn get_window_left_edge(&self) -> u32 {
+        self.window_left_edge
+    }
     
     pub fn get_window_index(&self, sequence_number: SequenceNumber) -> usize {
         (sequence_number - self.window_left_edge) as usize
