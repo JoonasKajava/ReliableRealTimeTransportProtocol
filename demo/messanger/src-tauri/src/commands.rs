@@ -4,7 +4,7 @@ use std::path::Path;
 use tauri::{Manager, State};
 use tauri::AppHandle;
 
-use lib_rrttp::application_layer::connector::Connector;
+use lib_rrttp::application_layer::connection_manager::ConnectionManager;
 use lib_rrttp::application_layer::message::Message;
 
 use crate::AppState;
@@ -14,17 +14,18 @@ use crate::models::network_file_info::NetworkFileInfo;
 
 #[tauri::command]
 pub fn bind(address: &str, state: State<AppState>) -> LogMessageResult {
-    let mut new_connector = Connector::new(address).map_err(|e| LogErrorMessage::LocalSocketBindFailed(e.to_string()))?;
+    let mut connection_manager = ConnectionManager::start(address).map_err(|e| LogErrorMessage::LocalSocketBindFailed(e.to_string()))?;
 
     let sender = state.log_sender.clone();
     std::thread::spawn(move || {
         loop {
-            let message = new_connector.1.recv().unwrap();
+            let message = connection_manager.1.recv().unwrap();
+            
             sender.send(message.into()).unwrap()
         }
     });
     let mut guard = state.connector_state.lock().unwrap();
-    guard.connector = Some(new_connector.0);
+    guard.connector = Some(connection_manager.0);
 
     Ok(LogSuccessMessage::LocalSocketBindSuccess(address.to_string()))
 }

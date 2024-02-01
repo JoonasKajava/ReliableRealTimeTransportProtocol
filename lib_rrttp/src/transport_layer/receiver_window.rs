@@ -18,6 +18,12 @@ impl ReceiverWindow {
         self.inner_window.is_within_window(sequence_number)
     }
 
+    /// Shifts the window and returns the shifted frames.
+    ///
+    /// # Returns
+    ///
+    /// A vector containing the shifted frames in order.
+    ///
     pub fn shift_window(&mut self) -> Vec<Frame> {
         let shift_amount = self.inner_window.shift_window();
         let shifted_frames = self.buffer.drain(0..shift_amount);

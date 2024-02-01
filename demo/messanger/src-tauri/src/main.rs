@@ -9,13 +9,13 @@ use log::error;
 use tauri::Manager;
 
 use commands::{bind, connect, respond_to_file_info, send_file, send_file_info, send_message};
-use lib_rrttp::application_layer::connector::Connector;
+use lib_rrttp::application_layer::connection_manager::ConnectionManager;
 
 use crate::models::log_message::LogSuccessMessage;
-use crate::models::message_type::MessageType;
 
 mod commands;
 mod models;
+mod message;
 
 fn setup_logger() -> Result<(), fern::InitError> {
     fern::Dispatch::new()
@@ -37,7 +37,7 @@ fn setup_logger() -> Result<(), fern::InitError> {
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 
 struct ConnectorState {
-    pub connector: Option<Connector<MessageType>>,
+    pub connector: Option<ConnectionManager>,
 }
 
 struct AppState {

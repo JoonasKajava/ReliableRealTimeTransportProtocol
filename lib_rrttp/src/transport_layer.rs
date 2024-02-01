@@ -3,15 +3,10 @@ pub mod constants;
 pub mod control_bits;
 pub mod frame_status;
 pub mod option;
-pub mod receiver;
 pub mod socket;
-pub mod transmitter;
 pub mod window;
-mod connection_manager;
-mod receiver_window;
-mod transmitter_window;
-mod window_manager;
-mod queue_sender;
+pub(crate) mod receiver_window;
+pub(crate) mod transmitter_window;
 
 
 pub trait ExtractUDPData {

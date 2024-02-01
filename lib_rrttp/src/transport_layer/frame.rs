@@ -11,18 +11,17 @@ pub struct Frame {
 }
 
 const SEQUENCE_NUMBER_OCTET: usize = 0;
-const CHANNEL_ID_OCTET: usize = 4;
 
-const CONTROL_BITS_OCTET: usize = 8;
+const CONTROL_BITS_OCTET: usize = 4;
 
-const DATA_OFFSET_OCTET: usize = 8;
+const DATA_OFFSET_OCTET: usize = 4;
 const DATA_OFFSET_OFFSET: usize = 3;
 
-const DATA_LENGTH_OCTET: usize = 8;
+const DATA_LENGTH_OCTET: usize = 4;
 const DATA_LENGTH_OFFSET: usize = 2;
 
 
-const OPTIONS_OCTET: usize = 12;
+const OPTIONS_OCTET: usize = 8;
 
 
 impl Frame {
@@ -44,18 +43,6 @@ impl Frame {
 
     pub fn get_control_bits(&self) -> u8 {
         self.frame[CONTROL_BITS_OCTET]
-    }
-
-    pub fn set_channel_id(&mut self, channel_id: u32) {
-        let net_channel_id = channel_id.to_be_bytes();
-        self.frame[CHANNEL_ID_OCTET] = net_channel_id[0];
-        self.frame[CHANNEL_ID_OCTET + 1] = net_channel_id[1];
-        self.frame[CHANNEL_ID_OCTET + 2] = net_channel_id[2];
-        self.frame[CHANNEL_ID_OCTET + 3] = net_channel_id[3];
-    }
-
-    pub fn get_channel_id(&self) -> u32 {
-        u32::from_be_bytes(self.frame[CHANNEL_ID_OCTET..CHANNEL_ID_OCTET + 4].try_into().expect("Failed to convert sequence number to u32"))
     }
 
     pub fn set_options(&mut self, options: &[FrameOption]) {

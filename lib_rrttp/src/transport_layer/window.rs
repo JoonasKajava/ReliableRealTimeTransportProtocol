@@ -1,69 +1,4 @@
-use std::fs;
-use std::sync::Arc;
-use std::thread::JoinHandle;
-use crate::transport_layer::connection_manager::SequenceNumber;
-use crate::transport_layer::constants::MAX_FRAME_SIZE;
-
-use crate::transport_layer::frame::Frame;
-use crate::transport_layer::receiver::Receiver;
-use crate::transport_layer::socket::Socket;
-use crate::transport_layer::transmitter::Transmitter;
-
-pub struct Window {
-    transmitter: Transmitter,
-
-    socket: Socket,
-
-    receiver: Receiver,
-
-}
-
-impl Window {
-    pub fn new(local_addr: &str) -> std::io::Result<(Window, std::sync::mpsc::Receiver<Vec<u8>>)> {
-        let socket = Socket::bind(local_addr)?;
-        let transmitter = Transmitter::new();
-        let receiver = Receiver::new();
-        Ok((Self {
-            socket,
-            transmitter,
-            receiver: receiver.0,
-        }, receiver.1))
-    }
-
-    pub fn listen(window: Arc<Window>) -> JoinHandle<()> {
-        window.receiver.listen(window.clone())
-    }
-
-    pub fn receive(&self) -> std::io::Result<(usize, [u8; MAX_FRAME_SIZE], std::net::SocketAddr)> {
-        self.socket.receive()
-    }
-
-    pub fn connect(&self, addr: &str) -> std::io::Result<()> {
-        self.socket.connect(addr)
-    }
-
-    pub fn send_frame(&self, frame: Frame) -> std::io::Result<usize> {
-        self.socket.send(frame.get_buffer())
-    }
-
-    pub fn handle_acknowledgment(&self, acknowledgment_number: u32) {
-        self.transmitter.handle_acknowledgment(acknowledgment_number);
-    }
-
-    pub fn send_ack(&self, sequence_number: u32) {
-        self.transmitter.send_ack(sequence_number, self);
-    }
-
-    pub fn send(&self, data: &[u8]) -> std::io::Result<usize> {
-        self.transmitter.send(data, self)
-    }
-
-    pub fn send_file(&self, file_path: &str) -> std::io::Result<usize> {
-        let file = fs::read(file_path)?;
-        self.transmitter.send(file.as_slice(), self)
-    }
-}
-
+use crate::application_layer::connection_manager::SequenceNumber;
 
 #[derive(Default)]
 pub struct NewWindow {
@@ -108,7 +43,6 @@ impl NewWindow {
         self.frame_status.drain(0..shift_amount);
         self.window_left_edge += shift_amount as u32;
         shift_amount
-        //TODO Here we should send the messages in order to the application WHEN IN CONTEXT OF MAIN CHANNEL
     }
 
     pub fn is_within_window(&self, sequence_number: u32) -> bool {
@@ -123,6 +57,7 @@ impl NewWindow {
 #[cfg(test)]
 mod tests {
     use super::*;
+
     #[test]
     fn no_shift_when_frame_status_empty() {
         let mut window = NewWindow {
