@@ -4,7 +4,9 @@ use std::path::Path;
 use tauri::AppHandle;
 use tauri::{Manager, State};
 
-use lib_rrttp::application_layer::connection_manager::ConnectionManager;
+use lib_rrttp::application_layer::connection_manager::{
+    ConnectionManager, ConnectionManagerInterface,
+};
 use lib_rrttp::application_layer::message::Message;
 
 use crate::models::log_message::{LogErrorMessage, LogMessageResult, LogSuccessMessage};
@@ -14,12 +16,16 @@ use crate::AppState;
 
 #[tauri::command]
 pub fn bind(address: &str, state: State<AppState>) -> LogMessageResult {
-    let (connection_manager, message_receiver, message_sender) = ConnectionManager::start(address)
+    let ConnectionManagerInterface {
+        connection_manager,
+        connection_events,
+        message_sender,
+    } = ConnectionManager::start(address)
         .map_err(|e| LogErrorMessage::LocalSocketBindFailed(e.to_string()))?;
 
     let sender = state.log_sender.clone();
     std::thread::spawn(move || loop {
-        let message = message_receiver.recv().unwrap();
+        let message: Message<MessageType> = connection_events.recv().unwrap().into();
 
         sender.send(message.into()).unwrap()
     });
@@ -56,7 +62,7 @@ pub fn send_message(message: &str, state: State<AppState>) -> LogMessageResult {
                 message_type: MessageType::Message,
                 payload: message.as_bytes().to_vec(),
             };
-            match connector.send(payload) {
+            match connector.send(payload.into()) {
                 Ok(_) => Ok(LogSuccessMessage::MessageSent(message.to_string())),
                 Err(e) => Err(LogErrorMessage::MessageSendError(e.to_string())),
             }
@@ -94,7 +100,7 @@ pub fn send_file_info(file_path: &str, state: State<AppState>) -> LogMessageResu
 
     let app_state_guard = state.connector_state.lock().unwrap();
     let guard = app_state_guard.connector.as_ref().unwrap();
-    return match guard.send(message) {
+    return match guard.send(message.into()) {
         Ok(_) => {
             let mut guard = state.file_to_send.lock().unwrap();
             guard.replace(file_path.to_string());
@@ -129,7 +135,7 @@ pub fn respond_to_file_info(ready: bool, file: &str, state: State<AppState>) -> 
         },
         payload: vec![],
     };
-    return match guard.send(message) {
+    return match guard.send(message.into()) {
         Ok(_) => Ok(LogSuccessMessage::FileResponseSent),
         Err(e) => Err(LogErrorMessage::InvalidFileResponse(e.to_string())),
     };
@@ -146,7 +152,7 @@ pub fn send_file(file_path: &str, app_handle: &AppHandle) -> Result<String, Stri
                 payload: fs::read(file_path).map_err(|e| e.to_string())?,
             };
 
-            match connector.send(message) {
+            match connector.send(message.into()) {
                 Ok(_) => Ok(format!("Send file: {}", file_path)),
                 Err(e) => Err(format!("Failed to send file: {}", e)),
             }

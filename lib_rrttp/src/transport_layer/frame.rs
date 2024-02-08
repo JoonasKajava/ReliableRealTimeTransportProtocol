@@ -1,4 +1,5 @@
 use crate::transport_layer::constants::{MAX_FRAME_SIZE, MIN_FRAME_SIZE};
+use crate::transport_layer::control_bits::ControlBits;
 use crate::transport_layer::option::{FrameOption, OptionKind};
 
 #[derive(Debug, Clone)]
@@ -20,9 +21,7 @@ const DATA_OFFSET_OFFSET: usize = 3;
 const DATA_LENGTH_OCTET: usize = 4;
 const DATA_LENGTH_OFFSET: usize = 2;
 
-
 const OPTIONS_OCTET: usize = 8;
-
 
 impl Frame {
     pub fn set_sequence_number(&mut self, sequence_number: u32) {
@@ -34,7 +33,11 @@ impl Frame {
     }
 
     pub fn get_sequence_number(&self) -> u32 {
-        u32::from_be_bytes(self.frame[SEQUENCE_NUMBER_OCTET..SEQUENCE_NUMBER_OCTET + 4].try_into().expect("Failed to convert sequence number to u32"))
+        u32::from_be_bytes(
+            self.frame[SEQUENCE_NUMBER_OCTET..SEQUENCE_NUMBER_OCTET + 4]
+                .try_into()
+                .expect("Failed to convert sequence number to u32"),
+        )
     }
 
     pub fn set_control_bits(&mut self, control_bits: u8) {
@@ -43,6 +46,20 @@ impl Frame {
 
     pub fn get_control_bits(&self) -> u8 {
         self.frame[CONTROL_BITS_OCTET]
+    }
+
+    pub fn get_frame_type(&self) -> FrameType {
+        let control_bits = ControlBits::from_bits(self.frame[CONTROL_BITS_OCTET]);
+        match control_bits {
+            None => FrameType::Unknown,
+            Some(bits) => {
+                if bits.contains(ControlBits::ACK) {
+                    FrameType::Ack
+                } else {
+                    FrameType::Data
+                }
+            }
+        }
     }
 
     pub fn set_options(&mut self, options: &[FrameOption]) {
@@ -154,4 +171,10 @@ impl From<[u8; MAX_FRAME_SIZE]> for Frame {
             options_size: 0,
         }
     }
+}
+
+pub enum FrameType {
+    Data,
+    Ack,
+    Unknown,
 }

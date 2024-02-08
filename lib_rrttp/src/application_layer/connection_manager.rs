@@ -1,11 +1,11 @@
+use crate::transport_layer::control_bits::ControlBits;
 use std::sync::mpsc::{channel, sync_channel, Receiver, SyncSender};
 use std::sync::Arc;
 use std::thread;
 
-use crate::transport_layer::control_bits::ControlBits;
 use crate::transport_layer::frame::Frame;
 use crate::transport_layer::receiver_window::ReceiverWindow;
-use crate::transport_layer::socket::Socket;
+use crate::transport_layer::socket::{SocketAbstraction, SocketInterface};
 use crate::transport_layer::transmitter_window::TransmitterWindow;
 
 pub enum ConnectionEventType {
@@ -24,26 +24,26 @@ pub type SequenceNumber = u32;
 pub struct ConnectionManager {
     listener_thread: Option<thread::JoinHandle<()>>,
     transmitter_thread: Option<thread::JoinHandle<()>>,
+    socket: Arc<SocketAbstraction>,
+    message_sender: SyncSender<Vec<u8>>,
 }
 
 impl ConnectionManager {
-    pub fn start(
-        local_addr: &str,
-    ) -> std::io::Result<(Self, Receiver<ConnectionEventType>, SyncSender<Vec<u8>>)> {
+    pub fn start(local_addr: &str) -> std::io::Result<ConnectionManagerInterface> {
         let (connection_events_sender, connection_events_receiver) = channel();
 
         let (messages_to_send, messages_to_send_receiver) = sync_channel(100);
 
-        let (ack_sender, ack_receiver) = channel();
-
-        let listen_socket = Arc::new(Socket::bind(local_addr)?);
-
-        let ack_socket = listen_socket.clone();
-        let sender_socket = listen_socket.clone();
+        let SocketInterface {
+            ack_receiver,
+            data_receiver,
+            socket,
+        } = SocketAbstraction::bind(local_addr)?;
 
         let connection_events_sender_receiver = connection_events_sender.clone();
         let connection_events_sender_transmitter = connection_events_sender.clone();
 
+        let socket_for_ack = socket.clone();
         let listener_thread = thread::spawn(move || {
             let mut receiving_window: ReceiverWindow = Default::default();
 
@@ -73,63 +73,49 @@ impl ConnectionManager {
                         }
                     });
 
-                let (size, buffer, addr) = listen_socket.receive().unwrap();
-
-                let frame: Frame = buffer.into();
-
-                let control_bits = ControlBits::from_bits(frame.get_control_bits())
-                    .expect("Failed to parse control bits");
+                let frame: Frame = data_receiver.recv().unwrap();
 
                 let sequence_number = frame.get_sequence_number();
 
-                if !control_bits.contains(ControlBits::ACK) {
-                    let ack_frame = ConnectionManager::construct_ack_frame(sequence_number);
-                    ack_socket.send(ack_frame.get_buffer()).unwrap();
-                    connection_events_sender_receiver
-                        .send(ConnectionEventType::SentAck(frame.clone()))
-                        .unwrap();
-                    receiving_window.handle_incoming_frame(frame);
-                } else {
-                    ack_sender.send(sequence_number).unwrap();
-                    connection_events_sender_receiver
-                        .send(ConnectionEventType::ReceivedAck(frame))
-                        .unwrap();
-                }
-
-                println!("Received {} bytes from {}", size, addr);
+                socket_for_ack.send_ack(sequence_number).unwrap();
+                connection_events_sender_receiver
+                    .send(ConnectionEventType::SentAck(frame.clone()))
+                    .unwrap();
+                receiving_window.handle_incoming_frame(frame);
             }
         });
 
+        let socket_for_transmitter = socket.clone();
         let transmitter_thread = thread::spawn(move || {
             let mut transmitter_window: TransmitterWindow = TransmitterWindow::new(
                 ack_receiver,
                 connection_events_sender_transmitter.clone(),
-                sender_socket,
+                socket_for_transmitter.clone(),
             );
             loop {
-                let next_message: Vec<u8> = messages_to_send_receiver.recv().unwrap();
-
-                transmitter_window.send_message(next_message);
-                connection_events_sender_transmitter
-                    .send(ConnectionEventType::SentMessage)
-                    .unwrap();
+                for i in messages_to_send_receiver.try_iter() {
+                    transmitter_window.append_to_queue(i);
+                }
+                transmitter_window.send_from_queue();
             }
         });
-        Ok((
-            Self {
-                listener_thread: Some(listener_thread),
-                transmitter_thread: Some(transmitter_thread),
-            },
-            connection_events_receiver,
-            messages_to_send,
-        ))
+
+        let connection_manager = Self {
+            listener_thread: Some(listener_thread),
+            transmitter_thread: Some(transmitter_thread),
+            socket,
+            message_sender: messages_to_send.clone(),
+        };
+
+        Ok(ConnectionManagerInterface {
+            connection_manager,
+            connection_events: connection_events_receiver,
+            message_sender: messages_to_send,
+        })
     }
 
-    fn construct_ack_frame(sequence_number: u32) -> Frame {
-        let mut frame = Frame::default();
-        frame.set_sequence_number(sequence_number);
-        frame.set_control_bits(ControlBits::ACK.bits());
-        frame
+    pub fn send(&self, message: Vec<u8>) {
+        self.message_sender.send(message).unwrap();
     }
 }
 
@@ -142,4 +128,16 @@ impl Drop for ConnectionManager {
             x.join().unwrap();
         }
     }
+}
+
+impl ConnectionManager {
+    pub fn socket(&self) -> &SocketAbstraction {
+        &self.socket
+    }
+}
+
+pub struct ConnectionManagerInterface {
+    pub connection_manager: ConnectionManager,
+    pub connection_events: Receiver<ConnectionEventType>,
+    pub message_sender: SyncSender<Vec<u8>>,
 }
