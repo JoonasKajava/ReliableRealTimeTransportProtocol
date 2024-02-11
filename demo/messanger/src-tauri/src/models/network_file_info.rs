@@ -1,14 +1,13 @@
 use serde::{Deserialize, Serialize};
 use typeshare::typeshare;
 
-#[derive(Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Clone, Serialize, Deserialize, PartialEq, Debug)]
 #[typeshare]
 pub struct NetworkFileInfo {
     pub file_name: String,
     pub file_mime: Option<String>,
     pub file_size_in_bytes: u32,
 }
-
 
 impl TryFrom<&[u8]> for NetworkFileInfo {
     type Error = String;

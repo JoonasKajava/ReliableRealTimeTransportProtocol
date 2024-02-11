@@ -1,6 +1,7 @@
 use crate::message::Message;
 use crate::models::log_message::LogSuccessMessage;
 use lib_rrttp::application_layer::connection_manager::ConnectionEventType;
+use log::{error, info};
 use std::sync::mpsc::Sender;
 
 pub struct ConnectionProcessor {
@@ -15,6 +16,7 @@ impl ConnectionProcessor {
 
 impl ConnectionProcessor {
     pub fn process_connection_event(&self, event: ConnectionEventType) {
+        info!("Processing connection event: {:?}", event);
         match event {
             ConnectionEventType::ReceivedFrame(_) => {}
             ConnectionEventType::ReceivedCompleteMessage(message) => self.process_message(message),
@@ -31,9 +33,12 @@ impl ConnectionProcessor {
             Ok(message) => {
                 match message {
                     Message::String(payload) => {
-                        self.log_sender
+                        if let Err(e) = self
+                            .log_sender
                             .send(LogSuccessMessage::MessageReceived(payload))
-                            .unwrap();
+                        {
+                            error!("Error sending log message: {}", e);
+                        }
                     }
                     Message::FileInfo(_) => {}
                     Message::ResponseToFileInfo { .. } => {}

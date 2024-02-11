@@ -1,6 +1,5 @@
-
 /// Timeout in milliseconds, when to stop waiting for a response.
-pub const TIMEOUT: u128 = 10;
+pub const TIMEOUT: u128 = 1000;
 
 /// In bytes
 pub const MAX_DATA_SIZE: usize = 128;
@@ -23,7 +22,12 @@ const MAX_OPTION_COUNT: usize = 2;
 /// In bytes
 pub const MIN_FRAME_SIZE: usize = SEQ_NUM_SIZE + ACK_NUM_SIZE + CONTROL_BITS_SIZE + RESERVED_SIZE;
 /// In bytes
-pub const MAX_FRAME_SIZE: usize = SEQ_NUM_SIZE + ACK_NUM_SIZE + CONTROL_BITS_SIZE + RESERVED_SIZE + ((OPTION_KIND_SIZE + OPTION_LENGTH_SIZE + OPTION_DATA_SIZE) * MAX_OPTION_COUNT) + MAX_DATA_SIZE;
+pub const MAX_FRAME_SIZE: usize = SEQ_NUM_SIZE
+    + ACK_NUM_SIZE
+    + CONTROL_BITS_SIZE
+    + RESERVED_SIZE
+    + ((OPTION_KIND_SIZE + OPTION_LENGTH_SIZE + OPTION_DATA_SIZE) * MAX_OPTION_COUNT)
+    + MAX_DATA_SIZE;
 
 /// How many frames to send before waiting for an ACK
 pub const WINDOW_SIZE: usize = 5000;

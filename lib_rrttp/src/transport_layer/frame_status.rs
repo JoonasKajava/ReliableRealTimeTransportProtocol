@@ -1,8 +1,9 @@
 use std::time::Instant;
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Default)]
 pub enum FrameStatus {
+    #[default]
     NotSent,
     Acknowledged,
-    Sent(Instant)
+    Sent(Instant),
 }

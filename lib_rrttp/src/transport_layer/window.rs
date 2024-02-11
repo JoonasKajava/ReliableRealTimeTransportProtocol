@@ -1,6 +1,5 @@
 use crate::application_layer::connection_manager::SequenceNumber;
 
-#[derive(Default)]
 pub struct NewWindow {
     // TODO: Transmitter should have same kinda stuff, but for tracking time
     frame_status: Vec<bool>,
@@ -8,12 +7,20 @@ pub struct NewWindow {
     window_left_edge: u32,
 }
 
+impl Default for NewWindow {
+    fn default() -> Self {
+        Self {
+            frame_status: vec![],
+            window_size: u32::MAX / 2,
+            window_left_edge: 0,
+        }
+    }
+}
+
 // There should be generic window that handles the frame status and the shifting
 // Then there should be a transmitter and receiver that use the window
 
-
 impl NewWindow {
-
     pub fn set_window_size(&mut self, size: u32) {
         self.window_size = size;
         self.frame_status.resize(size as usize, false);
@@ -26,7 +33,7 @@ impl NewWindow {
     pub fn get_window_left_edge(&self) -> u32 {
         self.window_left_edge
     }
-    
+
     pub fn get_window_index(&self, sequence_number: SequenceNumber) -> usize {
         (sequence_number - self.window_left_edge) as usize
     }
@@ -46,10 +53,15 @@ impl NewWindow {
     }
 
     pub fn is_within_window(&self, sequence_number: u32) -> bool {
-        sequence_number >= self.window_left_edge && sequence_number < self.window_left_edge + self.window_size
+        sequence_number >= self.window_left_edge
+            && sequence_number < self.window_left_edge + self.window_size
     }
 
     pub fn update_frame_status(&mut self, index: usize) {
+        // TODO: There could be a better way to handle this
+        if index < self.frame_status.len() {
+            self.frame_status.resize(index + 1, false);
+        }
         self.frame_status[index] = true;
     }
 }
@@ -100,7 +112,5 @@ mod tests {
 
         assert_eq!(window.window_left_edge, 2);
         assert_eq!(window.frame_status, vec![false, true, false]);
-
     }
 }
-

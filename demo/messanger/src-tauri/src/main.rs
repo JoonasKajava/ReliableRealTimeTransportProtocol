@@ -5,7 +5,7 @@ use std::sync::mpsc::{Receiver, Sender, SyncSender};
 use std::sync::Mutex;
 use std::time::SystemTime;
 
-use log::error;
+use log::{error, info};
 use tauri::Manager;
 
 use commands::{bind, connect, respond_to_file_info, send_file, send_file_info, send_message};
@@ -91,8 +91,10 @@ fn main() {
             let app_state = AppState::new(log_sender);
             let handle = app.handle();
             tauri::async_runtime::spawn(async move {
+                info!("Starting log receiver");
                 loop {
                     let message = log_receiver.recv().unwrap();
+                    info!("Received log message: {:?}", message);
                     match &message {
                         LogSuccessMessage::FileRejected => {
                             handle

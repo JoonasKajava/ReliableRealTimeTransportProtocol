@@ -6,7 +6,7 @@ use crate::models::network_file_info::NetworkFileInfo;
 pub type LogMessageResult = Result<LogSuccessMessage, LogErrorMessage>;
 
 #[typeshare]
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize,Debug)]
 #[serde(tag = "type", content = "content")]
 pub enum LogSuccessMessage {
     UnknownMessage(String),

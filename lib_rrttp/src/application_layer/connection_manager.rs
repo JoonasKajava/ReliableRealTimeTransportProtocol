@@ -1,5 +1,6 @@
 use crate::transport_layer::control_bits::ControlBits;
-use std::sync::mpsc::{channel, sync_channel, Receiver, SyncSender, SendError};
+use log::info;
+use std::sync::mpsc::{channel, sync_channel, Receiver, SendError, SyncSender};
 use std::sync::Arc;
 use std::thread;
 
@@ -8,6 +9,7 @@ use crate::transport_layer::receiver_window::ReceiverWindow;
 use crate::transport_layer::socket::{SocketAbstraction, SocketInterface};
 use crate::transport_layer::transmitter_window::TransmitterWindow;
 
+#[derive(Debug)]
 pub enum ConnectionEventType {
     ReceivedFrame(Frame),
     ReceivedCompleteMessage(Vec<u8>),
@@ -74,7 +76,7 @@ impl ConnectionManager {
                     });
 
                 let frame: Frame = data_receiver.recv().unwrap();
-
+                info!("Received frame: {:?}", frame);
                 let sequence_number = frame.get_sequence_number();
 
                 socket_for_ack.send_ack(sequence_number).unwrap();
@@ -88,7 +90,6 @@ impl ConnectionManager {
         let socket_for_transmitter = socket.clone();
         let transmitter_thread = thread::spawn(move || {
             let mut transmitter_window: TransmitterWindow = TransmitterWindow::new(
-                ack_receiver,
                 connection_events_sender_transmitter.clone(),
                 socket_for_transmitter.clone(),
             );
@@ -114,11 +115,10 @@ impl ConnectionManager {
         })
     }
 
-    
     pub fn connect(&self, addr: &str) -> std::io::Result<()> {
         self.socket.connect(addr)
     }
-    
+
     pub fn send(&self, message: Vec<u8>) -> Result<(), SendError<Vec<u8>>> {
         self.message_sender.send(message)
     }
