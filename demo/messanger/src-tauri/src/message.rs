@@ -12,31 +12,31 @@ impl TryFrom<&[u8]> for Message {
 
     fn try_from(value: &[u8]) -> Result<Self, Self::Error> {
         let message_type = value.get(0).ok_or_else(|| {
-            MessageParsingError::InvalidMessageType("Unable to read message type")
+            MessageParsingError::InvalidMessageType("Unable to read message type".to_string())
         })?;
 
         let payload = value.get(1..).ok_or_else(|| {
-            MessageParsingError::InvalidMessagePayload("Unable to read message payload")
+            MessageParsingError::InvalidMessagePayload("Unable to read message payload".to_string())
         })?;
         match message_type {
             0 => {
                 let payload = String::from_utf8(payload.to_vec())
-                    .map_err(|e| MessageParsingError::InvalidMessagePayload(&e.to_string()))?;
+                    .map_err(|e| MessageParsingError::InvalidMessagePayload(e.to_string()))?;
                 Ok(Self::String(payload))
             }
             1 => {
                 let payload = NetworkFileInfo::try_from(payload)
-                    .map_err(|e| MessageParsingError::InvalidMessagePayload(&e))?;
+                    .map_err(|e| MessageParsingError::InvalidMessagePayload(e))?;
                 Ok(Self::FileInfo(payload))
             }
             2 => {
                 let payload = bincode::deserialize(payload)
-                    .map_err(|e| MessageParsingError::InvalidMessagePayload(&e.to_string()))?;
+                    .map_err(|e| MessageParsingError::InvalidMessagePayload(e.to_string()))?;
                 Ok(Self::ResponseToFileInfo { accepted: payload })
             }
             3 => Ok(Self::FileData(payload.to_vec())),
             _ => Err(MessageParsingError::InvalidMessageType(
-                "Unknown message type",
+                "Unknown message type".to_string(),
             )),
         }
     }
@@ -66,6 +66,6 @@ impl TryInto<Vec<u8>> for Message {
 }
 
 pub enum MessageParsingError {
-    InvalidMessageType(&'static str),
-    InvalidMessagePayload(&'static str),
+    InvalidMessageType(String),
+    InvalidMessagePayload(String),
 }
