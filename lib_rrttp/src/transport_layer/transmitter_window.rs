@@ -94,10 +94,10 @@ impl TransmitterWindow {
             if i == fragments - 1 {
                 frame.set_control_bits(ControlBits::EOM.bits());
             }
-            self.data_queue.push(QueueFrame {
+            self.data_queue.push(Some(QueueFrame {
                 frame,
                 status: FrameStatus::NotSent,
-            });
+            }));
         }
     }
 
@@ -105,7 +105,11 @@ impl TransmitterWindow {
         let window_size = self.get_window_size() as usize;
         let window_left_edge = self.get_window_left_edge();
 
-        for (i, queue_frame) in self.data_queue.iter_mut().take(window_size).enumerate() {
+        for (i, queue_frame_option) in self.data_queue.iter_mut().take(window_size).enumerate() {
+            let queue_frame = match queue_frame_option {
+                Some(frame) => frame,
+                None => continue,
+            };
             let sequence_number = window_left_edge + i as u32 + 1;
             let frame = &mut queue_frame.frame;
             match queue_frame.status {
