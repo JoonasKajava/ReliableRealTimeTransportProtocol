@@ -14,6 +14,7 @@ use lib_rrttp::application_layer::connection_manager::ConnectionManager;
 use crate::models::log_message::LogSuccessMessage;
 
 mod commands;
+mod connection_processor;
 mod message;
 mod models;
 
@@ -72,7 +73,10 @@ impl AppState {
 
 impl Default for ConnectorState {
     fn default() -> Self {
-        Self { connector: None }
+        Self {
+            connector: None,
+            message_sender: None,
+        }
     }
 }
 

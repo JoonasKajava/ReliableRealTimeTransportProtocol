@@ -1,5 +1,5 @@
 use crate::transport_layer::control_bits::ControlBits;
-use std::sync::mpsc::{channel, sync_channel, Receiver, SyncSender};
+use std::sync::mpsc::{channel, sync_channel, Receiver, SyncSender, SendError};
 use std::sync::Arc;
 use std::thread;
 
@@ -114,8 +114,13 @@ impl ConnectionManager {
         })
     }
 
-    pub fn send(&self, message: Vec<u8>) {
-        self.message_sender.send(message).unwrap();
+    
+    pub fn connect(&self, addr: &str) -> std::io::Result<()> {
+        self.socket.connect(addr)
+    }
+    
+    pub fn send(&self, message: Vec<u8>) -> Result<(), SendError<Vec<u8>>> {
+        self.message_sender.send(message)
     }
 }
 

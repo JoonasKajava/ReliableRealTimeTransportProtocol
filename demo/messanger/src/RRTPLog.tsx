@@ -17,6 +17,8 @@ export const logState = atom<{ title: string, description: string, timestamp: da
 
 
 export const LogMessageTitleMap: Record<LogSuccessMessage['type'] | LogErrorMessage['type'], string> = {
+    FileDataReceived: "Received file data from remote",
+    InvalidFileResponse: "Invalid File Response",
     FileAccepted: "Remote Has Accepted Your File",
     FileRejected: "Remote Rejected Your File",
     FileResponseSent: "Sent File Response",

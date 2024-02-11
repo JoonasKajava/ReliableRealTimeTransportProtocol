@@ -5,12 +5,12 @@ use tauri::AppHandle;
 use tauri::{Manager, State};
 
 use lib_rrttp::application_layer::connection_manager::{
-    ConnectionManager, ConnectionManagerInterface,
+    ConnectionEventType, ConnectionManager, ConnectionManagerInterface,
 };
-use lib_rrttp::application_layer::message::Message;
 
+use crate::connection_processor::ConnectionProcessor;
+use crate::message::Message;
 use crate::models::log_message::{LogErrorMessage, LogMessageResult, LogSuccessMessage};
-use crate::models::message_type::MessageType;
 use crate::models::network_file_info::NetworkFileInfo;
 use crate::AppState;
 
@@ -24,10 +24,12 @@ pub fn bind(address: &str, state: State<AppState>) -> LogMessageResult {
         .map_err(|e| LogErrorMessage::LocalSocketBindFailed(e.to_string()))?;
 
     let sender = state.log_sender.clone();
-    std::thread::spawn(move || loop {
-        let message: Message<MessageType> = connection_events.recv().unwrap().into();
 
-        sender.send(message.into()).unwrap()
+    let processor = ConnectionProcessor::new(sender.clone());
+
+    std::thread::spawn(move || loop {
+        let connection_event: ConnectionEventType = connection_events.recv().unwrap();
+        processor.process_connection_event(connection_event);
     });
     let mut guard = state.connector_state.lock().unwrap();
     guard.set_message_sender(message_sender);
@@ -58,11 +60,9 @@ pub fn send_message(message: &str, state: State<AppState>) -> LogMessageResult {
     return match &mut guard.connector {
         None => Err(LogErrorMessage::LocalSocketNotBound),
         Some(connector) => {
-            let payload = Message {
-                message_type: MessageType::Message,
-                payload: message.as_bytes().to_vec(),
-            };
-            match connector.send(payload.into()) {
+            let message_for_network = Message::String(message.to_string());
+            let payload = message_for_network.try_into().unwrap();
+            match connector.send(payload) {
                 Ok(_) => Ok(LogSuccessMessage::MessageSent(message.to_string())),
                 Err(e) => Err(LogErrorMessage::MessageSendError(e.to_string())),
             }
@@ -91,16 +91,15 @@ pub fn send_file_info(file_path: &str, state: State<AppState>) -> LogMessageResu
     };
 
     let file_info_clone = file_info.clone();
-    let bin: Result<Vec<u8>, String> = file_info.try_into();
 
-    let message = Message {
-        message_type: MessageType::FileInfo,
-        payload: bin.map_err(|e| LogErrorMessage::FileSendError(e))?,
-    };
+    let message = Message::FileInfo(file_info);
 
     let app_state_guard = state.connector_state.lock().unwrap();
     let guard = app_state_guard.connector.as_ref().unwrap();
-    return match guard.send(message.into()) {
+    let payload = message
+        .try_into()
+        .map_err(|e| LogErrorMessage::FileSendError(e))?;
+    return match guard.send(payload) {
         Ok(_) => {
             let mut guard = state.file_to_send.lock().unwrap();
             guard.replace(file_path.to_string());
@@ -127,15 +126,12 @@ pub fn respond_to_file_info(ready: bool, file: &str, state: State<AppState>) -> 
             .unwrap()
             .replace(file.to_string());
     }
+    let message = Message::ResponseToFileInfo { accepted: ready };
+    let payload = message
+        .try_into()
+        .map_err(|e| LogErrorMessage::InvalidFileResponse(e))?;
 
-    let message = Message {
-        message_type: match ready {
-            true => MessageType::FileAccepted,
-            false => MessageType::FileRejected,
-        },
-        payload: vec![],
-    };
-    return match guard.send(message.into()) {
+    return match guard.send(payload) {
         Ok(_) => Ok(LogSuccessMessage::FileResponseSent),
         Err(e) => Err(LogErrorMessage::InvalidFileResponse(e.to_string())),
     };
@@ -147,12 +143,11 @@ pub fn send_file(file_path: &str, app_handle: &AppHandle) -> Result<String, Stri
     return match &mut guard.connector {
         None => Err("Local socket has not been bound yet".to_string()),
         Some(connector) => {
-            let message = Message {
-                message_type: MessageType::FileData,
-                payload: fs::read(file_path).map_err(|e| e.to_string())?,
-            };
-
-            match connector.send(message.into()) {
+            let message = Message::FileData(fs::read(file_path).map_err(|e| e.to_string())?);
+            let payload = message
+                .try_into()
+                .map_err(|e| format!("Failed to send file: {}", e))?;
+            match connector.send(payload) {
                 Ok(_) => Ok(format!("Send file: {}", file_path)),
                 Err(e) => Err(format!("Failed to send file: {}", e)),
             }
