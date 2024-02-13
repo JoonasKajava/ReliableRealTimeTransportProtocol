@@ -18,6 +18,10 @@ declare type ManagerState = {
     file: NetworkFileInfo
 } | {
     type: "waiting_for_file_data"
+} | {
+    type: "sending_file"
+} | {
+    type: "receiving_file"
 }
 
 export const fileManagerState = atom<ManagerState>({
@@ -92,7 +96,21 @@ export const FileManager = () => {
                     type="info"
                 />
             </Spin>}
+        {managerState.type === "sending_file" &&
+            <Alert
+                message="File Download Progress"
+                description={<Progress percent={0}/>}
+                type="info"
+            />
+        }
 
+        {managerState.type === "receiving_file" &&
+            <Alert
+                message="File Upload Progress"
+                description={<Progress percent={0}/>}
+                type="info"
+            />
+        }
         {(managerState.type === "incoming_file") &&
             <Modal title={"Incoming File"} open={true} maskClosable={false} closeIcon={false} cancelText={"Reject"}
                    okText={"Accept"}

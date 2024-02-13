@@ -5,7 +5,7 @@ use tauri::AppHandle;
 use tauri::{Manager, State};
 
 use lib_rrttp::application_layer::connection_manager::{
-    ConnectionEventType, ConnectionManager, ConnectionManagerInterface,
+    ConnectionManager, ConnectionManagerInterface,
 };
 
 use crate::connection_processor::ConnectionProcessor;
@@ -25,11 +25,22 @@ pub fn bind(address: &str, state: State<AppState>) -> LogMessageResult {
 
     let sender = state.log_sender.clone();
 
-    let processor = ConnectionProcessor::new(sender.clone());
+    let processor = ConnectionProcessor::new(sender.clone(), state.message_state.clone());
 
     std::thread::spawn(move || loop {
-        let connection_event: ConnectionEventType = connection_events.recv().unwrap();
-        processor.process_connection_event(connection_event);
+        match connection_events.recv() {
+            Ok(connection_event) => {
+                if let Err(error) = processor.process_connection_event(connection_event) {
+                    let _ = sender.send(LogSuccessMessage::Error(error.to_string()));
+                }
+            }
+            Err(_) => {
+                let _ = sender.send(LogSuccessMessage::Error(
+                    "Connection event receiver has been dropped".to_string(),
+                ));
+                break;
+            }
+        }
     });
     let mut guard = state.connector_state.lock().unwrap();
     guard.set_message_sender(message_sender);
@@ -101,8 +112,8 @@ pub fn send_file_info(file_path: &str, state: State<AppState>) -> LogMessageResu
         .map_err(|e| LogErrorMessage::FileSendError(e))?;
     return match guard.send(payload) {
         Ok(_) => {
-            let mut guard = state.file_to_send.lock().unwrap();
-            guard.replace(file_path.to_string());
+            let mut guard = state.message_state.lock().unwrap();
+            guard.file_to_send.replace(file_path.to_string());
             Ok(LogSuccessMessage::FileInfoSent(file_info_clone))
         }
         Err(e) => Err(LogErrorMessage::FileSendError(e.to_string())),
@@ -121,9 +132,10 @@ pub fn respond_to_file_info(ready: bool, file: &str, state: State<AppState>) -> 
         }
 
         state
-            .path_to_write_new_file
+            .message_state
             .lock()
             .unwrap()
+            .path_to_write_new_file
             .replace(file.to_string());
     }
     let message = Message::ResponseToFileInfo { accepted: ready };

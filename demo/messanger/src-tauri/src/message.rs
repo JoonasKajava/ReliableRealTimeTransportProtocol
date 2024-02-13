@@ -1,3 +1,5 @@
+use thiserror::Error;
+
 use crate::models::network_file_info::NetworkFileInfo;
 
 pub enum Message {
@@ -46,7 +48,7 @@ impl TryInto<Vec<u8>> for Message {
     type Error = String;
 
     fn try_into(self) -> Result<Vec<u8>, Self::Error> {
-        let message_type: u32 = match &self {
+        let message_type: u8 = match &self {
             Self::String(_) => 0,
             Self::FileInfo(_) => 1,
             Self::ResponseToFileInfo { accepted: _ } => 2,
@@ -65,7 +67,10 @@ impl TryInto<Vec<u8>> for Message {
     }
 }
 
+#[derive(Error, Debug)]
 pub enum MessageParsingError {
+    #[error("Invalid message type: {0}")]
     InvalidMessageType(String),
+    #[error("Invalid message payload: {0}")]
     InvalidMessagePayload(String),
 }

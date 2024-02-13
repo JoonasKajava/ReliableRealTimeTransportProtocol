@@ -17,6 +17,7 @@ export const logState = atom<{ title: string, description: string, timestamp: da
 
 
 export const LogMessageTitleMap: Record<LogSuccessMessage['type'] | LogErrorMessage['type'], string> = {
+    Error: "Unknown Error",
     FileDataReceived: "Received file data from remote",
     InvalidFileResponse: "Invalid File Response",
     FileAccepted: "Remote Has Accepted Your File",
@@ -53,6 +54,10 @@ export const RRTPLog = () => {
                     type: "incoming_file",
                     file: event.payload.content
                 })
+            } else if (event.payload.type === "FileRejected") {
+                setFileManagerState({type: undefined})
+            } else if (event.payload.type === "FileAccepted") {
+                setFileManagerState({type: "sending_file"})
             }
             setLog(event.payload);
         });

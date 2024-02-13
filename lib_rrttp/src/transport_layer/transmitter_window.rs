@@ -85,6 +85,9 @@ impl TransmitterWindow {
 
         for i in 0..fragments {
             let buffer_shift = (i as usize) * MAX_DATA_SIZE;
+            // TODO: There is something fishy here
+            // Null bytes are being appended to the end of the data
+            // and EOM is not being set correctly
             let buffer_left = data_size - buffer_shift;
 
             let data_lower_bound = buffer_shift;

@@ -57,7 +57,7 @@ impl NewWindow {
     }
 
     pub fn is_within_window(&self, sequence_number: u32) -> bool {
-        sequence_number >= self.window_left_edge
+        sequence_number > self.window_left_edge
             && sequence_number < self.window_left_edge + self.window_size
     }
 

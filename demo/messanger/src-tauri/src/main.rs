@@ -2,7 +2,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use std::sync::mpsc::{Receiver, Sender, SyncSender};
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
 use std::time::SystemTime;
 
 use log::{error, info};
@@ -53,11 +53,15 @@ impl ConnectorState {
     }
 }
 
+#[derive(Default)]
+struct MessageState {
+    pub file_to_send: Option<String>,
+    pub path_to_write_new_file: Option<String>,
+}
 struct AppState {
     pub connector_state: Mutex<ConnectorState>,
     pub log_sender: Sender<LogSuccessMessage>,
-    pub file_to_send: Mutex<Option<String>>,
-    pub path_to_write_new_file: Mutex<Option<String>>,
+    pub message_state: Arc<Mutex<MessageState>>,
 }
 
 impl AppState {
@@ -65,8 +69,7 @@ impl AppState {
         Self {
             connector_state: Default::default(),
             log_sender,
-            file_to_send: Default::default(),
-            path_to_write_new_file: Default::default(),
+            message_state: Default::default(),
         }
     }
 }
@@ -95,21 +98,24 @@ fn main() {
                 loop {
                     let message = log_receiver.recv().unwrap();
                     info!("Received log message: {:?}", message);
+                    // TODO: This will be handled by the connection processor
                     match &message {
                         LogSuccessMessage::FileRejected => {
                             handle
                                 .state::<AppState>()
-                                .file_to_send
+                                .message_state
                                 .lock()
                                 .unwrap()
+                                .file_to_send
                                 .take();
                         }
                         LogSuccessMessage::FileAccepted => {
                             match handle
                                 .state::<AppState>()
-                                .file_to_send
+                                .message_state
                                 .lock()
                                 .unwrap()
+                                .file_to_send
                                 .take()
                             {
                                 None => {}

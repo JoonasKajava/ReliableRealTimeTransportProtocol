@@ -20,7 +20,8 @@ export type LogSuccessMessage =
 	| { type: "ReceivedAcknowledgement", content?: undefined }
 	| { type: "FileRejected", content?: undefined }
 	| { type: "FileAccepted", content?: undefined }
-	| { type: "FileResponseSent", content?: undefined };
+	| { type: "FileResponseSent", content?: undefined }
+	| { type: "Error", content: string };
 
 export type LogErrorMessage = 
 	| { type: "MessageSendError", content: string }
