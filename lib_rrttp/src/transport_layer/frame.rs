@@ -49,7 +49,7 @@ impl Frame {
     }
 
     pub fn get_frame_type(&self) -> FrameType {
-        let control_bits = ControlBits::from_bits(self.frame[CONTROL_BITS_OCTET]);
+        let control_bits = ControlBits::from_bits(self.get_control_bits());
         match control_bits {
             None => FrameType::Unknown,
             Some(bits) => {
@@ -173,6 +173,7 @@ impl From<[u8; MAX_FRAME_SIZE]> for Frame {
     }
 }
 
+#[derive(Debug, PartialEq)]
 pub enum FrameType {
     Data,
     Ack,

@@ -92,6 +92,7 @@ impl ConnectionManager {
             let mut transmitter_window: TransmitterWindow = TransmitterWindow::new(
                 connection_events_sender_transmitter.clone(),
                 socket_for_transmitter.clone(),
+                ack_receiver,
             );
             loop {
                 for i in messages_to_send_receiver.try_iter() {

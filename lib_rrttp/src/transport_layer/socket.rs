@@ -1,9 +1,10 @@
 use std::net::UdpSocket;
 use std::sync::Arc;
 
-use log::error;
+use log::{error, info};
 
 use crate::transport_layer::constants::MAX_FRAME_SIZE;
+use crate::transport_layer::control_bits::ControlBits;
 use crate::transport_layer::frame::{Frame, FrameType};
 
 pub struct SocketAbstraction {
@@ -31,7 +32,9 @@ impl SocketAbstraction {
                         FrameType::Ack => {
                             let _ = ack_sender.send(frame.get_sequence_number());
                         }
-                        _ => {}
+                        _ => {
+                            error!("Unknown frame type");
+                        }
                     }
                 }
                 Err(e) => {
@@ -67,7 +70,7 @@ impl SocketAbstraction {
     pub fn send_ack(&self, sequence_number: u32) -> std::io::Result<usize> {
         let mut frame = Frame::default();
         frame.set_sequence_number(sequence_number);
-        frame.set_control_bits(0b0000_0001);
+        frame.set_control_bits(ControlBits::ACK.bits());
         self.socket.send(frame.get_buffer())
     }
 }

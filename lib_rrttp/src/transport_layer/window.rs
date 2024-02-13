@@ -1,4 +1,5 @@
 use crate::application_layer::connection_manager::SequenceNumber;
+use log::info;
 
 pub struct NewWindow {
     // TODO: Transmitter should have same kinda stuff, but for tracking time
@@ -34,8 +35,11 @@ impl NewWindow {
         self.window_left_edge
     }
 
-    pub fn get_window_index(&self, sequence_number: SequenceNumber) -> usize {
-        (sequence_number - self.window_left_edge) as usize
+    pub fn get_window_index(&self, sequence_number: SequenceNumber) -> Option<usize> {
+        match self.is_within_window(sequence_number) {
+            false => None,
+            true => Some((sequence_number - self.window_left_edge) as usize - 1),
+        }
     }
 
     pub fn shift_window(&mut self) -> usize {
@@ -59,8 +63,10 @@ impl NewWindow {
 
     pub fn update_frame_status(&mut self, index: usize) {
         // TODO: There could be a better way to handle this
-        if index < self.frame_status.len() {
-            self.frame_status.resize(index + 1, false);
+        if index >= self.frame_status.len() {
+            let new_size = index + 1;
+            info!("Resizing frame status to size {}", new_size);
+            self.frame_status.resize(new_size, false);
         }
         self.frame_status[index] = true;
     }

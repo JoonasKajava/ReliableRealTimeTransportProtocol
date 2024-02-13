@@ -25,17 +25,23 @@ pub struct TransmitterWindow {
 
     events_sender: Sender<ConnectionEventType>,
 
+    ack_receiver: Receiver<u32>,
     // For new implementation
     data_queue: Vec<Option<QueueFrame>>,
 }
 
 impl TransmitterWindow {
-    pub fn new(events_sender: Sender<ConnectionEventType>, socket: Arc<SocketAbstraction>) -> Self {
+    pub fn new(
+        events_sender: Sender<ConnectionEventType>,
+        socket: Arc<SocketAbstraction>,
+        receiver: Receiver<u32>,
+    ) -> Self {
         Self {
             inner_window: Default::default(),
             events_sender,
             socket,
             data_queue: vec![],
+            ack_receiver: receiver,
         }
     }
 
@@ -52,14 +58,12 @@ impl TransmitterWindow {
     }
 
     pub fn handle_acknowledgment(&mut self, acknowledgment_number: SequenceNumber) {
-        if !self.is_within_window(acknowledgment_number) {
-            return;
-        }
-        let index = self.inner_window.get_window_index(acknowledgment_number);
-        if let Some(frame_from_queue) = self.data_queue.get_mut(index).unwrap_or(&mut None) {
-            frame_from_queue.status = FrameStatus::Acknowledged;
+        if let Some(index) = self.inner_window.get_window_index(acknowledgment_number) {
+            if let Some(frame_from_queue) = self.data_queue.get_mut(index).unwrap_or(&mut None) {
+                frame_from_queue.status = FrameStatus::Acknowledged;
 
-            self.inner_window.update_frame_status(index);
+                self.inner_window.update_frame_status(index);
+            }
         }
     }
 
@@ -104,6 +108,11 @@ impl TransmitterWindow {
     pub fn send_from_queue(&mut self) {
         let window_size = self.get_window_size() as usize;
         let window_left_edge = self.get_window_left_edge();
+
+        while let Ok(acknowledgment_number) = self.ack_receiver.try_recv() {
+            info!("Received acknowledgment: {}", acknowledgment_number);
+            self.handle_acknowledgment(acknowledgment_number);
+        }
 
         for (i, queue_frame_option) in self.data_queue.iter_mut().take(window_size).enumerate() {
             let queue_frame = match queue_frame_option {
