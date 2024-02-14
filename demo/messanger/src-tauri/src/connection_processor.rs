@@ -31,12 +31,16 @@ impl ConnectionProcessor {
     pub fn process_connection_event(&self, event: ConnectionEventType) -> Result<()> {
         info!("Processing connection event: {:?}", event);
         match event {
-            ConnectionEventType::ReceivedFrame(_) => {}
+            ConnectionEventType::ReceivedFrame(_) => {
+                // TODO: Inform client about file data received
+            }
             ConnectionEventType::ReceivedCompleteMessage(message) => {
                 self.process_message(message)?
             }
             ConnectionEventType::SentMessage => {}
-            ConnectionEventType::SentFrame(_) => {}
+            ConnectionEventType::SentFrame(_) => {
+                // TODO: Inform client about file data sent
+            }
             ConnectionEventType::ReceivedAck(_) => {}
             ConnectionEventType::SentAck(_) => {}
         }
@@ -61,7 +65,9 @@ impl ConnectionProcessor {
                 };
                 self.log_sender.send(log_message)?;
             }
-            Message::FileData(_) => {}
+            Message::FileData(_) => {
+                self.log_sender.send(LogSuccessMessage::FileDataReceived)?;
+            }
         };
         Ok(())
     }

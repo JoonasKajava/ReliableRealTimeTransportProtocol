@@ -79,8 +79,8 @@ impl TransmitterWindow {
 
     pub fn append_to_queue(&mut self, data: impl Into<Vec<u8>>) {
         info!("Appending data to queue");
-        let vec = data.into();
-        let data_size = vec.len();
+        let data_bytes = data.into();
+        let data_size = data_bytes.len();
         let fragments = (data_size as f64 / MAX_DATA_SIZE as f64).ceil() as u32;
 
         for i in 0..fragments {
@@ -93,7 +93,7 @@ impl TransmitterWindow {
             let data_lower_bound = buffer_shift;
             let data_upper_bound = buffer_shift + min(buffer_left, MAX_DATA_SIZE);
 
-            let data_slice = &vec[data_lower_bound..data_upper_bound];
+            let data_slice = &data_bytes[data_lower_bound..data_upper_bound];
 
             let mut frame = Frame::default();
             frame.set_data(data_slice);

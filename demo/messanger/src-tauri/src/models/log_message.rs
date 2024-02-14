@@ -18,8 +18,8 @@ pub enum LogSuccessMessage {
     FileInfoReceived(NetworkFileInfo),
     FileDataReceived,
     ReceivedAcknowledgement,
-    FileRejected,
-    FileAccepted,
+    FileRejected(NetworkFileInfo),
+    FileAccepted(NetworkFileInfo),
     FileResponseSent,
     Error(String),
 }

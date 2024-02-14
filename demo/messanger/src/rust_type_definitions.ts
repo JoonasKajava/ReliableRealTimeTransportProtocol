@@ -18,8 +18,8 @@ export type LogSuccessMessage =
 	| { type: "FileInfoReceived", content: NetworkFileInfo }
 	| { type: "FileDataReceived", content?: undefined }
 	| { type: "ReceivedAcknowledgement", content?: undefined }
-	| { type: "FileRejected", content?: undefined }
-	| { type: "FileAccepted", content?: undefined }
+	| { type: "FileRejected", content: NetworkFileInfo }
+	| { type: "FileAccepted", content: NetworkFileInfo }
 	| { type: "FileResponseSent", content?: undefined }
 	| { type: "Error", content: string };
 
