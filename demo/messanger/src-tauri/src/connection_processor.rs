@@ -37,20 +37,12 @@ impl ConnectionProcessor {
     pub fn process_connection_event(&self, event: ConnectionEventType) -> Result<()> {
         info!("Processing connection event: {:?}", event);
         match event {
-            ConnectionEventType::ReceivedFrame(frame) => {
-                self.log_sender.send(LogSuccessMessage::ReceivedFrame {
-                    len: frame.get_data().len() as u32,
-                })?
-            }
+            ConnectionEventType::ReceivedFrame(_) => {}
             ConnectionEventType::ReceivedCompleteMessage(message) => {
                 self.process_message(message)?
             }
             ConnectionEventType::SentMessage => {}
-            ConnectionEventType::SentFrame(frame) => {
-                self.log_sender.send(LogSuccessMessage::SendFrame {
-                    len: frame.get_data().len() as u32,
-                })?
-            }
+            ConnectionEventType::SentFrame(_) => {}
             ConnectionEventType::ReceivedAck(_) => {}
             ConnectionEventType::SentAck(_) => {}
         }

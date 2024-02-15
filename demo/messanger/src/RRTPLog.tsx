@@ -17,8 +17,6 @@ export const logState = atom<{ title: string, description: string, timestamp: da
 
 
 export const LogMessageTitleMap: Record<LogSuccessMessage['type'] | LogErrorMessage['type'], string> = {
-    SendFrame: "Sent Frame",
-    ReceivedFrame: "Received Frame",
     Error: "Unknown Error",
     FileDataReceived: "Received file data from remote",
     InvalidFileResponse: "Invalid File Response",
@@ -58,31 +56,6 @@ export const RRTPLog = () => {
                         type: "incoming_file",
                         file: event.payload.content
                     })
-                    break;
-                case "FileRejected":
-                    setFileManagerSendingState({type: undefined})
-                    break;
-                case "FileAccepted":
-                    setFileManagerSendingState({type: "sending_file", file: event.payload.content, sentBytes: 0})
-                    break;
-                case "ReceivedFrame":
-                    if (fileManagerReceivingState.type === "receiving_file") {
-                        console.log(fileManagerReceivingState.receivedBytes + event.payload.content.len)
-                        setFileManagerReceivingState({
-                            type: "receiving_file",
-                            file: fileManagerReceivingState.file,
-                            receivedBytes: fileManagerReceivingState.receivedBytes + event.payload.content.len
-                        })
-                    }
-                    break;
-                case "SendFrame":
-                    if (fileManagerSendingState.type === "sending_file") {
-                        setFileManagerSendingState({
-                            type: "sending_file",
-                            file: fileManagerSendingState.file,
-                            sentBytes: fileManagerSendingState.sentBytes + event.payload.content.len
-                        })
-                    }
                     break;
                 default:
                     setLog(event.payload);

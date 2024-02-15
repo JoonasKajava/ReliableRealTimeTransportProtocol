@@ -22,8 +22,6 @@ pub enum LogSuccessMessage {
     FileAccepted(FileMetadata),
     FileResponseSent,
     Error(String),
-    ReceivedFrame { len: u32 },
-    SendFrame { len: u32 },
 }
 
 #[typeshare]

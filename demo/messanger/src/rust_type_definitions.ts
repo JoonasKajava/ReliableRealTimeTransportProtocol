@@ -26,17 +26,7 @@ export type LogSuccessMessage =
 	| { type: "FileRejected", content: FileMetadata }
 	| { type: "FileAccepted", content: FileMetadata }
 	| { type: "FileResponseSent", content?: undefined }
-	| { type: "Error", content: string }
-	| {
-	type: "ReceivedFrame", content: {
-		len: number;
-	}
-}
-	| {
-	type: "SendFrame", content: {
-		len: number;
-	}
-};
+	| { type: "Error", content: string };
 
 export type LogErrorMessage = 
 	| { type: "MessageSendError", content: string }
