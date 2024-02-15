@@ -1,10 +1,10 @@
-import {Alert, Button, Descriptions, Input, Modal, Progress, Space, Spin} from "antd";
+import {Alert, Button, Descriptions, Input, Modal, Progress, Space} from "antd";
 import prettyBytes from "pretty-bytes";
 import {UploadOutlined} from "@ant-design/icons";
 import {useCallback, useEffect, useState} from "react";
 import {open} from "@tauri-apps/api/dialog";
 import {invoke} from "@tauri-apps/api";
-import {LogErrorMessage, LogSuccessMessage, NetworkFileInfo} from "./rust_type_definitions.ts";
+import {FileMetadata, LogErrorMessage, LogSuccessMessage} from "./rust_type_definitions.ts";
 import {downloadDir, join} from "@tauri-apps/api/path";
 import {useAsyncEffect} from "ahooks";
 import {useLog} from "./RRTPLog.tsx";
@@ -13,15 +13,18 @@ import {atom, useRecoilState} from "recoil";
 
 declare type ManagerState = {
     type: undefined
+    file?: undefined
 } | {
     type: "incoming_file"
-    file: NetworkFileInfo
+    file: FileMetadata
 } | {
-    type: "waiting_for_file_data"
+    type: "sending_file",
+    file: FileMetadata
+    sentBytes: number
 } | {
-    type: "sending_file"
-} | {
-    type: "receiving_file"
+    type: "receiving_file",
+    file: FileMetadata,
+    receivedBytes: number
 }
 
 export const fileManagerState = atom<ManagerState>({
@@ -79,23 +82,16 @@ export const FileManager = () => {
             ready: response,
             file: await join(selectedUploadFolder, fileName)
         }).then((result) => {
-            setManagerState({type: "waiting_for_file_data"});
+
+            setManagerState({type: "receiving_file", file: managerState.file, receivedBytes: 0});
             setLog(result);
         }).catch((err: LogErrorMessage) => {
             setLog(err);
         });
-    }, [setLog, selectedUploadFolder, setManagerState, managerState.type])
+    }, [setLog, selectedUploadFolder, setManagerState, managerState.type, managerState.file])
 
 
     return <>
-        {managerState.type === "waiting_for_file_data" &&
-            <Spin tip="Waiting For Remote To Start Uploading">
-                <Alert
-                    message="File Download Progress"
-                    description={<Progress percent={0}/>}
-                    type="info"
-                />
-            </Spin>}
         {managerState.type === "sending_file" &&
             <Alert
                 message="File Download Progress"

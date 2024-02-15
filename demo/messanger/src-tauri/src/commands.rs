@@ -10,8 +10,8 @@ use lib_rrttp::application_layer::connection_manager::{
 
 use crate::connection_processor::ConnectionProcessor;
 use crate::message::Message;
+use crate::models::file_models::{FileInfo, FileMetadata};
 use crate::models::log_message::{LogErrorMessage, LogMessageResult, LogSuccessMessage};
-use crate::models::network_file_info::NetworkFileInfo;
 use crate::AppState;
 
 #[tauri::command]
@@ -25,7 +25,11 @@ pub fn bind(address: &str, state: State<AppState>) -> LogMessageResult {
 
     let sender = state.log_sender.clone();
 
-    let processor = ConnectionProcessor::new(sender.clone(), state.message_state.clone());
+    let processor = ConnectionProcessor::new(
+        sender.clone(),
+        state.message_state.clone(),
+        message_sender.clone(),
+    );
 
     std::thread::spawn(move || loop {
         match connection_events.recv() {
@@ -95,7 +99,7 @@ pub fn send_file_info(file_path: &str, state: State<AppState>) -> LogMessageResu
         .to_string();
     let file_kind = infer::get(&file);
 
-    let file_info = NetworkFileInfo {
+    let file_info = FileMetadata {
         file_name,
         file_mime: file_kind.map(|e| e.mime_type().to_string()),
         file_size_in_bytes: file.len() as u32,
@@ -109,11 +113,15 @@ pub fn send_file_info(file_path: &str, state: State<AppState>) -> LogMessageResu
     let guard = app_state_guard.connector.as_ref().unwrap();
     let payload = message
         .try_into()
-        .map_err(|e| LogErrorMessage::FileSendError(e))?;
+        .map_err(|e: anyhow::Error| LogErrorMessage::FileSendError(e.to_string()))?;
     return match guard.send(payload) {
         Ok(_) => {
             let mut guard = state.message_state.lock().unwrap();
-            guard.file_to_send.replace(file_path.to_string());
+            let file_info = FileInfo {
+                metadata: file_info_clone.clone(),
+                src: Some(file_path.to_string()),
+            };
+            guard.outgoing_file.replace(file_info);
             Ok(LogSuccessMessage::FileInfoSent(file_info_clone))
         }
         Err(e) => Err(LogErrorMessage::FileSendError(e.to_string())),
@@ -131,17 +139,22 @@ pub fn respond_to_file_info(ready: bool, file: &str, state: State<AppState>) -> 
             ));
         }
 
-        state
-            .message_state
-            .lock()
-            .unwrap()
-            .path_to_write_new_file
-            .replace(file.to_string());
+        let mut file_info_guard = state.message_state.lock().unwrap();
+        match &mut file_info_guard.incoming_file {
+            Some(file_info) => {
+                file_info.src = Some(file.to_string());
+            }
+            None => {
+                return Err(LogErrorMessage::InvalidFileResponse(
+                    "No file info to respond to".to_string(),
+                ))
+            }
+        }
     }
     let message = Message::ResponseToFileInfo { accepted: ready };
     let payload = message
         .try_into()
-        .map_err(|e| LogErrorMessage::InvalidFileResponse(e))?;
+        .map_err(|e: anyhow::Error| LogErrorMessage::InvalidFileResponse(e.to_string()))?;
 
     return match guard.send(payload) {
         Ok(_) => Ok(LogSuccessMessage::FileResponseSent),

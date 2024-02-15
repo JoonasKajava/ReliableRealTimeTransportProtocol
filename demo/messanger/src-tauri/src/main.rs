@@ -11,6 +11,7 @@ use tauri::Manager;
 use commands::{bind, connect, respond_to_file_info, send_file, send_file_info, send_message};
 use lib_rrttp::application_layer::connection_manager::ConnectionManager;
 
+use crate::models::file_models::FileInfo;
 use crate::models::log_message::LogSuccessMessage;
 
 mod commands;
@@ -55,9 +56,10 @@ impl ConnectorState {
 
 #[derive(Default)]
 struct MessageState {
-    pub file_to_send: Option<String>,
-    pub path_to_write_new_file: Option<String>,
+    pub outgoing_file: Option<FileInfo>,
+    pub incoming_file: Option<FileInfo>,
 }
+
 struct AppState {
     pub connector_state: Mutex<ConnectorState>,
     pub log_sender: Sender<LogSuccessMessage>,
@@ -98,34 +100,6 @@ fn main() {
                 loop {
                     let message = log_receiver.recv().unwrap();
                     info!("Received log message: {:?}", message);
-                    // TODO: This will be handled by the connection processor
-                    match &message {
-                        LogSuccessMessage::FileRejected => {
-                            handle
-                                .state::<AppState>()
-                                .message_state
-                                .lock()
-                                .unwrap()
-                                .file_to_send
-                                .take();
-                        }
-                        LogSuccessMessage::FileAccepted => {
-                            match handle
-                                .state::<AppState>()
-                                .message_state
-                                .lock()
-                                .unwrap()
-                                .file_to_send
-                                .take()
-                            {
-                                None => {}
-                                Some(file) => {
-                                    let _ = send_file(&file, &handle);
-                                }
-                            }
-                        }
-                        _ => {}
-                    }
                     match handle.emit_all("log", message) {
                         Ok(_) => {}
                         Err(e) => error!("Failed to emit log message: {}", e),

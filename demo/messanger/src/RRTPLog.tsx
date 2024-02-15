@@ -1,6 +1,6 @@
 import {List} from "antd";
 import VirtualList from 'rc-virtual-list';
-import {atom, useRecoilValue, useSetRecoilState} from "recoil";
+import {atom, useRecoilState, useRecoilValue, useSetRecoilState} from "recoil";
 import dayjs from "dayjs";
 import {useEffect} from "react";
 import {listen} from "@tauri-apps/api/event";
@@ -17,6 +17,8 @@ export const logState = atom<{ title: string, description: string, timestamp: da
 
 
 export const LogMessageTitleMap: Record<LogSuccessMessage['type'] | LogErrorMessage['type'], string> = {
+    SendFrame: "Sent Frame",
+    ReceivedFrame: "Received Frame",
     Error: "Unknown Error",
     FileDataReceived: "Received file data from remote",
     InvalidFileResponse: "Invalid File Response",
@@ -43,21 +45,43 @@ export const RRTPLog = () => {
 
     const log = useRecoilValue(logState);
 
-    const setFileManagerState = useSetRecoilState(fileManagerState);
+    const [fileManagerStateValue, setFileManagerState] = useRecoilState(fileManagerState);
 
     const setLog = useLog();
 
     useEffect(() => {
         const unlisten = listen<LogSuccessMessage>("log", (event) => {
-            if (event.payload.type === "FileInfoReceived") {
-                setFileManagerState({
-                    type: "incoming_file",
-                    file: event.payload.content
-                })
-            } else if (event.payload.type === "FileRejected") {
-                setFileManagerState({type: undefined})
-            } else if (event.payload.type === "FileAccepted") {
-                setFileManagerState({type: "sending_file"})
+            switch (event.payload.type) {
+                case "FileInfoReceived":
+                    setFileManagerState({
+                        type: "incoming_file",
+                        file: event.payload.content
+                    })
+                    break;
+                case "FileRejected":
+                    setFileManagerState({type: undefined})
+                    break;
+                case "FileAccepted":
+                    setFileManagerState({type: "sending_file", file: event.payload.content, sentBytes: 0})
+                    break;
+                case "ReceivedFrame":
+                    if (fileManagerStateValue.type === "receiving_file") {
+                        setFileManagerState({
+                            type: "receiving_file",
+                            file: fileManagerStateValue.file,
+                            receivedBytes: fileManagerStateValue.receivedBytes + event.payload.content.len
+                        })
+                    }
+                    break;
+                case "SendFrame":
+                    if (fileManagerStateValue.type === "sending_file") {
+                        setFileManagerState({
+                            type: "sending_file",
+                            file: fileManagerStateValue.file,
+                            sentBytes: fileManagerStateValue.sentBytes + event.payload.content.len
+                        })
+                    }
+                    break;
             }
             setLog(event.payload);
         });

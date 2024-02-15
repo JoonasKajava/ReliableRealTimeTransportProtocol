@@ -1,10 +1,10 @@
 use thiserror::Error;
 
-use crate::models::network_file_info::NetworkFileInfo;
+use crate::models::file_models::FileMetadata;
 
 pub enum Message {
     String(String),
-    FileInfo(NetworkFileInfo),
+    FileInfo(FileMetadata),
     ResponseToFileInfo { accepted: bool },
     FileData(Vec<u8>),
 }
@@ -27,7 +27,7 @@ impl TryFrom<&[u8]> for Message {
                 Ok(Self::String(payload))
             }
             1 => {
-                let payload = NetworkFileInfo::try_from(payload)
+                let payload = FileMetadata::try_from(payload)
                     .map_err(|e| MessageParsingError::InvalidMessagePayload(e))?;
                 Ok(Self::FileInfo(payload))
             }
@@ -45,7 +45,7 @@ impl TryFrom<&[u8]> for Message {
 }
 
 impl TryInto<Vec<u8>> for Message {
-    type Error = String;
+    type Error = anyhow::Error;
 
     fn try_into(self) -> Result<Vec<u8>, Self::Error> {
         let message_type: u8 = match &self {
@@ -58,9 +58,7 @@ impl TryInto<Vec<u8>> for Message {
         let payload: Vec<u8> = match self {
             Self::String(payload) => payload.as_bytes().to_vec(),
             Self::FileInfo(payload) => payload.try_into()?,
-            Self::ResponseToFileInfo { accepted } => {
-                bincode::serialize(&accepted).map_err(|e| e.to_string())?
-            }
+            Self::ResponseToFileInfo { accepted } => bincode::serialize(&accepted)?,
             Self::FileData(payload) => payload.to_vec(),
         };
         Ok([message_type.to_be_bytes().to_vec(), payload].concat())
