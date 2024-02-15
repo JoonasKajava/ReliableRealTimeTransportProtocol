@@ -1,6 +1,6 @@
 use std::fs;
-use std::sync::{Arc, Mutex};
 use std::sync::mpsc::{Sender, SyncSender};
+use std::sync::{Arc, Mutex};
 
 use anyhow::Result;
 use log::{error, info};
@@ -9,8 +9,9 @@ use thiserror::Error;
 use lib_rrttp::application_layer::connection_manager::ConnectionEventType;
 
 use crate::message::Message;
-use crate::MessageState;
+use crate::models::file_models::FileInfo;
 use crate::models::log_message::LogSuccessMessage;
+use crate::MessageState;
 
 pub struct ConnectionProcessor {
     log_sender: Sender<LogSuccessMessage>,
@@ -64,6 +65,10 @@ impl ConnectionProcessor {
                 .log_sender
                 .send(LogSuccessMessage::MessageReceived(payload))?,
             Message::FileInfo(file_info) => {
+                self.message_state.lock().unwrap().incoming_file = Some(FileInfo {
+                    metadata: file_info.clone(),
+                    src: None,
+                });
                 self.log_sender
                     .send(LogSuccessMessage::FileInfoReceived(file_info))?;
             }

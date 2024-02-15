@@ -8,7 +8,7 @@ use std::time::SystemTime;
 use log::{error, info};
 use tauri::Manager;
 
-use commands::{bind, connect, respond_to_file_info, send_file, send_file_info, send_message};
+use commands::{bind, connect, respond_to_file_info, send_file_info, send_message};
 use lib_rrttp::application_layer::connection_manager::ConnectionManager;
 
 use crate::models::file_models::FileInfo;

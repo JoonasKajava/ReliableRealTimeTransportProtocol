@@ -7,7 +7,7 @@ import {listen} from "@tauri-apps/api/event";
 
 import localizedFormat from "dayjs/plugin/localizedFormat";
 import {LogErrorMessage, LogSuccessMessage} from "./rust_type_definitions.ts";
-import {fileManagerState} from "./FileManager.tsx";
+import {fileReceivingState, fileSendingState} from "./FileManager.tsx";
 
 dayjs.extend(localizedFormat)
 export const logState = atom<{ title: string, description: string, timestamp: dayjs.Dayjs }[]>({
@@ -45,7 +45,8 @@ export const RRTPLog = () => {
 
     const log = useRecoilValue(logState);
 
-    const [fileManagerStateValue, setFileManagerState] = useRecoilState(fileManagerState);
+    const [fileManagerSendingState, setFileManagerSendingState] = useRecoilState(fileSendingState);
+    const [fileManagerReceivingState, setFileManagerReceivingState] = useRecoilState(fileReceivingState);
 
     const setLog = useLog();
 
@@ -53,42 +54,45 @@ export const RRTPLog = () => {
         const unlisten = listen<LogSuccessMessage>("log", (event) => {
             switch (event.payload.type) {
                 case "FileInfoReceived":
-                    setFileManagerState({
+                    setFileManagerReceivingState({
                         type: "incoming_file",
                         file: event.payload.content
                     })
                     break;
                 case "FileRejected":
-                    setFileManagerState({type: undefined})
+                    setFileManagerSendingState({type: undefined})
                     break;
                 case "FileAccepted":
-                    setFileManagerState({type: "sending_file", file: event.payload.content, sentBytes: 0})
+                    setFileManagerSendingState({type: "sending_file", file: event.payload.content, sentBytes: 0})
                     break;
                 case "ReceivedFrame":
-                    if (fileManagerStateValue.type === "receiving_file") {
-                        setFileManagerState({
+                    if (fileManagerReceivingState.type === "receiving_file") {
+                        console.log(fileManagerReceivingState.receivedBytes + event.payload.content.len)
+                        setFileManagerReceivingState({
                             type: "receiving_file",
-                            file: fileManagerStateValue.file,
-                            receivedBytes: fileManagerStateValue.receivedBytes + event.payload.content.len
+                            file: fileManagerReceivingState.file,
+                            receivedBytes: fileManagerReceivingState.receivedBytes + event.payload.content.len
                         })
                     }
                     break;
                 case "SendFrame":
-                    if (fileManagerStateValue.type === "sending_file") {
-                        setFileManagerState({
+                    if (fileManagerSendingState.type === "sending_file") {
+                        setFileManagerSendingState({
                             type: "sending_file",
-                            file: fileManagerStateValue.file,
-                            sentBytes: fileManagerStateValue.sentBytes + event.payload.content.len
+                            file: fileManagerSendingState.file,
+                            sentBytes: fileManagerSendingState.sentBytes + event.payload.content.len
                         })
                     }
                     break;
+                default:
+                    setLog(event.payload);
+
             }
-            setLog(event.payload);
         });
         return () => {
             unlisten.then((unlisten) => unlisten());
         }
-    }, [useLog]);
+    }, [useLog, setFileManagerSendingState, setFileManagerReceivingState, fileManagerReceivingState, fileManagerSendingState]);
 
 
     return <>

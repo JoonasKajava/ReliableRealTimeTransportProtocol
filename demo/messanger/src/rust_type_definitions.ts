@@ -9,8 +9,8 @@ export interface FileMetadata {
 }
 
 export interface FileInfo {
-    metadata: FileMetadata;
-    src?: string;
+	metadata: FileMetadata;
+	src?: string;
 }
 
 export type LogSuccessMessage = 
@@ -19,23 +19,23 @@ export type LogSuccessMessage =
 	| { type: "MessageSent", content: string }
 	| { type: "LocalSocketBindSuccess", content: string }
 	| { type: "ConnectedToRemote", content: string }
-    | { type: "FileInfoSent", content: FileMetadata }
-    | { type: "FileInfoReceived", content: FileMetadata }
+	| { type: "FileInfoSent", content: FileMetadata }
+	| { type: "FileInfoReceived", content: FileMetadata }
 	| { type: "FileDataReceived", content?: undefined }
 	| { type: "ReceivedAcknowledgement", content?: undefined }
-    | { type: "FileRejected", content: FileMetadata }
-    | { type: "FileAccepted", content: FileMetadata }
+	| { type: "FileRejected", content: FileMetadata }
+	| { type: "FileAccepted", content: FileMetadata }
 	| { type: "FileResponseSent", content?: undefined }
-    | { type: "Error", content: string }
-    | {
-    type: "ReceivedFrame", content: {
-        len: number;
-    }
+	| { type: "Error", content: string }
+	| {
+	type: "ReceivedFrame", content: {
+		len: number;
+	}
 }
-    | {
-    type: "SendFrame", content: {
-        len: number;
-    }
+	| {
+	type: "SendFrame", content: {
+		len: number;
+	}
 };
 
 export type LogErrorMessage = 

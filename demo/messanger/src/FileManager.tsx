@@ -1,4 +1,4 @@
-import {Alert, Button, Descriptions, Input, Modal, Progress, Space} from "antd";
+import {Alert, Button, Descriptions, Input, Modal, Progress, Space, Spin} from "antd";
 import prettyBytes from "pretty-bytes";
 import {UploadOutlined} from "@ant-design/icons";
 import {useCallback, useEffect, useState} from "react";
@@ -11,34 +11,48 @@ import {useLog} from "./RRTPLog.tsx";
 import {atom, useRecoilState} from "recoil";
 
 
-declare type ManagerState = {
+declare type FileSendingState = {
     type: undefined
     file?: undefined
 } | {
-    type: "incoming_file"
+    type: "waiting_for_remote",
     file: FileMetadata
 } | {
     type: "sending_file",
     file: FileMetadata
     sentBytes: number
+};
+
+declare type FileReceivingState = {
+    type: undefined,
+    file?: undefined
+} | {
+    type: "incoming_file",
+    file: FileMetadata
 } | {
     type: "receiving_file",
     file: FileMetadata,
     receivedBytes: number
 }
-
-export const fileManagerState = atom<ManagerState>({
-    key: 'fileManager',
+export const fileSendingState = atom<FileSendingState>({
+    key: 'file_sending_state',
     default: {
         type: undefined
     }
 });
 
+export const fileReceivingState = atom<FileReceivingState>({
+    key: 'file_receiving_state',
+    default: {
+        type: undefined
+    }
+});
 export const FileManager = () => {
 
     const setLog = useLog();
 
-    const [managerState, setManagerState] = useRecoilState(fileManagerState);
+    const [sendingState, setSendingState] = useRecoilState(fileSendingState);
+    const [receiving_state, setReceivingState] = useRecoilState(fileReceivingState);
 
     const [selectedFileName, setSelectedFileName] = useState<string | undefined>(undefined)
 
@@ -52,10 +66,10 @@ export const FileManager = () => {
     }, [selectedUploadFolder, setSelectedUploadFolder])
 
     useEffect(() => {
-        if (managerState.type === "incoming_file") {
-            setSelectedFileName(managerState.file.file_name);
+        if (receiving_state.type === "incoming_file") {
+            setSelectedFileName(receiving_state.file.file_name);
         }
-    }, [managerState, setSelectedFileName]);
+    }, [sendingState, setSelectedFileName]);
 
 
     const handleUploadDirectory = useCallback(async () => {
@@ -68,11 +82,11 @@ export const FileManager = () => {
     }, []);
 
     const getFileName = () => {
-        return selectedFileName ?? ((managerState.type === "incoming_file") ? managerState.file.file_name : undefined);
+        return selectedFileName ?? ((receiving_state.type === "incoming_file") ? receiving_state.file.file_name : undefined);
     };
 
     const handleFileResponse = useCallback(async (response: boolean) => {
-        if (managerState.type !== "incoming_file") return;
+        if (receiving_state.type !== "incoming_file") return;
 
         let fileName = getFileName();
         if (!selectedUploadFolder || !fileName) {
@@ -82,32 +96,40 @@ export const FileManager = () => {
             ready: response,
             file: await join(selectedUploadFolder, fileName)
         }).then((result) => {
-
-            setManagerState({type: "receiving_file", file: managerState.file, receivedBytes: 0});
+            setReceivingState({type: "receiving_file", file: receiving_state.file, receivedBytes: 0});
             setLog(result);
         }).catch((err: LogErrorMessage) => {
             setLog(err);
         });
-    }, [setLog, selectedUploadFolder, setManagerState, managerState.type, managerState.file])
+    }, [setLog, selectedUploadFolder, receiving_state.type, setReceivingState, receiving_state.file])
 
 
     return <>
-        {managerState.type === "sending_file" &&
-            <Alert
-                message="File Download Progress"
-                description={<Progress percent={0}/>}
-                type="info"
-            />
-        }
-
-        {managerState.type === "receiving_file" &&
+        {sendingState.type === "sending_file" &&
             <Alert
                 message="File Upload Progress"
-                description={<Progress percent={0}/>}
+                description={<Progress
+                    percent={(sendingState.file.file_size_in_bytes / sendingState.sentBytes) * 100}/>}
                 type="info"
             />
         }
-        {(managerState.type === "incoming_file") &&
+        {sendingState.type === "waiting_for_remote" &&
+            <Spin tip="Waiting For Remote To Start Uploading">
+                <Alert
+                    message="File Download Progress"
+                    description={<Progress percent={0}/>}
+                    type="info"
+                />
+            </Spin>}
+        {receiving_state.type === "receiving_file" &&
+            <Alert
+                message="File Download Progress"
+                description={<Progress
+                    percent={(receiving_state.file.file_size_in_bytes / receiving_state.receivedBytes) * 100}/>}
+                type="info"
+            />
+        }
+        {(receiving_state.type === "incoming_file") &&
             <Modal title={"Incoming File"} open={true} maskClosable={false} closeIcon={false} cancelText={"Reject"}
                    okText={"Accept"}
                    okButtonProps={{disabled: !selectedUploadFolder}}
@@ -118,21 +140,21 @@ export const FileManager = () => {
                 <Space direction={"vertical"}>
                     <Descriptions column={1} title={"Remote wants to send following file"} items={[{
                         label: "File Name",
-                        children: managerState.file.file_name
+                        children: receiving_state.file.file_name
                     },
                         {
                             label: "MIME",
-                            children: managerState.file.file_mime ?? "Unknown"
+                            children: receiving_state.file.file_mime ?? "Unknown"
                         },
                         {
                             label: "Size",
-                            children: prettyBytes(managerState.file.file_size_in_bytes)
+                            children: prettyBytes(receiving_state.file.file_size_in_bytes)
                         }]}/>
 
                     <Button icon={<UploadOutlined/>} onClick={handleUploadDirectory}>Upload Directory</Button>
 
                     <Input addonBefore={selectedUploadFolder} onChange={(e) => setSelectedFileName(e.target.value)}
-                           defaultValue={managerState.file.file_name}/>
+                           defaultValue={receiving_state.file.file_name}/>
                 </Space>
             </Modal>}
     </>
