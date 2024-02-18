@@ -72,91 +72,87 @@
         \thispagestyle{empty}
 
 
-            \section*{Lyhenteet}
-            \begin{tabular}{l l}
-                UDP: & User Datagram Protocol        \\
-                TCP: & Transmission Control Protocol \\
-                IP:  & Internet Protocol             \\
-                ACK: & Acknowledgement               \\
-                NAK: & Negative Acknowledgement      \\
-                NIC: & Network Interface Controller  \\
-            \end{tabular}
-            \newpage
+        \section*{Lyhenteet}
+        \begin{tabular}{l l}
+            UDP: & User Datagram Protocol        \\
+            TCP: & Transmission Control Protocol \\
+            IP:  & Internet Protocol             \\
+            ACK: & Acknowledgement               \\
+            NAK: & Negative Acknowledgement      \\
+            NIC: & Network Interface Controller  \\
+        \end{tabular}
+        \newpage
 
 
     \end{titlepage}
 
 
-        \section{Johdanto}\label{sec:johdanto}
-        \blindtext
+    \section{Johdanto}\label{sec:johdanto}
+    \blindtext
 
-\section{Tavoitteet ja motivaatio}
-Tämän työn tavoitteena on internet protokollien toimintaa ja niiden implementointia. Tilanteissa missä kaistanleveys on rajallinen ja nopea vasteaika on tärkeää, on usein kannattavaa luoda oma protokolla, joka on räätälöity sovelluksen tarpeita varten. 
-Oman protokollan käyttöönotto vaatii kohtuullisen määrän tietoa verkkosovittimien, UDP protokollan, yhtäaikaisuudesta sekä tehokkaista tietorakenteista.\par
-Tässä dokumentissa käydään läpi internet protokollien teoriaa, toteutukset käyttäen rust ohjelmointi kieltä ja lopuksi tutkiva osuus jossa mitataan protokollien suorituskykyä ja tehokkuutta.
-        \section{Verkkosovitin}\label{sec:verkkosovitin}
-        \blindtext
 
+    \section{Tavoitteet ja motivaatio}
+    Tämän työn tavoitteena on internet protokollien toimintaa ja niiden implementointia. Tilanteissa missä kaistanleveys on rajallinen ja nopea vasteaika on tärkeää, on usein kannattavaa luoda oma protokolla, joka on räätälöity sovelluksen tarpeita varten.
+    Oman protokollan käyttöönotto vaatii kohtuullisen määrän tietoa verkkosovittimien, UDP protokollan, yhtäaikaisuudesta sekä tehokkaista tietorakenteista.\par
+    Tässä dokumentissa käydään läpi internet protokollien teoriaa, toteutukset käyttäen rust ohjelmointi kieltä ja lopuksi tutkiva osuus jossa mitataan protokollien suorituskykyä ja tehokkuutta.
+
+
+    \section{Verkkosovitin}\label{sec:verkkosovitin}
+    \blindtext
 
 
     \section{Verkkopistoke}\label{sec:verkkopistoke}
     \blindtext
 
 
-            \section{TCP/IP}\label{sec:tcpip}
-            \blindtext
+    \section{TCP/IP}\label{sec:tcpip}
+    \blindtext
 
-            \subsection{Kuljetuskerros}\label{subsec:kuljetuskerros}
-            \blindtext
+    \subsection{Kuljetuskerros}\label{subsec:kuljetuskerros}
+    \blindtext
 
-            \subsection{Sovelluskerros}\label{subsec:sovelluskerros}
-            \blindtext
-
-
+    \subsection{Sovelluskerros}\label{subsec:sovelluskerros}
+    \blindtext
 
 
-        \section{UDP}\label{sec:udp}
-        \blindtext
+    \section{UDP}\label{sec:udp}
+    \blindtext
 
 
+    \section{Liukuva ikkuna}\label{sec:liukuva_ikkuna}
+    \blindtext
 
-        \section{Liukuva ikkuna}\label{sec:liukuva_ikkuna}
-        \blindtext
+    \subsection{Ikkunan siirto vastaanottaessa}
 
-        \subsection{Ikkunan siirto vastaanottaessa}
+    \begin{align}
+        n_s &= \text{Pienin vastaanotettu järjestysnumero} \\
+        n_x &= \text{Vastaanotetun paketin järjestysnumero} \\
+        w_s &= \text{Ikkunan koko}
+    \end{align}
 
-\begin{align}
-    n_s &= \text{Pienin vastaanotettu järjestysnumero} \\
-    n_x &= \text{Vastaanotetun paketin järjestysnumero} \\
-    w_s &= \text{Ikkunan koko}
-\end{align}
+    Vastaanottava ikkuna pitää muistissa pienimmän järjestysnumeron $n_s$, minkä se on vastaanottanut.
+    Vastaanottava ikkuna hylkää kaikki paketit, joiden järjestysnumero on ikkunan ulkopuolella $n_x < n_s$ tai $n_x > n_s + w_s$. Jos järjestysnumero on ikkunan sisällä, se hyväksytään ja merkitään vastaanotetuksi. Mikäli $n_x = n_s + 1$ ikkunaa voidaan siirtää eteenpäin.
+    Ikkunan siirto tapahtuu kulkemalla hyväksyttyjen järjestysnumeroiden listaa eteenpäin, kunnes vastaan tulee järjestysnumero jota ei ole vielä vastaanotettu. Kulkiessa tapahtuneiden askelien määrä lisätään muuntujaan $n_s$.
 
-Vastaanottava ikkuna pitää muistissa pienimmän järjestysnumeron $n_s$, minkä se on vastaanottanut.
-Vastaanottava ikkuna hylkää kaikki paketit, joiden järjestysnumero on ikkunan ulkopuolella $n_x < n_s$ tai $n_x > n_s + w_s$. Jos järjestysnumero on ikkunan sisällä, se hyväksytään ja merkitään vastaanotetuksi. Mikäli $n_x = n_s + 1$ ikkunaa voidaan siirtää eteenpäin.
-Ikkunan siirto tapahtuu kulkemalla hyväksyttyjen järjestysnumeroiden listaa eteenpäin, kunnes vastaan tulee järjestysnumero jota ei ole vielä vastaanotettu. Kulkiessa tapahtuneiden askelien määrä lisätään muuntujaan $n_s$.
-
-
-        \subsection{Valikoiva toisto}\label{subsec:valikoiva_toisto}
-        \blindtext
-        \cite{greenwade93}
-
+    \subsection{Valikoiva toisto}\label{subsec:valikoiva_toisto}
+    \blindtext
+    \cite{greenwade93}
 
     \subsection{Kuittaus}\label{subsec:kuittaus}
     \blindtext
 
 
-        \section{Virheenkorjaus}\label{sec:virheenkorjaus}
-        \blindtext
-        \cite{tietoliikenteenperusteet}
+    \section{Virheenkorjaus}\label{sec:virheenkorjaus}
+    \blindtext
+    \cite{tietoliikenteenperusteet}
 
 
+    \section{Suorityskyky}
+    Suorituskyvyn mittaaminen toteutetaan sisäverkossa, jotta tiedonsiirto nopeus on deterministinen ja vakaa.
+    Testiympäristö koostuu yhdestä Windows tietokoneesta, joka muodostaa yhteyden itseensä käyttäen silmukka osoitetta.\par
+    Testissä tietokone siirtää itselleen silmukan kautta 50 megatavun tiedoston. Testi suoritetaan 10 putkeen jotta saadaan leville keskiarvo selville.
 
-\section{Suorityskyky}
-Suorituskyvyn mittaaminen toteutetaan sisäverkossa, jotta tiedonsiirto nopeus on deterministinen ja vakaa. 
-Testiympäristö koostuu yhdestä Windows tietokoneesta, joka muodostaa yhteyden itseensä käyttäen silmukka osoitetta.\par
-Testissä tietokone siirtää itselleen silmukan kautta 50 megatavun tiedoston. Testi suoritetaan 10 putkeen jotta saadaan leville keskiarvo selville.
-
-\subsection{Asynkroninen }
+    \subsection{Asynkroninen }
 
     \bibliography{main}
     \bibliographystyle{plain}
