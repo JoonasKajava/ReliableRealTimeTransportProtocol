@@ -88,8 +88,19 @@
 
 
     \section{Johdanto}\label{sec:johdanto}
-    \blindtext
+    Tässä työssä käsitellään teoria internet protokollan luomiseen. Teorian jälkeen lukija ohjataan vaiheittan internet protokollan luomiseen UDP:n päälle. Tämän työn tarkoitus on luoda pohja yrityksille ja kehittäjille, minkälainen on internet protokollan toteutus ja mihin asioihin täytyy ottaa huomiota.
+    \par Työ on luonteeltaan tutkivaa ja tarkoitus on luoda selkeä pohja minkä perusteella on yksinkertaista hyödyntää UDP-protokollaa reaaliaikaisiin ohjelmiin.
 
+
+    \section{Internet-protokollat}
+    TCP ja UDP protokollat ovat kaksi yleisintä TCP/IP protokollaa.
+    Näistä TCP protokolla on usein käytetty palveluissa, jotka vaativat vakaata ja luotettavaa yhteyttä. UDP paras reaaliaikaisia sovelluksia varten. Tämä johtuu siitä, että TCP paketin mukana liikkuu paljon reservoituja tavuja, joita ei käytetä ollenkaan, myös otsikko päättyy turhaan täytteeseen.
+    \par
+    UDP:n etu realiaikaisessa kommunikaatiossa on, että se on kevyt ja nopea. 
+    \cite{kumar_survey_nodate}
+    \par
+    
+    
 
     \section{Tavoitteet ja motivaatio}
     Tämän työn tavoitteena on internet protokollien toimintaa ja niiden implementointia. Tilanteissa missä kaistanleveys on rajallinen ja nopea vasteaika on tärkeää, on usein kannattavaa luoda oma protokolla, joka on räätälöity sovelluksen tarpeita varten.
@@ -98,8 +109,7 @@
 
 
     \section{Verkkosovitin}\label{sec:verkkosovitin}
-    \blindtext
-
+    Rust-ohjelmointikieli käyttää linuxissa \textit{libc}-kirjastoa \cite{noauthor_netrs_nodate}
 
     \section{Verkkopistoke}\label{sec:verkkopistoke}
     \blindtext
@@ -108,9 +118,88 @@
     \section{TCP/IP}\label{sec:tcpip}
     \blindtext
 
-    \subsection{Kuljetuskerros}\label{subsec:kuljetuskerros}
-    \blindtext
+    \section{Paketti}\label{sec:paketti}
+    Paketti on perustuu TCP:n ja on rakennettu UDP:n päälle. Paketin rakenne on minimaalinen ja yksinkertainen.
+     
+    
+\begin{table}[h!]\
+    \centering
+    \resizebox{\textwidth}{!}{
+        \begin{tabular}{*{34}{l}}
+        \multicolumn{2}{|c|}{Offsets} & \multicolumn{8}{|l|}{0}& \multicolumn{8}{|l|}{1}& \multicolumn{8}{|l|}{2}& \multicolumn{8}{|l|}{3} \\
+        Octet & Bit&0&1&2&3&4&5&6&7&0&1&2&3&4&5&6&7&0&1&2&3&4&5&6&7&0&1&2&3&4&5&6&7
+        \end{tabular}
+    }
+    \caption{Paketti}
+    \label{tab:my_label}
+\end{table}
 
+
+
+
+     
+    \subsection{Kuljetuskerros}\label{subsec:kuljetuskerros}
+    Kuljetuskerros hoitaa pakettien luomisen ja välittämisen paketin verkkosovittimeen. 
+    Kuljetuskerros määrittelee seuraavat osat protokollasta:
+
+    \begin{itemize}
+        \item Paketteihin liittyvät vakiot
+        \item Ohjausbitit
+        \item Paketin otsakkeen
+        \item Paketin lisäasetukset
+        \item Vastaanottoikkunan toiminnan
+        \item Lähetysikkunan toiminnan
+    \end{itemize}
+
+    \subsection{Vakiot}
+    Vakiot ovat tärkeitä protokollan toiminnan kannalta. Vastaanottajalla ja lähettäjällä täytyy olla samat vakiot käytössä jotta pakettien muodostaminen sekä lukeminen onnistuu.
+
+
+    \begin{table}
+        \centering
+        \begin{tabular}{llll}
+            Vakion-nimi & Lyhenne & Arvo & Yksikkö \\
+            \hline
+            MAX\_DATA\_SIZE & $D_s$ & 128 & Tavu \\
+            SEQ\_NUM\_SIZE & $S_s$ & 4 & Tavu \\         
+            CONTROL\_BITS\_SIZE & $C_s$ & 1 & Tavu \\         
+            RESERVED\_SIZE & $R_s$ & 1 & Tavu \\         
+            DATA\_LENGTH\_SIZE & $DL_s$ & 1 & Tavu \\         
+            DATA\_OFFSET\_SIZE & $DO_s$ & 1 & Tavu \\         
+            OPTION\_KIND\_SIZE & $OK_s$ & 1 & Tavu \\         
+            OPTION\_LENGTH\_SIZE & $OL_s$ & 1 & Tavu \\         
+            OPTION\_DATA\_SIZE & $OD_s$ & 4 & Tavu \\
+            MAX\_OPTION\_COUNT & $MO_c$ & 4 & Määrä          
+        \end{tabular}
+        \caption{Vakiot ja niiden arvot}
+        \label{tab:vakiot}
+    \end{table}
+
+    Näiden vakioiden perusteella voidaan laskea tärkeitä muuntujia\footnote{Ohjelman kääntäjä laskee nämä ja tallentaa tulokset vakioarvoiksi \cite{noauthor_constant_nodate}.}.
+    
+    \begin{align}
+        \text{MIN\_FRAME\_SIZE} &= F_{min} = S_s + C_s + R_s + DL_s + DO_s \\
+        \text{MAX\_FRAME\_SIZE} &= F_{max} = F_{min} + MO_c(OK_s + OL_s + OD_s) + D_s
+    \end{align}
+
+
+    \subsection{Ohjausbitit}
+    Ohjausbitit ilmaantuvat paketissa yhtenä tavuna, joista jokainen bitti vastaa tiettyä ohjausbittiä.
+
+    \begin{table}[h!]
+        \centering
+        \begin{tabular}{lll}
+            Nimi & Lyhenne & Binääriarvo \\
+            \hline
+            Kuittaus & ACK & 00000001 \\ 
+            Pääte & EOM & 00000010 \\ 
+        \end{tabular}
+        \caption{Ohjausbitit ja niiden arvot}
+        \label{tab:control_bits}
+    \end{table}
+
+    Taulukon \ref{tab:control_bits} määrittämät ohjausbitit antavat vastaanottajalle tärkeää tietoa paketista. Kuittaus bitti ilmoittaa lähettäjälle, että vastaanottaja on saanut paketin onnistuneesti. Pääte bitti ilmoittaa vastaanottajalle, että kyseinen paketti on paketti ryhmän viimeinen ja ryhmä on valmis koottavaksi kun kaikki sitä edeltävät paketit ovat saapuneet.  
+    
     \subsection{Sovelluskerros}\label{subsec:sovelluskerros}
     \blindtext
 
@@ -154,7 +243,7 @@
 
     \subsection{Asynkroninen }
 
-    \bibliography{main}
+    \bibliography{doc/latex/src/references}
     \bibliographystyle{plain}
 
 \end{document}
