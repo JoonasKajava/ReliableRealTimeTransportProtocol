@@ -7,11 +7,14 @@
 \usepackage{blindtext}
 \usepackage{lastpage}
 \usepackage{listings}
-
+\usepackage{multirow}
 \usepackage{amsmath}
 
+\usepackage{listings}
+\usepackage{listings-rust}
 % \usepackage{showframe}
-
+\lstset{language=Rust, style=boxed}
+\renewcommand{\lstlistingname}{Lähdekoodi}
 
 \title{Luotettava UDP-yhteys}
 \author{Joonas Kajava}
@@ -109,7 +112,7 @@
 
 
     \section{Verkkosovitin}\label{sec:verkkosovitin}
-    Rust-ohjelmointikieli käyttää linuxissa \textit{libc}-kirjastoa \cite{noauthor_netrs_nodate}
+    Rust-ohjelmointikieli käyttää linuxissa \textit{libc}-kirjastoa \cite{noauthor_rust_nodate-1}
 
     \section{Verkkopistoke}\label{sec:verkkopistoke}
     \blindtext
@@ -120,23 +123,49 @@
 
     \section{Paketti}\label{sec:paketti}
     Paketti on perustuu TCP:n ja on rakennettu UDP:n päälle. Paketin rakenne on minimaalinen ja yksinkertainen.
+
+\begin{align}
+    \text{Frame size} &= F_s \\
+    \text{Option size} &= O_s = F_s - F_{min} - D_s \\
+\end{align}
+
+
      
-    
 \begin{table}[h!]\
     \centering
     \resizebox{\textwidth}{!}{
-        \begin{tabular}{*{34}{l}}
-        \multicolumn{2}{|c|}{Offsets} & \multicolumn{8}{|l|}{0}& \multicolumn{8}{|l|}{1}& \multicolumn{8}{|l|}{2}& \multicolumn{8}{|l|}{3} \\
-        Octet & Bit&0&1&2&3&4&5&6&7&0&1&2&3&4&5&6&7&0&1&2&3&4&5&6&7&0&1&2&3&4&5&6&7
+        \begin{tabular}{*{33}{|l}|l|}
+        \hline
+        \multicolumn{2}{|c|}{Offsets} & \multicolumn{8}{|l|}{0}& \multicolumn{8}{|l|}{1}& \multicolumn{8}{|l|}{2}& \multicolumn{8}{|l|}{3} \\ \hline
+        Octet & Bit&0&1&2&3&4&5&6&7&0&1&2&3&4&5&6&7&0&1&2&3&4&5&6&7&0&1&2&3&4&5&6&7 \\ \hline
+        0 & 0 & \multicolumn{32}{|c|}{Sequence number} \\ \hline
+        4&32&RES&RES&RES&RES&RES&RES&EOM&ACK&\multicolumn{8}{|c|}{Reserved}&\multicolumn{8}{|c|}{Data Length}&\multicolumn{8}{|c|}{Data Offset} \\ \hline
+        32&64&\multicolumn{32}{|c|}{Options} \\
+        ...&...& \multicolumn{32}{|c|}{} \\ \hline
+        \multicolumn{2}{|c|}{Data Offset}&\multicolumn{32}{|c|}{Data} \\
+        ...&...& \multicolumn{32}{|c|}{} \\ \hline
         \end{tabular}
     }
-    \caption{Paketti}
+    \caption{Paketin rakenne}
     \label{tab:my_label}
 \end{table}
 
+Tässä työssä paketti on määritelty seuraavasti:
+\begin{lstlisting}[caption={Paketin rakenne}, label={lst:frame}]
+#[derive(Debug, Clone)]
+pub struct Frame {
+    frame: [u8; MAX_FRAME_SIZE],
+    data_length: usize,
 
+    /// In bytes
+    options_size: usize,
+}
+\end{lstlisting}
+Lähdekoodissa \ref{lst:frame} määritetaan tietorakenne \textit{Frame}, 
+\lstinline{[u8; MAX_FRAME_SIZE]} on taulokkotyyppi joka koostuu tavuista ja on kooltaan yhtä suuri kuin $F_{max}$.
+\lstinline{data_length} sisältää tiedon pakettiin tallennetun datan koosta. \lstinline{options_size} sisältää tiedon paketin asetuksien koosta.
 
-
+\subsection{Tietojen käsittely paketissa}
      
     \subsection{Kuljetuskerros}\label{subsec:kuljetuskerros}
     Kuljetuskerros hoitaa pakettien luomisen ja välittämisen paketin verkkosovittimeen. 
@@ -155,7 +184,7 @@
     Vakiot ovat tärkeitä protokollan toiminnan kannalta. Vastaanottajalla ja lähettäjällä täytyy olla samat vakiot käytössä jotta pakettien muodostaminen sekä lukeminen onnistuu.
 
 
-    \begin{table}
+    \begin{table}[h!]
         \centering
         \begin{tabular}{llll}
             Vakion-nimi & Lyhenne & Arvo & Yksikkö \\
@@ -179,7 +208,7 @@
     
     \begin{align}
         \text{MIN\_FRAME\_SIZE} &= F_{min} = S_s + C_s + R_s + DL_s + DO_s \\
-        \text{MAX\_FRAME\_SIZE} &= F_{max} = F_{min} + MO_c(OK_s + OL_s + OD_s) + D_s
+        \text{MAX\_FRAME\_SIZE} &= F_{max} = F_{min} + MO_c(OK_s + OL_s + OD_s) + D_s \label{eq:fmax}
     \end{align}
 
 
@@ -199,6 +228,10 @@
     \end{table}
 
     Taulukon \ref{tab:control_bits} määrittämät ohjausbitit antavat vastaanottajalle tärkeää tietoa paketista. Kuittaus bitti ilmoittaa lähettäjälle, että vastaanottaja on saanut paketin onnistuneesti. Pääte bitti ilmoittaa vastaanottajalle, että kyseinen paketti on paketti ryhmän viimeinen ja ryhmä on valmis koottavaksi kun kaikki sitä edeltävät paketit ovat saapuneet.  
+
+    
+
+
     
     \subsection{Sovelluskerros}\label{subsec:sovelluskerros}
     \blindtext
@@ -209,7 +242,7 @@
 
 
     \section{Liukuva ikkuna}\label{sec:liukuva_ikkuna}
-    \blindtext
+
 
     \subsection{Ikkunan siirto vastaanottaessa}
 
