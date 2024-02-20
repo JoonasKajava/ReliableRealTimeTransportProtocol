@@ -4,7 +4,7 @@ bitflags! {
     pub struct ControlBits: u8 {
         /// Acknowledgment
         const ACK = 0b00000001;
-        /// End of message
+        /// End of the message
         const EOM = 0b00000010;
     }
 }

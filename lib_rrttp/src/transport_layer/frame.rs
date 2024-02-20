@@ -26,10 +26,7 @@ const OPTIONS_OCTET: usize = 8;
 impl Frame {
     pub fn set_sequence_number(&mut self, sequence_number: u32) {
         let net_sequence_number = sequence_number.to_be_bytes();
-        self.frame[SEQUENCE_NUMBER_OCTET] = net_sequence_number[0];
-        self.frame[SEQUENCE_NUMBER_OCTET + 1] = net_sequence_number[1];
-        self.frame[SEQUENCE_NUMBER_OCTET + 2] = net_sequence_number[2];
-        self.frame[SEQUENCE_NUMBER_OCTET + 3] = net_sequence_number[3];
+        self.frame[SEQUENCE_NUMBER_OCTET..4].copy_from_slice(&net_sequence_number);
     }
 
     pub fn get_sequence_number(&self) -> u32 {

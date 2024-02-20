@@ -20,7 +20,7 @@ const OPTION_LENGTH_SIZE: usize = 1;
 /// In bytes
 const OPTION_DATA_SIZE: usize = 4;
 const MAX_OPTION_COUNT: usize = 2;
-// TODO: Data length and offset are missing here
+
 /// In bytes
 pub const MIN_FRAME_SIZE: usize =
     SEQ_NUM_SIZE + CONTROL_BITS_SIZE + RESERVED_SIZE + DATA_LENGTH_SIZE + DATA_OFFSET_SIZE;
