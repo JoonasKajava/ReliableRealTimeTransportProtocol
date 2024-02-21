@@ -9,11 +9,14 @@
 \usepackage{listings}
 \usepackage{multirow}
 \usepackage{amsmath}
-
+\usepackage{url}
 \usepackage{listings}
 \usepackage{listings-rust}
 % \usepackage{showframe}
-\lstset{language=Rust, style=boxed}
+\lstset{language=Rust, style=boxed,
+ literate={ö}{{\"o}}1
+           {ä}{{\"a}}1
+}
 \renewcommand{\lstlistingname}{Lähdekoodi}
 
 \title{Luotettava UDP-yhteys}
@@ -100,7 +103,7 @@
     Näistä TCP protokolla on usein käytetty palveluissa, jotka vaativat vakaata ja luotettavaa yhteyttä. UDP paras reaaliaikaisia sovelluksia varten. Tämä johtuu siitä, että TCP paketin mukana liikkuu paljon reservoituja tavuja, joita ei käytetä ollenkaan, myös otsikko päättyy turhaan täytteeseen.
     \par
     UDP:n etu realiaikaisessa kommunikaatiossa on, että se on kevyt ja nopea. 
-    \cite{kumar_survey_nodate}
+    \cite{KumarSurveyUDP}
     \par
     
     
@@ -112,7 +115,7 @@
 
 
     \section{Verkkosovitin}\label{sec:verkkosovitin}
-    Rust-ohjelmointikieli käyttää linuxissa \textit{libc}-kirjastoa \cite{noauthor_rust_nodate-1}
+    Rust-ohjelmointikieli käyttää linuxissa \textit{libc}-kirjastoa \cite{rust-source-unix-netrs}
 
     \section{Verkkopistoke}\label{sec:verkkopistoke}
     \blindtext
@@ -126,7 +129,7 @@
 
 \begin{align}
     \text{Frame size} &= F_s \\
-    \text{Option size} &= O_s = F_s - F_{min} - D_s \\
+    \text{Option size} &= O_s = F_s - F_{min} - D_s 
 \end{align}
 
 
@@ -152,20 +155,32 @@
 
 Tässä työssä paketti on määritelty seuraavasti:
 \begin{lstlisting}[caption={Paketin rakenne}, label={lst:frame}]
-#[derive(Debug, Clone)]
 pub struct Frame {
     frame: [u8; MAX_FRAME_SIZE],
     data_length: usize,
-
-    /// In bytes
     options_size: usize,
-}
+} 
 \end{lstlisting}
 Lähdekoodissa \ref{lst:frame} määritetaan tietorakenne \textit{Frame}, 
 \lstinline{[u8; MAX_FRAME_SIZE]} on taulokkotyyppi joka koostuu tavuista ja on kooltaan yhtä suuri kuin $F_{max}$.
-\lstinline{data_length} sisältää tiedon pakettiin tallennetun datan koosta. \lstinline{options_size} sisältää tiedon paketin asetuksien koosta.
+\lstinline{data_length} sisältää tiedon pakettiin tallennetun datan koosta. \lstinline{options_size} sisältää tiedon paketin asetuksien koosta.\par
+\lstinline{usize} vastaa kohde arkkitehtuurin muistiosoitteen kokoa. 32 bittisessä kohde tietokoneessa \lstinline{usize} vastaa 4 tavua ja 64 bittisessä kohteessa 8 tavua \cite{rust-doc-usize}. 
 
 \subsection{Tietojen käsittely paketissa}
+    Paketti on ohjelmanmuistissa yhtenä kokonaisena taulukkona, joka koostuu tavuista. 
+    Paketti sisältää tietoja 16 bittisessä ja 32 bittisessä muodossa. Nämä tiedot täytyy jakaa tavuihin lähettämistä varten. 
+
+\begin{lstlisting}[caption={Järjestusnumeron asettaminen pakettiin}, label={lst:set_seq_num}]
+pub fn set_sequence_number(&mut self, sequence_number: u32) {
+    let net_sequence_number = sequence_number.to_be_bytes();
+    self.frame[SEQUENCE_NUMBER_OCTET..4].copy_from_slice(&net_sequence_number);
+}
+\end{lstlisting}
+
+Lähdekoodissa \ref{lst:set_seq_num} järjestysnumero muutetaan laskevaan tavujärjestykseen, käyttäen rust standardi kirjaston functiota \lstinline{to_be_bytes()} \cite{rust_doc_u32}. Tämän jälkeen se kopiodaan paketin 4 ensimmäisen tavun tilalle. \par
+Oikea tavujärjestys on erittäin tärkeä osa tiedon siirrossa verkon ylitse. Protokollaa käyttävät tietokoneet täytyvät olla yhteisymmärryksessä mitä tavujärjestystä tiedonsiirrossa käytetään. laskeva tavujärjestys on yleisn järjestys, joten päätin käyttää sitä myös tässä protokollassa. \par
+Mikäli tavujärjestystä ei ota huomioon tiedonsiirrossa ja vastaanottaja sekä lähettäjän tietokoneet käyttävät eriävää tavujärjestystä, lukujen muuntaminen tavutaulukosta primitiiviseksi luvuksi tuottaa vääriä tuloksia.
+// TODO: Lisää jotain diagrameja tähän
      
     \subsection{Kuljetuskerros}\label{subsec:kuljetuskerros}
     Kuljetuskerros hoitaa pakettien luomisen ja välittämisen paketin verkkosovittimeen. 
@@ -204,7 +219,7 @@ Lähdekoodissa \ref{lst:frame} määritetaan tietorakenne \textit{Frame},
         \label{tab:vakiot}
     \end{table}
 
-    Näiden vakioiden perusteella voidaan laskea tärkeitä muuntujia\footnote{Ohjelman kääntäjä laskee nämä ja tallentaa tulokset vakioarvoiksi \cite{noauthor_constant_nodate}.}.
+    Näiden vakioiden perusteella voidaan laskea tärkeitä muuntujia\footnote{Ohjelman kääntäjä laskee nämä ja tallentaa tulokset vakioarvoiksi \cite{rust_book_constant_evaluation}.}.
     
     \begin{align}
         \text{MIN\_FRAME\_SIZE} &= F_{min} = S_s + C_s + R_s + DL_s + DO_s \\
@@ -227,8 +242,13 @@ Lähdekoodissa \ref{lst:frame} määritetaan tietorakenne \textit{Frame},
         \label{tab:control_bits}
     \end{table}
 
-    Taulukon \ref{tab:control_bits} määrittämät ohjausbitit antavat vastaanottajalle tärkeää tietoa paketista. Kuittaus bitti ilmoittaa lähettäjälle, että vastaanottaja on saanut paketin onnistuneesti. Pääte bitti ilmoittaa vastaanottajalle, että kyseinen paketti on paketti ryhmän viimeinen ja ryhmä on valmis koottavaksi kun kaikki sitä edeltävät paketit ovat saapuneet.  
-
+    Taulukon \ref{tab:control_bits} määrittämät ohjausbitit antavat vastaanottajalle tärkeää tietoa paketista. Kuittaus bitti ilmoittaa lähettäjälle, että vastaanottaja on saanut paketin onnistuneesti. Pääte bitti ilmoittaa vastaanottajalle, että kyseinen paketti on paketti ryhmän viimeinen ja ryhmä on valmis koottavaksi kun kaikki sitä edeltävät paketit ovat saapuneet. \par
+    Vastaanottaja tarkistaa ohjausbittien olemassaolon bittioperaatiolla. 
+\begin{lstlisting}[caption={Kuittasbitin tarkistus ohjausbiteistä}, label={lst:ack_check}]
+if control_bits & 00000001 == 00000001 {
+    // Kuittaus bitti löytyy
+}
+\end{lstlisting}
     
 
 
@@ -258,7 +278,6 @@ Lähdekoodissa \ref{lst:frame} määritetaan tietorakenne \textit{Frame},
 
     \subsection{Valikoiva toisto}\label{subsec:valikoiva_toisto}
     \blindtext
-    \cite{greenwade93}
 
     \subsection{Kuittaus}\label{subsec:kuittaus}
     \blindtext
@@ -266,7 +285,6 @@ Lähdekoodissa \ref{lst:frame} määritetaan tietorakenne \textit{Frame},
 
     \section{Virheenkorjaus}\label{sec:virheenkorjaus}
     \blindtext
-    \cite{tietoliikenteenperusteet}
 
 
     \section{Suorityskyky}
@@ -275,8 +293,8 @@ Lähdekoodissa \ref{lst:frame} määritetaan tietorakenne \textit{Frame},
     Testissä tietokone siirtää itselleen silmukan kautta 50 megatavun tiedoston. Testi suoritetaan 10 putkeen jotta saadaan leville keskiarvo selville.
 
     \subsection{Asynkroninen }
+    \bibliographystyle{vancouver}
+    \bibliography{doc/latex/src/mendeley}
 
-    \bibliography{doc/latex/src/references}
-    \bibliographystyle{plain}
 
 \end{document}
