@@ -12,12 +12,22 @@
 \usepackage{url}
 \usepackage{listings}
 \usepackage{listings-rust}
+\usepackage{tikz}
 % \usepackage{showframe}
 \lstset{language=Rust, style=boxed,
  literate={ö}{{\"o}}1
            {ä}{{\"a}}1
 }
 \renewcommand{\lstlistingname}{Lähdekoodi}
+
+\input{doc/latex/src/architecture}
+
+
+
+
+
+
+
 
 \title{Luotettava UDP-yhteys}
 \author{Joonas Kajava}
@@ -180,6 +190,7 @@ pub fn set_sequence_number(&mut self, sequence_number: u32) {
 Lähdekoodissa \ref{lst:set_seq_num} järjestysnumero muutetaan laskevaan tavujärjestykseen, käyttäen rust standardi kirjaston functiota \lstinline{to_be_bytes()} \cite{rust_doc_u32}. Tämän jälkeen se kopiodaan paketin 4 ensimmäisen tavun tilalle. \par
 Oikea tavujärjestys on erittäin tärkeä osa tiedon siirrossa verkon ylitse. Protokollaa käyttävät tietokoneet täytyvät olla yhteisymmärryksessä mitä tavujärjestystä tiedonsiirrossa käytetään. laskeva tavujärjestys on yleisn järjestys, joten päätin käyttää sitä myös tässä protokollassa. \par
 Mikäli tavujärjestystä ei ota huomioon tiedonsiirrossa ja vastaanottaja sekä lähettäjän tietokoneet käyttävät eriävää tavujärjestystä, lukujen muuntaminen tavutaulukosta primitiiviseksi luvuksi tuottaa vääriä tuloksia.
+\cite{Adiga2007HowC}
 // TODO: Lisää jotain diagrameja tähän
      
     \subsection{Kuljetuskerros}\label{subsec:kuljetuskerros}
@@ -262,6 +273,9 @@ if control_bits & 00000001 == 00000001 {
 
 
     \section{Liukuva ikkuna}\label{sec:liukuva_ikkuna}
+    \begin{center}
+        \architecture
+    \end{center}
 
 
     \subsection{Ikkunan siirto vastaanottaessa}
