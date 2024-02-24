@@ -112,15 +112,15 @@
     TCP ja UDP protokollat ovat kaksi yleisintä TCP/IP protokollaa.
     Näistä TCP protokolla on usein käytetty palveluissa, jotka vaativat vakaata ja luotettavaa yhteyttä. UDP paras reaaliaikaisia sovelluksia varten. Tämä johtuu siitä, että TCP paketin mukana liikkuu paljon reservoituja tavuja, joita ei käytetä ollenkaan, myös otsikko päättyy turhaan täytteeseen.
     \par
-    UDP:n etu realiaikaisessa kommunikaatiossa on, että se on kevyt ja nopea. 
+    UDP:n etu realiaikaisessa kommunikaatiossa on, että se on kevyt ja nopea.
     \cite{KumarSurveyUDP}
     \par
-    
-    
+
+
 
     \section{Tavoitteet ja motivaatio}
     Tämän työn tavoitteena on internet protokollien toimintaa ja niiden implementointia. Tilanteissa missä kaistanleveys on rajallinen ja nopea vasteaika on tärkeää, on usein kannattavaa luoda oma protokolla, joka on räätälöity sovelluksen tarpeita varten.
-    Oman protokollan käyttöönotto vaatii kohtuullisen määrän tietoa verkkosovittimien, UDP protokollan, yhtäaikaisuudesta sekä tehokkaista tietorakenteista.\par
+Oman protokollan käyttöönotto vaatii kohtuullisen määrän tietoa verkkosovittimien, UDP protokollan, yhtäaikaisuudesta sekä tehokkaista tietorakenteista.\par
     Tässä dokumentissa käydään läpi internet protokollien teoriaa, toteutukset käyttäen rust ohjelmointi kieltä ja lopuksi tutkiva osuus jossa mitataan protokollien suorituskykyä ja tehokkuutta.
 
 
@@ -139,11 +139,11 @@
 
 \begin{align}
     \text{Frame size} &= F_s \\
-    \text{Option size} &= O_s = F_s - F_{min} - D_s 
+    \text{Option size} &= O_s = F_s - F_{min} - D_s
 \end{align}
 
 
-     
+
 \begin{table}[h!]\
     \centering
     \resizebox{\textwidth}{!}{
@@ -169,16 +169,16 @@ pub struct Frame {
     frame: [u8; MAX_FRAME_SIZE],
     data_length: usize,
     options_size: usize,
-} 
+}
 \end{lstlisting}
-Lähdekoodissa \ref{lst:frame} määritetaan tietorakenne \textit{Frame}, 
+Lähdekoodissa \ref{lst:frame} määritetaan tietorakenne \textit{Frame},
 \lstinline{[u8; MAX_FRAME_SIZE]} on taulokkotyyppi joka koostuu tavuista ja on kooltaan yhtä suuri kuin $F_{max}$.
 \lstinline{data_length} sisältää tiedon pakettiin tallennetun datan koosta. \lstinline{options_size} sisältää tiedon paketin asetuksien koosta.\par
-\lstinline{usize} vastaa kohde arkkitehtuurin muistiosoitteen kokoa. 32 bittisessä kohde tietokoneessa \lstinline{usize} vastaa 4 tavua ja 64 bittisessä kohteessa 8 tavua \cite{rust-doc-usize}. 
+\lstinline{usize} vastaa kohde arkkitehtuurin muistiosoitteen kokoa. 32 bittisessä kohde tietokoneessa \lstinline{usize} vastaa 4 tavua ja 64 bittisessä kohteessa 8 tavua \cite{rust-doc-usize}.
 
 \subsection{Tietojen käsittely paketissa}
-    Paketti on ohjelmanmuistissa yhtenä kokonaisena taulukkona, joka koostuu tavuista. 
-    Paketti sisältää tietoja 16 bittisessä ja 32 bittisessä muodossa. Nämä tiedot täytyy jakaa tavuihin lähettämistä varten. 
+    Paketti on ohjelmanmuistissa yhtenä kokonaisena taulukkona, joka koostuu tavuista.
+    Paketti sisältää tietoja 16 bittisessä ja 32 bittisessä muodossa. Nämä tiedot täytyy jakaa tavuihin lähettämistä varten.
 
 \begin{lstlisting}[caption={Järjestusnumeron asettaminen pakettiin}, label={lst:set_seq_num}]
 pub fn set_sequence_number(&mut self, sequence_number: u32) {
@@ -192,9 +192,9 @@ Oikea tavujärjestys on erittäin tärkeä osa tiedon siirrossa verkon ylitse. P
 Mikäli tavujärjestystä ei ota huomioon tiedonsiirrossa ja vastaanottaja sekä lähettäjän tietokoneet käyttävät eriävää tavujärjestystä, lukujen muuntaminen tavutaulukosta primitiiviseksi luvuksi tuottaa vääriä tuloksia.
 \cite{Adiga2007HowC}
 // TODO: Lisää jotain diagrameja tähän
-     
+
     \subsection{Kuljetuskerros}\label{subsec:kuljetuskerros}
-    Kuljetuskerros hoitaa pakettien luomisen ja välittämisen paketin verkkosovittimeen. 
+    Kuljetuskerros hoitaa pakettien luomisen ja välittämisen paketin verkkosovittimeen.
     Kuljetuskerros määrittelee seuraavat osat protokollasta:
 
     \begin{itemize}
@@ -216,22 +216,22 @@ Mikäli tavujärjestystä ei ota huomioon tiedonsiirrossa ja vastaanottaja sekä
             Vakion-nimi & Lyhenne & Arvo & Yksikkö \\
             \hline
             MAX\_DATA\_SIZE & $D_s$ & 128 & Tavu \\
-            SEQ\_NUM\_SIZE & $S_s$ & 4 & Tavu \\         
-            CONTROL\_BITS\_SIZE & $C_s$ & 1 & Tavu \\         
-            RESERVED\_SIZE & $R_s$ & 1 & Tavu \\         
-            DATA\_LENGTH\_SIZE & $DL_s$ & 1 & Tavu \\         
-            DATA\_OFFSET\_SIZE & $DO_s$ & 1 & Tavu \\         
-            OPTION\_KIND\_SIZE & $OK_s$ & 1 & Tavu \\         
-            OPTION\_LENGTH\_SIZE & $OL_s$ & 1 & Tavu \\         
+            SEQ\_NUM\_SIZE & $S_s$ & 4 & Tavu \\
+            CONTROL\_BITS\_SIZE & $C_s$ & 1 & Tavu \\
+            RESERVED\_SIZE & $R_s$ & 1 & Tavu \\
+            DATA\_LENGTH\_SIZE & $DL_s$ & 1 & Tavu \\
+            DATA\_OFFSET\_SIZE & $DO_s$ & 1 & Tavu \\
+            OPTION\_KIND\_SIZE & $OK_s$ & 1 & Tavu \\
+            OPTION\_LENGTH\_SIZE & $OL_s$ & 1 & Tavu \\
             OPTION\_DATA\_SIZE & $OD_s$ & 4 & Tavu \\
-            MAX\_OPTION\_COUNT & $MO_c$ & 4 & Määrä          
+            MAX\_OPTION\_COUNT & $MO_c$ & 4 & Määrä
         \end{tabular}
         \caption{Vakiot ja niiden arvot}
         \label{tab:vakiot}
     \end{table}
 
     Näiden vakioiden perusteella voidaan laskea tärkeitä muuntujia\footnote{Ohjelman kääntäjä laskee nämä ja tallentaa tulokset vakioarvoiksi \cite{rust_book_constant_evaluation}.}.
-    
+
     \begin{align}
         \text{MIN\_FRAME\_SIZE} &= F_{min} = S_s + C_s + R_s + DL_s + DO_s \\
         \text{MAX\_FRAME\_SIZE} &= F_{max} = F_{min} + MO_c(OK_s + OL_s + OD_s) + D_s \label{eq:fmax}
@@ -246,24 +246,24 @@ Mikäli tavujärjestystä ei ota huomioon tiedonsiirrossa ja vastaanottaja sekä
         \begin{tabular}{lll}
             Nimi & Lyhenne & Binääriarvo \\
             \hline
-            Kuittaus & ACK & 00000001 \\ 
-            Pääte & EOM & 00000010 \\ 
+            Kuittaus & ACK & 00000001 \\
+            Pääte & EOM & 00000010 \\
         \end{tabular}
         \caption{Ohjausbitit ja niiden arvot}
         \label{tab:control_bits}
     \end{table}
 
     Taulukon \ref{tab:control_bits} määrittämät ohjausbitit antavat vastaanottajalle tärkeää tietoa paketista. Kuittaus bitti ilmoittaa lähettäjälle, että vastaanottaja on saanut paketin onnistuneesti. Pääte bitti ilmoittaa vastaanottajalle, että kyseinen paketti on paketti ryhmän viimeinen ja ryhmä on valmis koottavaksi kun kaikki sitä edeltävät paketit ovat saapuneet. \par
-    Vastaanottaja tarkistaa ohjausbittien olemassaolon bittioperaatiolla. 
+    Vastaanottaja tarkistaa ohjausbittien olemassaolon bittioperaatiolla.
 \begin{lstlisting}[caption={Kuittasbitin tarkistus ohjausbiteistä}, label={lst:ack_check}]
 if control_bits & 00000001 == 00000001 {
     // Kuittaus bitti löytyy
 }
 \end{lstlisting}
-    
 
 
-    
+
+
     \subsection{Sovelluskerros}\label{subsec:sovelluskerros}
     \blindtext
 
@@ -287,7 +287,7 @@ if control_bits & 00000001 == 00000001 {
     \end{align}
 
     Vastaanottava ikkuna pitää muistissa pienimmän järjestysnumeron $n_s$, minkä se on vastaanottanut.
-    Vastaanottava ikkuna hylkää kaikki paketit, joiden järjestysnumero on ikkunan ulkopuolella $n_x < n_s$ tai $n_x > n_s + w_s$. Jos järjestysnumero on ikkunan sisällä, se hyväksytään ja merkitään vastaanotetuksi. Mikäli $n_x = n_s + 1$ ikkunaa voidaan siirtää eteenpäin.
+Vastaanottava ikkuna hylkää kaikki paketit, joiden järjestysnumero on ikkunan ulkopuolella $n_x < n_s$ tai $n_x > n_s + w_s$. Jos järjestysnumero on ikkunan sisällä, se hyväksytään ja merkitään vastaanotetuksi. Mikäli $n_x = n_s + 1$ ikkunaa voidaan siirtää eteenpäin.
     Ikkunan siirto tapahtuu kulkemalla hyväksyttyjen järjestysnumeroiden listaa eteenpäin, kunnes vastaan tulee järjestysnumero jota ei ole vielä vastaanotettu. Kulkiessa tapahtuneiden askelien määrä lisätään muuntujaan $n_s$.
 
     \subsection{Valikoiva toisto}\label{subsec:valikoiva_toisto}

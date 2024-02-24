@@ -1,0 +1,3 @@
+<component name="DependencyValidationManager">
+  <scope name="Models" pattern="file[ReliableRealTimeTransportProtocol]:demo/messanger/src-tauri/src/models/*" />
+</component>

@@ -1,13 +1,13 @@
 import {List} from "antd";
 import VirtualList from 'rc-virtual-list';
-import {atom, useRecoilValue, useSetRecoilState} from "recoil";
+import {atom, useRecoilState, useRecoilValue, useSetRecoilState} from "recoil";
 import dayjs from "dayjs";
 import {useEffect} from "react";
 import {listen} from "@tauri-apps/api/event";
 
 import localizedFormat from "dayjs/plugin/localizedFormat";
 import {LogErrorMessage, LogSuccessMessage} from "./rust_type_definitions.ts";
-import {fileManagerState} from "./FileManager.tsx";
+import {fileReceivingState, fileSendingState} from "./FileManager.tsx";
 
 dayjs.extend(localizedFormat)
 export const logState = atom<{ title: string, description: string, timestamp: dayjs.Dayjs }[]>({
@@ -17,6 +17,9 @@ export const logState = atom<{ title: string, description: string, timestamp: da
 
 
 export const LogMessageTitleMap: Record<LogSuccessMessage['type'] | LogErrorMessage['type'], string> = {
+    Error: "Unknown Error",
+    FileDataReceived: "Received file data from remote",
+    InvalidFileResponse: "Invalid File Response",
     FileAccepted: "Remote Has Accepted Your File",
     FileRejected: "Remote Rejected Your File",
     FileResponseSent: "Sent File Response",
@@ -40,24 +43,29 @@ export const RRTPLog = () => {
 
     const log = useRecoilValue(logState);
 
-    const setFileManagerState = useSetRecoilState(fileManagerState);
+    const [fileManagerSendingState, setFileManagerSendingState] = useRecoilState(fileSendingState);
+    const [fileManagerReceivingState, setFileManagerReceivingState] = useRecoilState(fileReceivingState);
 
     const setLog = useLog();
 
     useEffect(() => {
         const unlisten = listen<LogSuccessMessage>("log", (event) => {
-            if (event.payload.type === "FileInfoReceived") {
-                setFileManagerState({
-                    type: "incoming_file",
-                    file: event.payload.content
-                })
+            switch (event.payload.type) {
+                case "FileInfoReceived":
+                    setFileManagerReceivingState({
+                        type: "incoming_file",
+                        file: event.payload.content
+                    })
+                    break;
+                default:
+                    setLog(event.payload);
+
             }
-            setLog(event.payload);
         });
         return () => {
             unlisten.then((unlisten) => unlisten());
         }
-    }, [useLog]);
+    }, [useLog, setFileManagerSendingState, setFileManagerReceivingState, fileManagerReceivingState, fileManagerSendingState]);
 
 
     return <>

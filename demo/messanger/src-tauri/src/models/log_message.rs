@@ -1,12 +1,12 @@
 use serde::{Deserialize, Serialize};
 use typeshare::typeshare;
 
-use crate::models::network_file_info::NetworkFileInfo;
+use crate::models::file_models::FileMetadata;
 
 pub type LogMessageResult = Result<LogSuccessMessage, LogErrorMessage>;
 
 #[typeshare]
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 #[serde(tag = "type", content = "content")]
 pub enum LogSuccessMessage {
     UnknownMessage(String),
@@ -14,14 +14,14 @@ pub enum LogSuccessMessage {
     MessageSent(String),
     LocalSocketBindSuccess(String),
     ConnectedToRemote(String),
-    FileInfoSent(NetworkFileInfo),
-    FileInfoReceived(NetworkFileInfo),
+    FileInfoSent(FileMetadata),
+    FileInfoReceived(FileMetadata),
     FileDataReceived,
     ReceivedAcknowledgement,
-    FileRejected,
-    FileAccepted,
+    FileRejected(FileMetadata),
+    FileAccepted(FileMetadata),
     FileResponseSent,
-
+    Error(String),
 }
 
 #[typeshare]
@@ -33,5 +33,5 @@ pub enum LogErrorMessage {
     LocalSocketNotBound,
     ConnectionError(String),
     FileSendError(String),
-    InvalidFileResponse(String)
+    InvalidFileResponse(String),
 }

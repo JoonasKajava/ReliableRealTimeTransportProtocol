@@ -1,8 +1,8 @@
 use crate::transport_layer::constants::{MAX_FRAME_SIZE, MIN_FRAME_SIZE};
-use crate::transport_layer::ExtractUDPData;
+use crate::transport_layer::control_bits::ControlBits;
 use crate::transport_layer::option::{FrameOption, OptionKind};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Frame {
     frame: [u8; MAX_FRAME_SIZE],
     data_length: usize,
@@ -12,42 +12,29 @@ pub struct Frame {
 }
 
 const SEQUENCE_NUMBER_OCTET: usize = 0;
-const ACKNOWLEDGMENT_NUMBER_OCTET: usize = 4;
 
-const CONTROL_BITS_OCTET: usize = 8;
+const CONTROL_BITS_OCTET: usize = 4;
 
-const DATA_OFFSET_OCTET: usize = 8;
+const DATA_OFFSET_OCTET: usize = 4;
 const DATA_OFFSET_OFFSET: usize = 3;
 
-const DATA_LENGTH_OCTET: usize = 8;
+const DATA_LENGTH_OCTET: usize = 4;
 const DATA_LENGTH_OFFSET: usize = 2;
 
-const OPTIONS_OCTET: usize = 12;
-
+const OPTIONS_OCTET: usize = 8;
 
 impl Frame {
     pub fn set_sequence_number(&mut self, sequence_number: u32) {
         let net_sequence_number = sequence_number.to_be_bytes();
-        self.frame[SEQUENCE_NUMBER_OCTET] = net_sequence_number[0];
-        self.frame[SEQUENCE_NUMBER_OCTET + 1] = net_sequence_number[1];
-        self.frame[SEQUENCE_NUMBER_OCTET + 2] = net_sequence_number[2];
-        self.frame[SEQUENCE_NUMBER_OCTET + 3] = net_sequence_number[3];
+        self.frame[SEQUENCE_NUMBER_OCTET..4].copy_from_slice(&net_sequence_number);
     }
 
     pub fn get_sequence_number(&self) -> u32 {
-        u32::from_be_bytes(self.frame[SEQUENCE_NUMBER_OCTET..SEQUENCE_NUMBER_OCTET + 4].try_into().expect("Failed to convert sequence number to u32"))
-    }
-
-    pub fn set_acknowledgment_number(&mut self, acknowledgment_number: u32) {
-        let net_acknowledgment_number = acknowledgment_number.to_be_bytes();
-        self.frame[ACKNOWLEDGMENT_NUMBER_OCTET] = net_acknowledgment_number[0];
-        self.frame[ACKNOWLEDGMENT_NUMBER_OCTET + 1] = net_acknowledgment_number[1];
-        self.frame[ACKNOWLEDGMENT_NUMBER_OCTET + 2] = net_acknowledgment_number[2];
-        self.frame[ACKNOWLEDGMENT_NUMBER_OCTET + 3] = net_acknowledgment_number[3];
-    }
-
-    pub fn get_acknowledgment_number(&self) -> u32 {
-        u32::from_be_bytes(self.frame[ACKNOWLEDGMENT_NUMBER_OCTET..ACKNOWLEDGMENT_NUMBER_OCTET + 4].try_into().expect("Failed to convert acknowledgment number to u32"))
+        u32::from_be_bytes(
+            self.frame[SEQUENCE_NUMBER_OCTET..SEQUENCE_NUMBER_OCTET + 4]
+                .try_into()
+                .expect("Failed to convert sequence number to u32"),
+        )
     }
 
     pub fn set_control_bits(&mut self, control_bits: u8) {
@@ -56,6 +43,20 @@ impl Frame {
 
     pub fn get_control_bits(&self) -> u8 {
         self.frame[CONTROL_BITS_OCTET]
+    }
+
+    pub fn get_frame_type(&self) -> FrameType {
+        let control_bits = ControlBits::from_bits(self.get_control_bits());
+        match control_bits {
+            None => FrameType::Unknown,
+            Some(bits) => {
+                if bits.contains(ControlBits::ACK) {
+                    FrameType::Ack
+                } else {
+                    FrameType::Data
+                }
+            }
+        }
     }
 
     pub fn set_options(&mut self, options: &[FrameOption]) {
@@ -67,7 +68,7 @@ impl Frame {
             let len = option.data.len();
             self.frame[start_offset + 1] = len as u8;
             let data_offset = start_offset + 2;
-            self.frame[data_offset..data_offset +len].copy_from_slice(option.data);
+            self.frame[data_offset..data_offset + len].copy_from_slice(option.data);
             self.options_size += 2 + len;
         }
     }
@@ -79,7 +80,7 @@ impl Frame {
         let len = option.data.len();
         self.frame[start_offset + 1] = len as u8;
         let data_offset = start_offset + 2;
-        self.frame[data_offset..data_offset +len].copy_from_slice(option.data);
+        self.frame[data_offset..data_offset + len].copy_from_slice(option.data);
         self.options_size += 2 + len;
     }
 
@@ -94,7 +95,7 @@ impl Frame {
         }
         let mut options_read = 0;
         while options_read < options_size {
-            let kind:OptionKind = OptionKind::from(self.frame[offset]);
+            let kind: OptionKind = OptionKind::from(self.frame[offset]);
             let len = self.frame[offset + 1] as usize;
             let data_offset = offset + 2;
             let data = &self.frame[data_offset..data_offset + len];
@@ -167,4 +168,11 @@ impl From<[u8; MAX_FRAME_SIZE]> for Frame {
             options_size: 0,
         }
     }
+}
+
+#[derive(Debug, PartialEq)]
+pub enum FrameType {
+    Data,
+    Ack,
+    Unknown,
 }

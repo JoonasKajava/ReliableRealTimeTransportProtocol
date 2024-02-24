@@ -1,42 +1,71 @@
 use std::fs;
 use std::path::Path;
 
-use tauri::{Manager, State};
 use tauri::AppHandle;
+use tauri::{Manager, State};
 
-use lib_rrttp::application_layer::connector::Connector;
-use lib_rrttp::application_layer::message::Message;
+use lib_rrttp::application_layer::connection_manager::{
+    ConnectionManager, ConnectionManagerInterface,
+};
 
-use crate::AppState;
+use crate::connection_processor::ConnectionProcessor;
+use crate::message::Message;
+use crate::models::file_models::{FileInfo, FileMetadata};
 use crate::models::log_message::{LogErrorMessage, LogMessageResult, LogSuccessMessage};
-use crate::models::message_type::MessageType;
-use crate::models::network_file_info::NetworkFileInfo;
+use crate::AppState;
 
 #[tauri::command]
 pub fn bind(address: &str, state: State<AppState>) -> LogMessageResult {
-    let mut new_connector = Connector::new(address).map_err(|e| LogErrorMessage::LocalSocketBindFailed(e.to_string()))?;
+    let ConnectionManagerInterface {
+        connection_manager,
+        connection_events,
+        message_sender,
+    } = ConnectionManager::start(address)
+        .map_err(|e| LogErrorMessage::LocalSocketBindFailed(e.to_string()))?;
 
     let sender = state.log_sender.clone();
-    std::thread::spawn(move || {
-        loop {
-            let message = new_connector.1.recv().unwrap();
-            sender.send(message.into()).unwrap()
+
+    let processor = ConnectionProcessor::new(
+        sender.clone(),
+        state.message_state.clone(),
+        message_sender.clone(),
+    );
+
+    std::thread::spawn(move || loop {
+        match connection_events.recv() {
+            Ok(connection_event) => {
+                if let Err(error) = processor.process_connection_event(connection_event) {
+                    let _ = sender.send(LogSuccessMessage::Error(error.to_string()));
+                }
+            }
+            Err(_) => {
+                let _ = sender.send(LogSuccessMessage::Error(
+                    "Connection event receiver has been dropped".to_string(),
+                ));
+                break;
+            }
         }
     });
     let mut guard = state.connector_state.lock().unwrap();
-    guard.connector = Some(new_connector.0);
+    guard.set_message_sender(message_sender);
+    guard.connector = Some(connection_manager);
 
-    Ok(LogSuccessMessage::LocalSocketBindSuccess(address.to_string()))
+    Ok(LogSuccessMessage::LocalSocketBindSuccess(
+        address.to_string(),
+    ))
 }
 
 #[tauri::command]
 pub fn connect(address: &str, state: State<AppState>) -> LogMessageResult {
     let app_state_lock = state.connector_state.lock().unwrap();
     let connector = &app_state_lock.connector;
-    let result = connector.as_ref().ok_or(LogErrorMessage::LocalSocketNotBound)?.connect(address);
+    let result = connector
+        .as_ref()
+        .ok_or(LogErrorMessage::LocalSocketNotBound)?
+        .connect(address);
     match result {
         Ok(_) => Ok(LogSuccessMessage::ConnectedToRemote(address.to_string())),
-        Err(e) => Err(LogErrorMessage::ConnectionError(e.to_string()))
+        Err(e) => Err(LogErrorMessage::ConnectionError(e.to_string())),
     }
 }
 
@@ -46,13 +75,11 @@ pub fn send_message(message: &str, state: State<AppState>) -> LogMessageResult {
     return match &mut guard.connector {
         None => Err(LogErrorMessage::LocalSocketNotBound),
         Some(connector) => {
-            let payload = Message {
-                message_type: MessageType::Message,
-                payload: message.as_bytes().to_vec(),
-            };
+            let message_for_network = Message::String(message.to_string());
+            let payload = message_for_network.try_into().unwrap();
             match connector.send(payload) {
                 Ok(_) => Ok(LogSuccessMessage::MessageSent(message.to_string())),
-                Err(e) => Err(LogErrorMessage::MessageSendError(e.to_string()))
+                Err(e) => Err(LogErrorMessage::MessageSendError(e.to_string())),
             }
         }
     };
@@ -62,33 +89,42 @@ pub fn send_message(message: &str, state: State<AppState>) -> LogMessageResult {
 pub fn send_file_info(file_path: &str, state: State<AppState>) -> LogMessageResult {
     let file = fs::read(file_path).map_err(|e| LogErrorMessage::FileSendError(e.to_string()))?;
 
-    let file_name_read_error = || LogErrorMessage::FileSendError("Unable to read filename".to_string());
-    let file_name = Path::new(file_path).file_name().ok_or_else(file_name_read_error)?.to_str().ok_or_else(file_name_read_error)?.to_string();
+    let file_name_read_error =
+        || LogErrorMessage::FileSendError("Unable to read filename".to_string());
+    let file_name = Path::new(file_path)
+        .file_name()
+        .ok_or_else(file_name_read_error)?
+        .to_str()
+        .ok_or_else(file_name_read_error)?
+        .to_string();
     let file_kind = infer::get(&file);
 
-    let file_info = NetworkFileInfo {
+    let file_info = FileMetadata {
         file_name,
         file_mime: file_kind.map(|e| e.mime_type().to_string()),
         file_size_in_bytes: file.len() as u32,
     };
 
     let file_info_clone = file_info.clone();
-    let bin: Result<Vec<u8>, String> = file_info.try_into();
 
-    let message = Message {
-        message_type: MessageType::FileInfo,
-        payload: bin.map_err(|e| LogErrorMessage::FileSendError(e))?,
-    };
+    let message = Message::FileInfo(file_info);
 
     let app_state_guard = state.connector_state.lock().unwrap();
     let guard = app_state_guard.connector.as_ref().unwrap();
-    return match guard.send(message) {
+    let payload = message
+        .try_into()
+        .map_err(|e: anyhow::Error| LogErrorMessage::FileSendError(e.to_string()))?;
+    return match guard.send(payload) {
         Ok(_) => {
-            let mut guard = state.file_to_send.lock().unwrap();
-            guard.replace(file_path.to_string());
+            let mut guard = state.message_state.lock().unwrap();
+            let file_info = FileInfo {
+                metadata: file_info_clone.clone(),
+                src: Some(file_path.to_string()),
+            };
+            guard.outgoing_file.replace(file_info);
             Ok(LogSuccessMessage::FileInfoSent(file_info_clone))
         }
-        Err(e) => Err(LogErrorMessage::FileSendError(e.to_string()))
+        Err(e) => Err(LogErrorMessage::FileSendError(e.to_string())),
     };
 }
 
@@ -98,22 +134,31 @@ pub fn respond_to_file_info(ready: bool, file: &str, state: State<AppState>) -> 
     let guard = connector_guard.connector.as_ref().unwrap();
     if ready {
         if Path::new(file).exists() {
-            return Err(LogErrorMessage::InvalidFileResponse("File already exists".to_string()));
+            return Err(LogErrorMessage::InvalidFileResponse(
+                "File already exists".to_string(),
+            ));
         }
 
-        state.path_to_write_new_file.lock().unwrap().replace(file.to_string());
+        let mut file_info_guard = state.message_state.lock().unwrap();
+        match &mut file_info_guard.incoming_file {
+            Some(file_info) => {
+                file_info.src = Some(file.to_string());
+            }
+            None => {
+                return Err(LogErrorMessage::InvalidFileResponse(
+                    "No file info to respond to".to_string(),
+                ))
+            }
+        }
     }
+    let message = Message::ResponseToFileInfo { accepted: ready };
+    let payload = message
+        .try_into()
+        .map_err(|e: anyhow::Error| LogErrorMessage::InvalidFileResponse(e.to_string()))?;
 
-    let message = Message {
-        message_type: match ready {
-            true => MessageType::FileAccepted,
-            false => MessageType::FileRejected,
-        },
-        payload: vec![],
-    };
-    return match guard.send(message) {
+    return match guard.send(payload) {
         Ok(_) => Ok(LogSuccessMessage::FileResponseSent),
-        Err(e) => Err(LogErrorMessage::InvalidFileResponse(e.to_string()))
+        Err(e) => Err(LogErrorMessage::InvalidFileResponse(e.to_string())),
     };
 }
 
@@ -123,12 +168,11 @@ pub fn send_file(file_path: &str, app_handle: &AppHandle) -> Result<String, Stri
     return match &mut guard.connector {
         None => Err("Local socket has not been bound yet".to_string()),
         Some(connector) => {
-            let message = Message {
-                message_type: MessageType::FileData,
-                payload: fs::read(file_path).map_err(|e| e.to_string())?,
-            };
-
-            match connector.send(message) {
+            let message = Message::FileData(fs::read(file_path).map_err(|e| e.to_string())?);
+            let payload = message
+                .try_into()
+                .map_err(|e| format!("Failed to send file: {}", e))?;
+            match connector.send(payload) {
                 Ok(_) => Ok(format!("Send file: {}", file_path)),
                 Err(e) => Err(format!("Failed to send file: {}", e)),
             }
