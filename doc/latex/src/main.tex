@@ -13,6 +13,9 @@
 \usepackage{listings}
 \usepackage{listings-rust}
 \usepackage{tikz}
+\usepackage{setspace}
+\usepackage{framed}
+\usepackage{parskip}
 % \usepackage{showframe}
 \lstset{language=Rust, style=boxed,
  literate={ö}{{\"o}}1
@@ -23,6 +26,7 @@
 \input{doc/latex/src/architecture}
 
 
+\onehalfspacing
 
 
 
@@ -238,7 +242,7 @@ Mikäli tavujärjestystä ei ota huomioon tiedonsiirrossa ja vastaanottaja sekä
     \end{align}
 
 
-    \subsection{Ohjausbitit}
+    \subsection{Ohjausbitit}\label{subsec:control_bits}
     Ohjausbitit ilmaantuvat paketissa yhtenä tavuna, joista jokainen bitti vastaa tiettyä ohjausbittiä.
 
     \begin{table}[h!]
@@ -348,18 +352,85 @@ tallessa ennenkuin ne kasataan yhdeksi kokonaisuudeksi. \par
 Rust-kielessä ei pysty tekemään perintää samantyylisesti kuin yleisissä OOP-kielissä. Tämän takia
 käytetään suunnittelutapaa nimeltä "\textit{Composition over Inheritance}" \cite{Ivicevic202228Inheritance}.
 
-
-
-    Vastaanottava ikkuna pitää muistissa pienimmän järjestysnumeron $n_s$, minkä se on vastaanottanut.
+\begin{framed}
+    Vastaanottava ikkuna pitää muistissa pienimmän järjestysnumeron $n_s$, minkä se on vastaanottanut. 
 Vastaanottava ikkuna hylkää kaikki paketit, joiden järjestysnumero on ikkunan ulkopuolella $n_x < n_s$ tai $n_x > n_s + w_s$. Jos järjestysnumero on ikkunan sisällä, se hyväksytään ja merkitään vastaanotetuksi. Mikäli $n_x = n_s + 1$ ikkunaa voidaan siirtää eteenpäin.
     Ikkunan siirto tapahtuu kulkemalla hyväksyttyjen järjestysnumeroiden listaa eteenpäin, kunnes vastaan tulee järjestysnumero jota ei ole vielä vastaanotettu. Kulkiessa tapahtuneiden askelien määrä lisätään muuntujaan $n_s$.
+\end{framed}
+
+    Tässä toteutuksessa $n_s$ löytyy yleisen ikkunan (lähdekoodi \ref{lst:window}) sisältä kentästä \lstinline{window_left_edge: u32}.
+    
+
+    \section{Vastaanottajan toiminta}
+    Datan vastaanottaminen tapahtuu vastaanottaja säikeessä, joka käynnisttään yhteyden muodostamisessa.
+    Säie pyörii ikuisessa silmukassa, jossa ensimmäinen operaatio on ikkunan siirto eteenpäin.
+
+\begin{lstlisting}[caption={Ikkunan siirto}, label={lst:shift_window}]
+pub fn shift_window(&mut self) -> usize {
+    let mut shift_amount = 0usize;
+    for e in self.frame_status.iter() {
+        if *e {
+            shift_amount += 1;
+        } else {
+            break;
+        }
+    }
+    self.frame_status.drain(0..shift_amount);
+    self.window_left_edge += shift_amount as u32;
+    shift_amount
+}
+\end{lstlisting}      
+
+Lähdekoodi \ref{lst:shift_window} esittää yleisen ikkunan siirtämistä eteenpäin.
+\lstinline{self.frame_status} viittaa onnistuneesti lähetettyihin tai vastaanotettuihin paketteihin.
+
+
+\begin{lstlisting}[caption={Vastaanottajan ikkunan siirto}, label={lst:shift_rwindow}]
+pub fn shift_window(&mut self) -> Vec<Frame> {
+    let shift_amount = self.inner_window.shift_window();
+    let shifted_frames = self.buffer.drain(0..shift_amount);
+    let result = shifted_frames.into_iter().flatten().collect();
+    self.buffer.shrink_to_fit();
+    result
+}
+\end{lstlisting}
+
+Sisäisen ikkunan siirron jälkeen puskuria siirretään eteenpäin. Tämä operaatio tuottaa 
+listan paketeista jotka ovat saapuneet onnistuneesti ja ovat oikeassa järjestyksessä.
+lista käsitellään \lstinline{flatten()} functiolla joka tuottaa listan missä \lstinline{Option} 
+on suodatettu pois. Lopuksi puskurin kapasiteettia kutisteaan\footnote{Tämä operaatio on 
+turhan raskas tässä tilanteessa, mutta tähän palataan myöhemmin suorituskyky osiossa.
+}. Käsitelty lista palautetaan ja se siirtyy käsiteltäväksi ylempiin kerroksiin. \par
+
+Ylemmässä kerroksessa tämä käsitelty lista käydään läpi.  
+
+\begin{lstlisting}[caption={Pakettien käsittely}, label={lst:handle_shift_window}]
+receiving_window.shift_window().into_iter().for_each(|frame| {
+    buffer.extend_from_slice(frame.get_data());
+    let control_bits = ControlBits::from_bits(frame.get_control_bits())
+        .unwrap();
+    connection_events_sender_receiver
+        .send(ConnectionEventType::ReceivedFrame(frame))
+        .unwrap();
+    if control_bits.contains(ControlBits::EOM) {
+        let message: Vec<u8> = std::mem::take(&mut buffer);
+        connection_events_sender_receiver
+            .send(ConnectionEventType::ReceivedCompleteMessage(message))
+            .unwrap();
+    }
+});
+\end{lstlisting}
+
+Jokainen valmis paketti käydään läpi ja sen sisältö lisätään puskuriin\footnote{Tässä toteutuksessa putkuri on sovelluksen muistissa, mutta isojen viestien siirrossa voidaan myös käyttää tiedostoja puskurina.}
+. Tämän jälkeen ohjausbitit luetaan paketista kappaleen \ref{subsec:control_bits} mukaisesti. Ylempiin kerroksiin lähetetään tieto vastaanotetusta paketista käyttäen kanavia, ylemmät kerrokset kuten sovellus voivat käyttää tätä tietoa esim. lataus indikaattorin tekemisessä. \par
+
+Mikäli paketti on viimeinen viesti, puskuri siirretään uuteen listaan ja lähetetään ylemmille kerroksille.
+
 
     \subsection{Valikoiva toisto}\label{subsec:valikoiva_toisto}
     \blindtext
 
     \subsection{Kuittaus}\label{subsec:kuittaus}
-    \blindtext
-
 
     \section{Virheenkorjaus}\label{sec:virheenkorjaus}
     \blindtext
