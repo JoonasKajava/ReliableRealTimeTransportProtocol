@@ -435,6 +435,9 @@ Mikäli paketti on viimeinen viesti, puskuri siirretään uuteen listaan ja läh
     \section{Virheenkorjaus}\label{sec:virheenkorjaus}
     \blindtext
 
+    \section{Demo}\label{sec:demo}
+    Iso osa tätä työtä oli myös toteuttaa esimerkki ohjelma jolla pystyy luotettavasti siirtää tietoja ja viestejä verkon yli. Demo-sovellus on rakennettu käyttäen Tauri- ja React-kirjastoa. Koska Rust-ohjelmointikieli on vielä nuori, käyttöliittymä ekosysteemi ei ole vielä kypsä \cite{AreYet}. Tämän takia päädyin Tauri-kirjastoon, joka hyödyntää webteknologioita käyttöliittymän piirtämiseen ja ohjaamiseen. Taustalla pyörii Rust-ohjelma joka hoitaa tiedon siirron. \par
+    Egui\footnote{Egui on kypsä ja sillä on hyvä dokumentaatio, mutta \textit{immidiate mode} aiheutaa vaikeuksia ulkoasun määrittelyssä. } ja Iced projektit olivat hyviä vaihtoehtoja, mutta dokumentaatio ja yleinen kypsyys ei ollut riittävä tämän projektin tilanteeseen.
 
     \section{Suorityskyky}
     Suorituskyvyn mittaaminen toteutetaan sisäverkossa, jotta tiedonsiirto nopeus on deterministinen ja vakaa.
