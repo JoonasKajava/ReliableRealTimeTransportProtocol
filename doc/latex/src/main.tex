@@ -272,11 +272,66 @@ if control_bits & 00000001 == 00000001 {
     \blindtext
 
 
-    \section{Liukuva ikkuna}\label{sec:liukuva_ikkuna}
-    \begin{center}
-        \architecture
-    \end{center}
+    \section{Arkkitehtuuri}\label{sec:arkkitehtuuri} 
+    \architecture
 
+     \lstinline{ConnectionManager} on vastuussa yhteyksien hallinnasta. Sen tehtävä on 
+    hoitaa vastaanottaja säiettä ja lähettävää säiettä. Kun sovellus haluaa käynnistää yhteyden, 
+    \lstinline{ConnectionManager} luo pistokkeen sovelluksen antamaan osoitteeseen. 
+    Lähetys ja vastaanotto säikeet käynnistyvät kun pistokkeen luonti onnistuu. 
+    \par
+    \begin{lstlisting}[caption={ConnectionManager rakenne}, label={lst:connectionmanager}]
+pub struct ConnectionManager {
+    listener_thread: Option<thread::JoinHandle<()>>,
+    transmitter_thread: Option<thread::JoinHandle<()>>,
+    socket: Arc<SocketAbstraction>,
+    message_sender: SyncSender<Vec<u8>>,
+}\end{lstlisting}
+
+\begin{lstlisting}[caption={Drop ominaisuuden toteutus ConnectionManager:ille}, label={lst:connectionmanager_drop}]
+impl Drop for ConnectionManager {
+    fn drop(&mut self) {
+        if let Some(x) = self.listener_thread.take() {
+            x.join().unwrap();
+        }
+        if let Some(x) = self.transmitter_thread.take() {
+            x.join().unwrap();
+        }
+    }
+}
+\end{lstlisting}
+
+
+    \lstinline{ConnectionManager} pitää muistissa viitteet vastaanottaja ja lähettäjä säikeisiin.
+    \lstinline{Option<...>} määrittelee valinnaisen arvon, joka tarkoittaa, että kyseinen muuntuja ei 
+    välttämättä sisällä käyttökelpoista arvoa. Tämä vastaa muissa useissa ohjelmointikielissä \lstinline{null} arvoa \cite{rust_book_enum}. Näitä kahta muuntujaa käytetään säikeiden sulavaan sulkemiseen kun \lstinline{ConnectionManager} pudotetaan muistista. 
+
+    \lstinline{ConnectionManager} implementoi \lstinline{Drop} ominaisuuden, joka liittää vastaanottaja
+    ja lähettäjä säikeet. Näin ohjelma jää odottamaan, että nämä kaksi säiettä sulkeuduu oikein \cite{rust_doc_joinhandle}.
+        
+    \section{Liukuva ikkuna}\label{sec:liukuva_ikkuna}
+    \begin{lstlisting}[caption={Ikkunan rakenne}, label={lst:window}]
+pub struct Window {
+    frame_status: Vec<bool>,
+    window_size: u32,
+    window_left_edge: u32,
+}\end{lstlisting}
+
+
+    \begin{lstlisting}[caption={Vastaanottajan ikkunan rakenne}, label={lst:rwindow}]
+pub struct ReceiverWindow {
+    inner_window: Window,
+    buffer: Vec<Option<Frame>>,
+}\end{lstlisting}
+
+    \begin{lstlisting}[caption={Lähettävän ikkunan rakenne}, label={lst:twindow}]
+pub struct TransmitterWindow {
+    inner_window: Window,
+    socket: Arc<SocketAbstraction>,
+    events_sender: Sender<ConnectionEventType>,
+    ack_receiver: Receiver<u32>,
+    data_queue: Vec<Option<QueueFrame>>,
+}\end{lstlisting}
 
     \subsection{Ikkunan siirto vastaanottaessa}
 
@@ -285,6 +340,15 @@ if control_bits & 00000001 == 00000001 {
         n_x &= \text{Vastaanotetun paketin järjestysnumero} \\
         w_s &= \text{Ikkunan koko}
     \end{align}
+
+
+
+Vastaanottajan ikkuna määritellään lähdekoodin \ref{lst:rwindow} mukaisesti. Se sisältää yleisen \lstinline{Window} toteutuksen ja \lstinline{buffer} kentän, jonka tarkoitus on pitää tietoja 
+tallessa ennenkuin ne kasataan yhdeksi kokonaisuudeksi. \par
+Rust-kielessä ei pysty tekemään perintää samantyylisesti kuin yleisissä OOP-kielissä. Tämän takia
+käytetään suunnittelutapaa nimeltä "\textit{Composition over Inheritance}" \cite{Ivicevic202228Inheritance}.
+
+
 
     Vastaanottava ikkuna pitää muistissa pienimmän järjestysnumeron $n_s$, minkä se on vastaanottanut.
     Vastaanottava ikkuna hylkää kaikki paketit, joiden järjestysnumero on ikkunan ulkopuolella $n_x < n_s$ tai $n_x > n_s + w_s$. Jos järjestysnumero on ikkunan sisällä, se hyväksytään ja merkitään vastaanotetuksi. Mikäli $n_x = n_s + 1$ ikkunaa voidaan siirtää eteenpäin.
