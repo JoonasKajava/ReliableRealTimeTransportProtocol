@@ -100,6 +100,7 @@
             ACK: & Acknowledgement               \\
             NAK: & Negative Acknowledgement      \\
             NIC: & Network Interface Controller  \\
+            ARQ: & Automatic Repeat Request      \\
         \end{tabular}
         \newpage
 
@@ -427,8 +428,19 @@ Jokainen valmis paketti käydään läpi ja sen sisältö lisätään puskuriin\
 Mikäli paketti on viimeinen viesti, puskuri siirretään uuteen listaan ja lähetetään ylemmille kerroksille.
 
 
-    \subsection{Valikoiva toisto}\label{subsec:valikoiva_toisto}
-    \blindtext
+    \subsection{Valikoiva toisto ARQ}\label{subsec:valikoiva_toisto}
+    Valikoida toisto ARQ englanniksi \textit{Selective Repeat} on tehokkaampi verrattuna toisiin ARQ protokolliin. 
+
+    \begin{framed}
+       \textit{Stop-and-wait ARQ} lähettäjä jää odottamaan jokaisesta paketista kuittausta ennen siirtymistä seuraavan paketin lähettämistä. Vastaavasti vastaanottaja hylkää kaikki paketit jotka eivät ole seuraava paketti järjestyslukujen perusteella \cite{StopAndWaitARQ}. 
+    \end{framed}
+
+    Tässä toteutuksessa käytetään valikoivaa toistoa, sillä se on tehokas tiedonsiirron kannalta, mutta se vaatii vastaanottajalta datan puskuroinnin. Puskurointi vaatii huomattavaa muistin\footnote{Tämä toteutus voi vaatia vastaanottajan tietokoneelta noin 2 gigatavua muistia} käyttöä jota ei mahdollisesti ole pienissä laitteissa. Tämä toteutus on tehty sillä oletuksella, että alustana on tietokone ja muistista ei ole pulaa.\par 
+
+    Valikoivassa toistossa lähettäjä lähettää kaikki ikkunan sisällä olevat paketit ja odottaa vastaanottajan kuittauksia. Mikäli lähettäjä vastaanottaa kuittauksia ikkunan etupäästä, lähettäjä siirtää ikkunaa eteenpäin ja lähettää paketit jotka ovat nyt ikkunan sisällä. Tämä jatkuu niin kauan kuin kaikki paketit on lähetetty puskurista. \par 
+
+    Vastaanottaja vastaanottaa kaikki paketit joiden järjestysnumero on ikkunan sisällä vaikka ne tulisi perille väärässä järjestyksessä. Pakettien data tallennetaan puskuriin järjestysnumeron määrittämään indeksiin. Mikäli vastaanottaja vastaanottaa paketteja jotka ovat ikkunan etupäässä, ne siirretään ylemmille kerroksille käsiteltäväksi ja ikkunaa siirretään eteenpäin.    
+
 
     \subsection{Kuittaus}\label{subsec:kuittaus}
 
@@ -444,9 +456,7 @@ Mikäli paketti on viimeinen viesti, puskuri siirretään uuteen listaan ja läh
     Testiympäristö koostuu yhdestä Windows tietokoneesta, joka muodostaa yhteyden itseensä käyttäen silmukka osoitetta.\par
     Testissä tietokone siirtää itselleen silmukan kautta 50 megatavun tiedoston. Testi suoritetaan 10 putkeen jotta saadaan leville keskiarvo selville.
 
-    \subsection{Asynkroninen }
+    \subsection{Asynkroninen}
     \bibliographystyle{vancouver}
     \bibliography{doc/latex/src/mendeley}
-
-
 \end{document}
