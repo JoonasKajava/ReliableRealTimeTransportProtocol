@@ -338,6 +338,8 @@ pub struct TransmitterWindow {
     data_queue: Vec<Option<QueueFrame>>,
 }\end{lstlisting}
 
+Tässä ohjelmassa puskurit ovat toteutettu käyttämällä heap allokoituja vektoreita. \lstinline{Vec} on yleisesti paras tietorakenne tämän tyylisiä operaatioita varten. Vertailu muihin tietorakenteisiin löysyy osiosta \ref{sec:suorityskyky}.
+
     \subsection{Ikkunan siirto vastaanottaessa}
 
     \begin{align}
@@ -451,7 +453,12 @@ Mikäli paketti on viimeinen viesti, puskuri siirretään uuteen listaan ja läh
     Iso osa tätä työtä oli myös toteuttaa esimerkki ohjelma jolla pystyy luotettavasti siirtää tietoja ja viestejä verkon yli. Demo-sovellus on rakennettu käyttäen Tauri- ja React-kirjastoa. Koska Rust-ohjelmointikieli on vielä nuori, käyttöliittymä ekosysteemi ei ole vielä kypsä \cite{AreYet}. Tämän takia päädyin Tauri-kirjastoon, joka hyödyntää webteknologioita käyttöliittymän piirtämiseen ja ohjaamiseen. Taustalla pyörii Rust-ohjelma joka hoitaa tiedon siirron. \par
     Egui\footnote{Egui on kypsä ja sillä on hyvä dokumentaatio, mutta \textit{immidiate mode} aiheutaa vaikeuksia ulkoasun määrittelyssä. } ja Iced projektit olivat hyviä vaihtoehtoja, mutta dokumentaatio ja yleinen kypsyys ei ollut riittävä tämän projektin tilanteeseen.
 
-    \section{Suorityskyky}
+    \section{Suorityskyky}\label{sec:suorityskyky}
+
+    \subsection{Lista tietorakenteet}
+    Tämän ohjelman luonteen kannalta on tärkeää, että käytetään tehokkaita tietorakenteita. Ohjelman täytyy pystyä tehokkaasti käsittelemään listoja jotka sisältävät tuhansia elementtejä. Suorituskyvy testaamisen tuloksien perusteella päädyin \lstinline{Vec} tietorakenteeseen.
+
+    
     Suorituskyvyn mittaaminen toteutetaan sisäverkossa, jotta tiedonsiirto nopeus on deterministinen ja vakaa.
     Testiympäristö koostuu yhdestä Windows tietokoneesta, joka muodostaa yhteyden itseensä käyttäen silmukka osoitetta.\par
     Testissä tietokone siirtää itselleen silmukan kautta 50 megatavun tiedoston. Testi suoritetaan 10 putkeen jotta saadaan leville keskiarvo selville.
