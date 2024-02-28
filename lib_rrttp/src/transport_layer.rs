@@ -7,7 +7,3 @@ pub(crate) mod receiver_window;
 pub mod socket;
 pub(crate) mod transmitter_window;
 pub mod window;
-
-pub trait ExtractUDPData {
-    fn consume_udp_data(self) -> Vec<u8>;
-}

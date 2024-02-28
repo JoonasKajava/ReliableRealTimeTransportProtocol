@@ -19,3 +19,7 @@ criterion = { version = "0.5.1", features = ["html_reports"] }
 [[bench]]
 name = "async_vs_sync_udp_socket"
 harness = false
+[[bench]]
+name = "collections"
+harness = false
+
