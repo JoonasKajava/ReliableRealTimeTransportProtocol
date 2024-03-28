@@ -16,12 +16,18 @@
 \usepackage{setspace}
 \usepackage{framed}
 \usepackage{parskip}
+\usepackage[style=vancouver]{biblatex}
+\usepackage{xcolor}
+\usepackage{tabularray}
+\addbibresource{mendeley.bib}
 % \usepackage{showframe}
 \lstset{language=Rust, style=boxed,
  literate={ö}{{\"o}}1
            {ä}{{\"a}}1
 }
 \renewcommand{\lstlistingname}{Lähdekoodi}
+
+
 
 \input{doc/latex/src/architecture}
 
@@ -131,10 +137,6 @@ Oman protokollan käyttöönotto vaatii kohtuullisen määrän tietoa verkkosovi
 
     \section{Verkkosovitin}\label{sec:verkkosovitin}
     Rust-ohjelmointikieli käyttää linuxissa \textit{libc}-kirjastoa \cite{rust-source-unix-netrs}
-
-    \section{Verkkopistoke}\label{sec:verkkopistoke}
-    \blindtext
-
 
     \section{TCP/IP}\label{sec:tcpip}
     \blindtext
@@ -444,10 +446,106 @@ Mikäli paketti on viimeinen viesti, puskuri siirretään uuteen listaan ja läh
     Vastaanottaja vastaanottaa kaikki paketit joiden järjestysnumero on ikkunan sisällä vaikka ne tulisi perille väärässä järjestyksessä. Pakettien data tallennetaan puskuriin järjestysnumeron määrittämään indeksiin. Mikäli vastaanottaja vastaanottaa paketteja jotka ovat ikkunan etupäässä, ne siirretään ylemmille kerroksille käsiteltäväksi ja ikkunaa siirretään eteenpäin.    
 
 
-    \subsection{Kuittaus}\label{subsec:kuittaus}
 
     \section{Virheenkorjaus}\label{sec:virheenkorjaus}
-    \blindtext
+    Saapuneiden tietojen varmistukseen käytetään tarkistussummaa. Saapuneen paketin sisällöstä muodostetaan deterministinen luku, jota verrataan paketin mukana tulleeseen tarkistussumman. Mikäli summat eivät vastaa toisiaan voidaan olettaa, että paketti on korruptoitunut ja vastaanottaja lähettää \textit{NACK}-paketin. Kyseinen paketti vaatii lähettäjää lähettämään korruptoituneen paketin uudestaan
+    \cite{khan-udp}.
+    \subsection{Tarkistussumma}
+    
+    \begin{table}[h!]
+        \centering
+        \begin{tblr}{
+        colspec = {llllllll},
+        cell{7}{3-4} = {purple7},
+        cell{7}{5-8} = {lime},
+        row{8-9} = {lime},
+        }
+            18&00&00&00&60&03&82&28 \\
+            00&1c&11&80&00&00&00&00 \\  
+            00&00&00&00&00&00&00&00 \\
+            00&00&00&01&00&00&00&00 \\
+            00&00&00&00&00&00&00&00 \\
+            00&00&00&01&30&39&30&39 \\ 
+            00&1c&c2&a7&00&00&00&01 \\ 
+            02&00&0c&08&00&68&65&6c \\
+            6c&6f&20&77&6f&72&6c&64 \\
+        \end{tblr}
+        \caption{UDP-paketti Hex-muodossa, jossa tarkistussumma merkitty purppuralla ja vastaavasti data vihreällä.}
+        \label{tab:hello-world}
+    \end{table}
+
+    UDP-paketissa tarkistussumma koostuu kahdesta tavusta. Se esiintyy paketin rakenteessa juuri ennen dataa. Taulukko \ref{tab:hello-world} havainnollistaa tarkistustumman(purppura) ja datan(virheä) sijainnin paketissa.
+
+\begin{minipage}{\linewidth}
+\begin{lstlisting}[caption={Tarkistussumman muodostaminen}, label={lst:creating_checksum}]
+fn calculate_checksum(data: &[u8]) -> u16 {
+    let mut sum = 0u32;
+    for pair in data.chunks(2) {
+        let mut checksum = 0u16;
+        checksum += u16::from(pair[0]) << 8;
+        checksum += match pair.get(1) {
+            None => 0,
+            Some(x) => u16::from(*x),
+        };
+        sum += checksum as u32;
+    }
+    while sum > 0xffff {
+        let carry = sum >> 16;
+        sum &= 0xffff;
+        sum += carry;
+    }
+    !sum as u16
+}
+\end{lstlisting}
+\end{minipage}
+
+Lähdekoodissa \ref{lst:creating_checksum} muodostetaan 16-bittinen tarkistussumma. 
+\lstinline{data}-taulukon sisältämät tavut ryhmitetään 16-bittisiksi numeroiksi, jonka jälkeen ne summataan yhteen. Vaikka lopullinen tarkistussumma täytyy olla 16-bittinen, lukujen summa tallenne taan väliaikaisesti 32-bittiseen numeroon. Tämä täytyy tehdä sen takia, jotta summa operaatiossa ei tapahdu ylivuotoa. Ilman 32-bittisen numeron apua olisi mahdollista, että summa numero ylivuotaa kun se ylittää $2^{16} - 1$ summan
+\cite{udp-calculation}.
+
+
+\begin{framed}
+    C-ohjelmointikielessä kokonaisluvun ylivuoto on määrittelemätön tapahtuma. Tämä voi ja on johtanut useisiin tietoturva ongelmiin. Se saattaa olla usein myös vaikeita löytää sillä C-ohjelma jatkaa toimintaa vaikka ylivuoto tapahtuu.\par
+    Rust-ohjelmointikielessä kokonaisluvun ylivuoto on määritelty. Ylivuoto johtaa aina ohjelman paniikkiin ja sitä myötä sen sammumiseen. Tämä käytännössä eliminoi ylivuodon aiheuttamat tietoturva ongelmat \cite[ch.~3.2]{rust-book}.
+\end{framed}
+
+\begin{minipage}{\linewidth}
+
+\begin{lstlisting}[caption={Tietojen kasaaminen tarkistussummaa varten}, label={lst:data_for_checksum}]
+#[test]
+fn checksum() {
+    let ip = 1u128.to_be_bytes();
+    let port = 12345u16.to_be_bytes();
+    let protocol = 0x0011u32.to_be_bytes();
+    let payload = [
+        0x00, 0x00, 0x00, 0x01, 
+        0x02, 0x00, 0x0c, 0x08, 
+        0x00, 0x68, 0x65, 0x6c, 
+        0x6c, 0x6f, 0x20, 0x77, 
+        0x6f, 0x72, 0x6c, 0x64,
+    ];
+    let udp_packet_length = 28u16;
+    let udp_packet_length = udp_packet_length.to_be_bytes();
+    let mut data = vec![];
+    data.extend_from_slice(&ip);
+    data.extend_from_slice(&ip);
+    data.extend_from_slice(&protocol);
+    data.extend_from_slice(&udp_packet_length);
+    data.extend_from_slice(&port);
+    data.extend_from_slice(&port);
+    data.extend_from_slice(&udp_packet_length);
+    data.extend_from_slice(&payload);
+    let checksum = calculate_checksum(&data);
+    assert_eq!(checksum, 0xc2a7);
+}
+\end{lstlisting}
+\end{minipage}
+
+Lähdekoodissa \ref{lst:data_for_checksum} näytetään miten \lstinline{data: &[u8]} muodostetaan. Tarkistussumma sisältää lähettäjän ja vastaanottajan IP-osoitteet, portit, protokolla (17), UDP-osuuden koon ja lopuksi kuorman \cite{RFC-768, protocol-numbers}. \par
+
+
+    
+    Modernien tietokoneiden verkkokortti hoitaa tämän tarkistussumman käsittelyn \cite{TCP/IPLearn}. 
 
     \section{Demo}\label{sec:demo}
     Iso osa tätä työtä oli myös toteuttaa esimerkki ohjelma jolla pystyy luotettavasti siirtää tietoja ja viestejä verkon yli. Demo-sovellus on rakennettu käyttäen Tauri- ja React-kirjastoa. Koska Rust-ohjelmointikieli on vielä nuori, käyttöliittymä ekosysteemi ei ole vielä kypsä \cite{AreYet}. Tämän takia päädyin Tauri-kirjastoon, joka hyödyntää webteknologioita käyttöliittymän piirtämiseen ja ohjaamiseen. Taustalla pyörii Rust-ohjelma joka hoitaa tiedon siirron. \par
@@ -464,6 +562,5 @@ Mikäli paketti on viimeinen viesti, puskuri siirretään uuteen listaan ja läh
     Testissä tietokone siirtää itselleen silmukan kautta 50 megatavun tiedoston. Testi suoritetaan 10 putkeen jotta saadaan leville keskiarvo selville.
 
     \subsection{Asynkroninen}
-    \bibliographystyle{vancouver}
-    \bibliography{doc/latex/src/mendeley}
+    \printbibliography
 \end{document}
