@@ -736,8 +736,61 @@ Result<(), Box<dyn std::error::Error>> + Send + 'static
        \item \lstinline{FnOnce(&mut App<R>) ->} määrittelee sulkeuman, joka voidaan suorittaa vähintään kerran. Sulkeuma saa parametrin mukana muuttuvan viitteen \lstinline{App<R>} muuntujaan.
        \item \lstinline{Result<(), Box<dyn std::error::Error>>} tarkoittaa, että sulkeuma ei palauta mitään \lstinline{()} tai se palauttaa virheen joka implementoi \lstinline{std::error::Error} ominaisuuden.
        \item \lstinline{Send} on erittäin tärkeä tieto sulkeumasta. Tämä tarkoittaa sitä, että sulkeuma ja sen käyttämät asiat täytyvät olla turvallisia säikeiden välistä siirtoa varten. Tämä tarkoittaa myös sitä, että demo-sovelluksen tila rakenne on turvallista siirtää toiseen säikeeseen.
-       \item \lstinline{'static} on käyttöikätunniste, joka vaatii että sulkeuma ja sen käyttämät asiat ovat koko soveluksen elinajan käyttökelpoisia.
+       \item \lstinline{'static} on käyttöikätunniste, joka vaatii että sulkeuma ja sen käyttämät asiat ovat koko sovelluksen elinajan käyttökelpoisia.
     \end{enumerate}
+
+    \begin{lstlisting}[caption={setup-sulkeuma}, label={lst:setup}]
+let (log_sender, log_receiver): (
+    Sender<LogSuccessMessage>,
+    Receiver<LogSuccessMessage>,
+) = std::sync::mpsc::channel();
+let app_state = AppState::new(log_sender);
+let handle = app.handle();
+tauri::async_runtime::spawn(async move {
+    loop {
+        let message = log_receiver.recv().unwrap();
+        match handle.emit_all("log", message) {
+            Ok(_) => {}
+            Err(e) => error!("Failed to emit log message: {}", e),
+        }
+    }
+});
+app.manage(app_state);
+\end{lstlisting}
+
+    \lstinline{setup} sulkeamassa, joka on kuvattu lähdekoodissa \ref{lst:setup} luodaan lokituskanava riveillä 1-4. Nämä kanavat mahdollistavat viestimisen säikeiden välillä ilman lukkoja. Tätä kanavaa pitkin Rust-prosessi pystyy lähettämään käyttöliittymään viestejä mistä tahansa säikeestä. Kanavan viestejä pystyy vastaanottamaan vain yhdessä paikassa\footnote{On olemassa Rust-yhteisön ylläpitämiä paketteja, jotka sallivat usean vastaanottajan, kuten \lstinline{crossbeam}.}, mutta viestien lähetyksessä ei ole tätä rajoitusta\cite[ch. 16.2]{rust-book}. Rivillä 7 luodaan säie viestien lukemista varten. Säie odottaa viestejä kanavasta ja saatuaan viestin, se välittää sen käyttöliittymään IPC-viestillä. Rivillä 5 luodaan sovelluksen tila rakenne, joka vastaanottaa lokikanavan lähettävän pään. Tämän jälkeen kutsutaan Tauri-sovelluskehystä hallitsemaan tätä tilaa.
+
+    \begin{lstlisting}[caption={Sovelluksen tilan rakenne}, label={lst:app_state}]
+struct ConnectorState {
+    pub connector: Option<ConnectionManager>,
+    message_sender: Option<SyncSender<Vec<u8>>>,
+}
+#[derive(Default)]
+struct MessageState {
+    pub outgoing_file: Option<FileInfo>,
+    pub incoming_file: Option<FileInfo>,
+}
+struct AppState {
+    pub connector_state: Mutex<ConnectorState>,
+    pub log_sender: Sender<LogSuccessMessage>,
+    pub message_state: Arc<Mutex<MessageState>>,
+}\end{lstlisting}
+
+    Sovelluksen tila sisältää yhteyden tilan, viestien tilan ja viitteen lokikanavan lähettävään päähän. Lähdekoodin \ref{lst:app_state} riveillä 11 ja 13 on huomattava, että nämä ovat \lstinline{Mutex<...>} primitiivin sisällä. \lstinline{ConnectorState} ja \lstinline{MessageState} eivät toteuta \lstinline{Send}-ominaisuutta, joka löytyy \lstinline{setup}-funktion tunnisteesta. \lstinline{Sender<...>} toteuuttaa \lstinline{Send}-ominaisuuden, joten sitä ei tarvitse erikseen laittaa \lstinline{Mutex<...>}:in sisälle.
+
+    \subsection{Prosessien välinen kommunikaatio}
+    Tauri-sovelluskehys hyödyntää IPC-viestejä käyttöliittymän ja Rust-prosessin väliseen kommunikointiin.
+
+    \begin{lstlisting}[caption={IPC-komentojen määritys}, label={lst:ipc_commands}]
+.invoke_handler(tauri::generate_handler![
+    bind,
+    connect,
+    send_message,
+    send_file_info,
+    respond_to_file_info
+])\end{lstlisting}
+
+    
     \section{Suorityskyky}\label{sec:suorityskyky}
 
     \subsection{Lista tietorakenteet}
