@@ -22,11 +22,12 @@
 \addbibresource{mendeley.bib}
 % \usepackage{showframe}
 \lstset{language=Rust, style=boxed,
+captionpos=b,
  literate={ö}{{\"o}}1
            {ä}{{\"a}}1
 }
 \renewcommand{\lstlistingname}{Lähdekoodi}
-
+\interfootnotelinepenalty=10000
 
 
 \input{doc/latex/src/architecture}
@@ -261,11 +262,11 @@ Mikäli tavujärjestystä ei ota huomioon tiedonsiirrossa ja vastaanottaja sekä
         \label{tab:control_bits}
     \end{table}
 
-    Taulukon \ref{tab:control_bits} määrittämät ohjausbitit antavat vastaanottajalle tärkeää tietoa paketista. Kuittaus bitti ilmoittaa lähettäjälle, että vastaanottaja on saanut paketin onnistuneesti. Pääte bitti ilmoittaa vastaanottajalle, että kyseinen paketti on paketti ryhmän viimeinen ja ryhmä on valmis koottavaksi kun kaikki sitä edeltävät paketit ovat saapuneet. \par
+    Taulukon \ref{tab:control_bits} määrittämät ohjausbitit antavat vastaanottajalle tärkeää tietoa paketista. Kuittausbitti ilmoittaa lähettäjälle, että vastaanottaja on saanut paketin onnistuneesti. Pääte bitti ilmoittaa vastaanottajalle, että kyseinen paketti on paketti ryhmän viimeinen ja ryhmä on valmis koottavaksi kun kaikki sitä edeltävät paketit ovat saapuneet. \par
     Vastaanottaja tarkistaa ohjausbittien olemassaolon bittioperaatiolla.
 \begin{lstlisting}[caption={Kuittasbitin tarkistus ohjausbiteistä}, label={lst:ack_check}]
 if control_bits & 00000001 == 00000001 {
-    // Kuittaus bitti löytyy
+    // Kuittausbitti löytyy
 }
 \end{lstlisting}
 
@@ -610,8 +611,74 @@ Lähdekoodissa \ref{lst:data_for_checksum} näytetään miten \lstinline{data: &
     Modernien tietokoneiden verkkokortti hoitaa tämän tarkistussumman käsittelyn \cite{TCP/IPLearn}. 
 
     \section{Demo}\label{sec:demo}
-    Iso osa tätä työtä oli myös toteuttaa esimerkki ohjelma jolla pystyy luotettavasti siirtää tietoja ja viestejä verkon yli. Demo-sovellus on rakennettu käyttäen Tauri- ja React-kirjastoa. Koska Rust-ohjelmointikieli on vielä nuori, käyttöliittymä ekosysteemi ei ole vielä kypsä \cite{AreYet}. Tämän takia päädyin Tauri-kirjastoon, joka hyödyntää webteknologioita käyttöliittymän piirtämiseen ja ohjaamiseen. Taustalla pyörii Rust-ohjelma joka hoitaa tiedon siirron. \par
-    Egui\footnote{Egui on kypsä ja sillä on hyvä dokumentaatio, mutta \textit{immidiate mode} aiheutaa vaikeuksia ulkoasun määrittelyssä. } ja Iced projektit olivat hyviä vaihtoehtoja, mutta dokumentaatio ja yleinen kypsyys ei ollut riittävä tämän projektin tilanteeseen.
+
+    \begin{figure}[h!]
+        \centering
+        \includegraphics[width=\textwidth]{doc/latex/src/images/RRTP.png}
+        \caption{Demo-ohjelman käyttöliittymä}
+        \label{fig:demo_interface}
+    \end{figure}
+    
+    Iso osa tätä työtä oli myös toteuttaa esimerkki ohjelma jolla pystyy luotettavasti siirtää tiedostoja ja viestejä verkon yli. Demo-sovellus on rakennettu käyttäen Tauri- ja React-kirjastoa. Koska Rust-ohjelmointikieli on vielä nuori, käyttöliittymä ekosysteemi ei ole vielä kypsä \cite{AreYet}. Tämän takia päädyin Tauri-kirjastoon, joka hyödyntää webteknologioita käyttöliittymän piirtämiseen ja ohjaamiseen. Taustalla pyörii Rust-ohjelma joka hoitaa tiedon siirron. \par
+    Egui\footnote{Egui on kypsä ja sillä on hyvä dokumentaatio, mutta \textit{immidiate mode} aiheutaa vaikeuksia ulkoasun määrittelyssä. } ja Iced projektit olivat hyviä vaihtoehtoja, mutta dokumentaatio ja yleinen kypsyys ei ollut riittävä tämän projektin tilanteeseen. \par
+
+
+    Demo-sovellus on rakennettu käyttäen Tauri-ohjelmistokehystä.
+    Tauri on electronin kaltainen ohjelmistokehys \footnote{Electron pyörii Node.js runtime ympäristön päällä ja tarjoaa version Chromium selaimesta käyttöliittymän piirtämiseen.}, joka mahdollistaa sovelluksien rakentamisen käyttäen web-teknologioita. Taustalla pyörii Rust-prosessi, joka luo ikkunan käyttäen \textit{TAO}-ohjelmistokirjastoa. Tämän jälkeen \textit{WRY}-ohjelmistokirjasto luo \lstinline{WebView} elementin, joka kutsuu käyttöjärjestelmän tarjoamaa selainta näyttämään sivuston \cite{tauri-app}.
+
+    Demo-ohjelmasta löytyy kaksi kenttää osoitteiden asettamiseen. Lista, joka 
+    pitää kirjaa tapahtumista. Tilannepaneeli, joka näyttää yhteyden tilan. 
+    Kaksi kenttää viestien ja tiedostojen lähettämiseen. \par
+
+    \subsection{Riippuvuudet}
+    Demo-sovelluksessa on mahdollista käyttää \textit{crates.io}-palvelun\footnote{Saatavilla osoitteesta: https://crates.io/} rust-paketteja ja \textit{npm}-palvelun\footnote{Saatavilla osoitteesta: https://www.npmjs.com/} javascript-paketteja. Paketit sallivat nopean kehityksen ja tarjoavat vakaita ratkaisuja eri ongelmiin. Usein pakettien käyttäminen on erittäin suositeltua, sillä niiden dokumentaatio ja valmiit ratkaisut ovat hyödyksi kehityksessä ja ylläpitämisessä.
+    
+    \begin{table}[h!]
+        \centering
+        \begin{tblr}{
+        colspec = {lll},
+        row{even} = {lightgray},
+        }
+        Nimi&Käyttötarkoitus \\
+        \hline
+        tauri & Käyttöliittymän piirtäminen \\
+        serde/bincode & Tiedon serialisointi ja deserialisointi \\
+        fern/log/humantime & Lokitiedostojen kirjoittaminen \\
+        typeshare & Typescript-rajapintojen luonti automaattisesti Rust-tyypeistä \\
+        infer & Tiedostotietojen lukeminen \\
+        thiserror/anyhow & Virheilmoituksien luonti ja käsittely 
+        \end{tblr}
+        \caption{Rust-riippuvuudet}
+        \label{tab:cargo_dependencies}
+    \end{table}
+
+    
+    \begin{table}[h!]
+        \centering
+        \begin{tblr}{
+        colspec = {lll},
+        row{even} = {lightgray},
+        }
+        Nimi&Käyttötarkoitus \\
+        \hline
+        ahooks & Hyödyllisiä React-koukkuja \\
+        antd & Käyttöliittymä-elementit \\
+        dayjs & Aika-tietojen käsittely \\
+        pretty-bytes & Tiedostokoon muuntaminen ihmisluettavaksi \\
+        rc-virtual-list & Virtuaaliset listat \\
+        react/react-dom & Käyttöliittymän hallinta ja piirtäminen \\
+        recoil & Käyttöliittymän tilan hallinta \\
+        typescript & Tyyppitietojen lisääminen javascriptiin \\
+        vite & Front-end ohjelmiston prosessointi
+        \end{tblr}
+        \caption{npm-riippuvuudet}
+        \label{tab:npm_dependencies}
+    \end{table}
+
+    \subsection{Ohjelman käynnistysvaihe}
+
+    Demo-ohjelma alkaa \lstinline{main.rs}-tiedoston \lstinline{fn main()}-funktiosta.
+    
 
     \section{Suorityskyky}\label{sec:suorityskyky}
 
@@ -624,5 +691,8 @@ Lähdekoodissa \ref{lst:data_for_checksum} näytetään miten \lstinline{data: &
     Testissä tietokone siirtää itselleen silmukan kautta 50 megatavun tiedoston. Testi suoritetaan 10 putkeen jotta saadaan leville keskiarvo selville.
 
     \subsection{Asynkroninen}
+
+
+    \newpage
     \printbibliography
 \end{document}
