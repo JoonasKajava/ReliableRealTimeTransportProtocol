@@ -108,6 +108,7 @@ captionpos=b,
             NAK: & Negative Acknowledgement      \\
             NIC: & Network Interface Controller  \\
             ARQ: & Automatic Repeat Request      \\
+            IPC: & Inter-Process Communication   \\
         \end{tabular}
         \newpage
 
@@ -677,9 +678,66 @@ Lähdekoodissa \ref{lst:data_for_checksum} näytetään miten \lstinline{data: &
 
     \subsection{Ohjelman käynnistysvaihe}
 
-    Demo-ohjelma alkaa \lstinline{main.rs}-tiedoston \lstinline{fn main()}-funktiosta.
+    Demo-ohjelma alkaa \lstinline{main.rs}-tiedoston \lstinline{fn main()}-funktiosta. 
+    Se suorittaa 5 tärkeää toimintoa: lokituskonfiguraatio, sovellustilan alustaminen, lokiseurant säikeen käynnistys, IPC-rajapintojen määritys ja lopuksi käyttöliittymän käynnistys. \\
+
+    \begin{lstlisting}[caption={Lokituskonfiguraatio}, label={lst:logging_config}]
+fern::Dispatch::new()
+.format(|out, message, record| {
+    out.finish(format_args!(
+        "[{} {} {}] {}",
+        humantime::format_rfc3339_seconds(SystemTime::now()),
+        record.level(),
+        record.target(),
+        message
+    ))
+})
+.level(log::LevelFilter::Debug)
+.chain(std::io::stdout())
+.apply()?;
+    \end{lstlisting} 
+
+    \begin{lstlisting}[caption={Esimerkki lokitapahtumasta}, label={lst:log_example}]
+[2024-03-29T13:57:18Z INFO messanger::connection_processor]
+Processing connection event:
+ReceivedCompleteMessage([0, 72, 101, 108, 108, 111, 
+32, 87, 111, 114, 108, 100])
+    \end{lstlisting}
     
 
+    Lokituskonfiguraatio tapahtuu \lstinline{setup_logger()}-funktion kautta. 
+    Lokitus formaatti on asetettu niin, että viestissä ilmenee selkeästi tapahtuma aika,
+    viestin taso, tapahtuman moduuli ja itse viestin sisältö. Lähdekoodi \ref{lst:log_example} esittää mahdollisen lokitapahtuman. Sovellus voi kirjoittaa loki tapahtuman käyttämällä \lstinline{log}-kirjaston tarjoamia makroja\footnote{Mahdolliset makrot ovat: debug, error, info, log, trace, warn.}: \lstinline|info!("Processing connection event: {:?}", event);|\par
+
+
+    
+    \begin{lstlisting}[caption={Setup-funktion tunniste}, label={lst:setup_signature}]
+pub fn setup<F>(mut self, setup: F) -> Self
+where
+F: FnOnce(&mut App<R>) -> 
+Result<(), Box<dyn std::error::Error>> + Send + 'static
+\end{lstlisting}
+    
+
+
+
+    Sovellustila alustetaan \lstinline{tauri:app:Builder} struktuurin \lstinline{setup}-funktiolla, jonka tunniste on kuvattu lähdekoodissa \ref{lst:setup_signature}. Tämän tunnisteen ymmärtäminen on tärkeää sillä Rust-kääntäjä on erittäin tarkka rajoituksista, mitä tunniste asettaa. Rajoitukset ovat tärkeitä sillä niiden avulla pystytään takaamaan muistiturvallisuus, jopa useiden säikeiden välillä \cite[ch. 8.2]{rust-book}. \par
+
+    Lähdekoodin \ref{lst:setup_signature} tunniste on suhteellisen monimutkainen, mutta se voidaan lukea seuraavasti:
+    
+    \begin{enumerate}
+        \item \lstinline{pub fn} Kyseessä on julkinen funktio \lstinline{setup}.
+        \item \lstinline{<F>} on geneerinen tyyppi parametri \lstinline{F}.
+        \item \lstinline{mut self} funktio suoritetaan \lstinline{tauri:app:Builder} rakenteella.
+        \item \lstinline{setup: F} funktio ottaa vastaan parametrin, jonka tyyppi on geneerisen parametrin \lstinline{F} mukainen.
+        \item \lstinline{-> Self} funktio palauttaa \lstinline{tauri:app:Builder} rakenteen.
+       \item \lstinline{where} määrittelee geneeriset tyyppi parametrit.
+       \item \lstinline{F:} aloittaa \lstinline{F} parametrin määrityksen.
+       \item \lstinline{FnOnce(&mut App<R>) ->} määrittelee sulkeuman, joka voidaan suorittaa vähintään kerran. Sulkeuma saa parametrin mukana muuttuvan viitteen \lstinline{App<R>} muuntujaan.
+       \item \lstinline{Result<(), Box<dyn std::error::Error>>} tarkoittaa, että sulkeuma ei palauta mitään \lstinline{()} tai se palauttaa virheen joka implementoi \lstinline{std::error::Error} ominaisuuden.
+       \item \lstinline{Send} on erittäin tärkeä tieto sulkeumasta. Tämä tarkoittaa sitä, että sulkeuma ja sen käyttämät asiat täytyvät olla turvallisia säikeiden välistä siirtoa varten. Tämä tarkoittaa myös sitä, että demo-sovelluksen tila rakenne on turvallista siirtää toiseen säikeeseen.
+       \item \lstinline{'static} on käyttöikätunniste, joka vaatii että sulkeuma ja sen käyttämät asiat ovat koko soveluksen elinajan käyttökelpoisia.
+    \end{enumerate}
     \section{Suorityskyky}\label{sec:suorityskyky}
 
     \subsection{Lista tietorakenteet}
