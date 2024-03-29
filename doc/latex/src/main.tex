@@ -454,10 +454,64 @@ Skeemapohjaista dataa kannattaa hyödyntää silloin, kun vastaanottajalla ei ol
 Useat konfiguraatio mahdollisuudet eivät ole pakollisia ja sen takia niille on määritelty oletusarvot. Konfiguraatio voi sisältää tuhansia eri vaihtoehtoja ja ne ovat nimetty tietynlailla. \par
 Mikäli tätä konfiguraatiota haluttaisiin muuttaa verkon yli tulevalla tiedolla, skeemapohjainen data soveltuu tähän parhaiten. Näin lähettäjä pystyy kertomaan viestissä, miten dataa luetaan.
 
+\begin{lstlisting}[caption={JSON data}, label={lst:json_data}]
+{
+    "name": "Joonas Kajava"
+}
+\end{lstlisting}
+
+    \begin{table}[h!]
+        \centering
+        \begin{tblr}{
+        colspec = {lllll},
+        cell{1}{1} = {cyan},
+        cell{1}{2-5} = {teal},
+        cell{2}{1} = {purple},
+        cell{2}{2-5} = {pink},
+        row{3-4} = {pink}
+        }
+00000100&01101110&01100001&01101101&01100101\\
+00001101&01001010&01101111&01101111&01101110\\
+01100001&01110011&00100000&01001011&01100001\\
+01101010&01100001&01110110&01100001\\
+        \end{tblr}
+        \caption{Binääridata, joka sisältää saman tiedon kuin \ref{lst:json_data} lähdekoodissa}
+        \label{tab:binary_data}
+    \end{table}
+
+Lähdekoodissa \ref{lst:json_data} ja taulokossa \ref{tab:binary_data} havainnollistetaan kaksi tapaa koodata data tiedonsiirtoa varten. JSON data on helposti luettavaa, mutta se sisältää ylimääräisiä merkkejä, joita tietokone ei tarvitse. Binääritieto sisältää kaiken tarvittavan tiedon, joka riittää tietokoneelle, mutta tekee siitä vaikeasti luettavaa ihmiselle. Binääritieto vie huomattavasti vähemmän tilaa kuin tavallinen JSON data.
+Lähdekoodin \ref{lst:json_data} vie 26 tavua, kun taas taulukon \ref{tab:binary_data} vie 19 tavua. Tämän eron huomattavuus suurenee, kun tieton määrä kasvaa. \par
+
+Tässä toteutuksessa on käytetty \lstinline{bincode}\footnote{Saatavilla osoitteesta: https://crates.io/crates/bincode} nimistä kirjastoa binääridatan muodostukseen.
+
+\subsection{Ennalta määritelty data}
+Reaaliaikasissa sovelluksissa pitäisi aina pyrkiä siirtämään tietoa ennalta määritetyssä muodossa, jotta voidaan välttää ylimääräisen tiedon välittämisen verkon yli. 
 
 
+    \begin{table}[h!]
+        \centering
+        \begin{tblr}{
+        colspec = {llll},
+        cell{1}{1} = {cyan},
+        cell{1}{2-5} = {teal},
+        }
+        00000001&00000010&00000011&00000100 \\
+        \end{tblr}
+        \caption{Pelaajan sijainti binääritietona}
+        \label{tab:binary_data_player}
+    \end{table}
 
+    Tässä toteutuksessa on käytetty binääridata muotoa, jossa ensimmäinen tavu kertoo tiedon muodon. Onkoon tämä ensimmäinen tavu nimeltään jatkossa \textit{"toimintotieto"} Taulukossa \ref{tab:binary_data_player} esimerkki pelaajan sijainnista binäärimuodossa. \par
 
+    Vastaanottaja lukee viestisä ensimmäisen tavun ja sen perusteella valitsee oikean strategian tiedon käsittelyyn. Tässä toteutuksessa toimintotieto on yksi tavu, joka sallii 255 eri toimintoa. Mikäli tämä ei riitä, voidaan käyttää yhtä toimintoa skeemadatan siirtämiseen, jonka käytännössä avaa mahdollisuuden käyttää loputtoman määrän toimintoja. Toinen vaihtoehto suurentaa toimintotietoa kahteen tavuun tai neljään. \par
+
+    Demossa, josta puhutaan myöhemmin kappaleessa \ref{sec:demo}, käytetään neljää toimintoa:
+    \begin{enumerate}
+        \item String
+        \item FileInfo
+        \item ResponseToFileInfo
+        \item FileData
+    \end{enumerate}
 
     \section{Virheenkorjaus}\label{sec:virheenkorjaus}
     Saapuneiden tietojen varmistukseen käytetään tarkistussummaa. Saapuneen paketin sisällöstä muodostetaan deterministinen luku, jota verrataan paketin mukana tulleeseen tarkistussumman. Mikäli summat eivät vastaa toisiaan voidaan olettaa, että paketti on korruptoitunut ja vastaanottaja lähettää \textit{NACK}-paketin. Kyseinen paketti vaatii lähettäjää lähettämään korruptoituneen paketin uudestaan
