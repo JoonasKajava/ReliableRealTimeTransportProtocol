@@ -190,7 +190,8 @@ Lähdekoodissa \ref{lst:frame} määritetaan tietorakenne \textit{Frame},
 \begin{lstlisting}[caption={Järjestusnumeron asettaminen pakettiin}, label={lst:set_seq_num}]
 pub fn set_sequence_number(&mut self, sequence_number: u32) {
     let net_sequence_number = sequence_number.to_be_bytes();
-    self.frame[SEQUENCE_NUMBER_OCTET..4].copy_from_slice(&net_sequence_number);
+    self.frame[SEQUENCE_NUMBER_OCTET..4]
+    .copy_from_slice(&net_sequence_number);
 }
 \end{lstlisting}
 
@@ -432,6 +433,7 @@ Jokainen valmis paketti käydään läpi ja sen sisältö lisätään puskuriin\
 Mikäli paketti on viimeinen viesti, puskuri siirretään uuteen listaan ja lähetetään ylemmille kerroksille.
 
 
+
     \subsection{Valikoiva toisto ARQ}\label{subsec:valikoiva_toisto}
     Valikoida toisto ARQ englanniksi \textit{Selective Repeat} on tehokkaampi verrattuna toisiin ARQ protokolliin. 
 
@@ -444,6 +446,16 @@ Mikäli paketti on viimeinen viesti, puskuri siirretään uuteen listaan ja läh
     Valikoivassa toistossa lähettäjä lähettää kaikki ikkunan sisällä olevat paketit ja odottaa vastaanottajan kuittauksia. Mikäli lähettäjä vastaanottaa kuittauksia ikkunan etupäästä, lähettäjä siirtää ikkunaa eteenpäin ja lähettää paketit jotka ovat nyt ikkunan sisällä. Tämä jatkuu niin kauan kuin kaikki paketit on lähetetty puskurista. \par 
 
     Vastaanottaja vastaanottaa kaikki paketit joiden järjestysnumero on ikkunan sisällä vaikka ne tulisi perille väärässä järjestyksessä. Pakettien data tallennetaan puskuriin järjestysnumeron määrittämään indeksiin. Mikäli vastaanottaja vastaanottaa paketteja jotka ovat ikkunan etupäässä, ne siirretään ylemmille kerroksille käsiteltäväksi ja ikkunaa siirretään eteenpäin.    
+
+\section{Viestien käsittely}
+Protokolla käsittee vain binääridatan lähettämistä. Monimutkaisien tietorakenteiden kuten objektien lähettäminen protokollan kautta täytyy tehdä binäärikoodauksen kautta. Verkkosivustoissa käytetään usein tekstipohjaisia tietomuotoja, kuten HTML ja JSON. Nämä tietomuodot eivät sovellu reaaliaikaiseen kommunikaatioon, sillä niiden mukana tulee ylimääräisiä merkkejä, joita käytetään skeeman välitykseen. Spesialisoidut reaaliaikaiset sovellukset eivät tarvitse skeematietoja tiedon lukemiseen, sillä osapuolien välillä liikkuva tieto on todella tarkkaan määritelty\footnote{Tämä ei kuitenkaan rajoita sovellusta käyttämään yksinkertaisia rakenteita. Halutessaan sovellus pystyy käyttämään tietorakennetta, joka sisältää skeematietoja.}. \par
+\subsection{Skeemapohjainen tieto}
+Skeemapohjaista dataa kannattaa hyödyntää silloin, kun vastaanottajalla ei ole tietossa tietoa siitä, miten dataa täytyy lukea. Tästä hyvä esimerkki on konfiguraatio data.
+Useat konfiguraatio mahdollisuudet eivät ole pakollisia ja sen takia niille on määritelty oletusarvot. Konfiguraatio voi sisältää tuhansia eri vaihtoehtoja ja ne ovat nimetty tietynlailla. \par
+Mikäli tätä konfiguraatiota haluttaisiin muuttaa verkon yli tulevalla tiedolla, skeemapohjainen data soveltuu tähän parhaiten. Näin lähettäjä pystyy kertomaan viestissä, miten dataa luetaan.
+
+
+
 
 
 
@@ -483,10 +495,8 @@ fn calculate_checksum(data: &[u8]) -> u16 {
     for pair in data.chunks(2) {
         let mut checksum = 0u16;
         checksum += u16::from(pair[0]) << 8;
-        checksum += match pair.get(1) {
-            None => 0,
-            Some(x) => u16::from(*x),
-        };
+        checksum += u16::from(pair.get(1).cloned()
+        .unwrap_or_default());
         sum += checksum as u32;
     }
     while sum > 0xffff {
@@ -505,7 +515,7 @@ Lähdekoodissa \ref{lst:creating_checksum} muodostetaan 16-bittinen tarkistussum
 
 
 \begin{framed}
-    C-ohjelmointikielessä kokonaisluvun ylivuoto on määrittelemätön tapahtuma. Tämä voi ja on johtanut useisiin tietoturva ongelmiin. Se saattaa olla usein myös vaikeita löytää sillä C-ohjelma jatkaa toimintaa vaikka ylivuoto tapahtuu.\par
+    C-ohjelmointikielessä kokonaisluvun ylivuotoa ei ole määritelty. Tämä voi ja on johtanut useisiin tietoturva ongelmiin. Se saattaa olla usein myös vaikeita löytää sillä C-ohjelma jatkaa toimintaa vaikka ylivuoto tapahtuu.\par
     Rust-ohjelmointikielessä kokonaisluvun ylivuoto on määritelty. Ylivuoto johtaa aina ohjelman paniikkiin ja sitä myötä sen sammumiseen. Tämä käytännössä eliminoi ylivuodon aiheuttamat tietoturva ongelmat \cite[ch.~3.2]{rust-book}.
 \end{framed}
 
@@ -542,8 +552,6 @@ fn checksum() {
 \end{minipage}
 
 Lähdekoodissa \ref{lst:data_for_checksum} näytetään miten \lstinline{data: &[u8]} muodostetaan. Tarkistussumma sisältää lähettäjän ja vastaanottajan IP-osoitteet, portit, protokolla (17), UDP-osuuden koon ja lopuksi kuorman \cite{RFC-768, protocol-numbers}. \par
-
-
     
     Modernien tietokoneiden verkkokortti hoitaa tämän tarkistussumman käsittelyn \cite{TCP/IPLearn}. 
 
