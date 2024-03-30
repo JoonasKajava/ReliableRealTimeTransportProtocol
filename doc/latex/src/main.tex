@@ -109,6 +109,7 @@ captionpos=b,
             NIC: & Network Interface Controller  \\
             ARQ: & Automatic Repeat Request      \\
             IPC: & Inter-Process Communication   \\
+            DI:  & Dependency Injection          \\
         \end{tabular}
         \newpage
 
@@ -789,6 +790,81 @@ struct AppState {
     send_file_info,
     respond_to_file_info
 ])\end{lstlisting}
+
+Tauri-sovelluskehys sisältää kaksi IPC-primitiiviä: tapahtumat ja komennot.
+Tapahtuma on yksisuuntainen viesti, joita käytetään pääosin ohjelmatilan muutoksien kommunikointiin. Lähdekoodissa \ref{lst:setup} rivillä 10 lähetetään tapahtuma, minkä käyttöliittymä vastaanottaa. Komento on Web API:n kaltainen viestintä menetelmä, jossa tieto siirtyy \textit{JSON-RPC} kaltaisella protokollalla. Tämä mahdollistaa monimutkaisien tietorakenteiden käytön viestinnässä, sillä ne serialisoidaan JSON muotoon \cite{tauri-app}.
+
+
+\subsection{IPC-Komennot}
+IPC-komennot merkitään \lstinline{#[tauri::command]} attribuutilla. Funktio täytyy olla merkitty kyseillä attribuutilla, jotta sitä pystyy käyttämään lähdekoodin \ref{lst:ipc_commands} määrityksessä. Tauri pystyy tarjoamaan viitteet muunmuassa sovellustilaan ja sovelluskahvaan käyttämällä \textit{Dependency Injection} nimistä suunnittelutapaa. Tämä suunnittelu tapa on todella yleinen useissa sovelluskehyksissä kuten esim. ASP.NET Core:ssa \cite{DI_dotnet}. Tämä suunnittelutapa ei kuitenkaan ole yleinen Rust-kielessä, sillä se vaatii funktioden suorittamista dynaamisilla kutsuilla.
+ASP.NET Core:ssa \lstinline{Reflection} toiminnallisuus tarjoaa dynaamisen kutsumisen, joka tekee tästä suunnittelutavasta käytännöllisen.
+Tauri-sovelluskehys toteuttaa tämän täyttäen \lstinline{Procedural Macros} toimintoa. Tämän käsittely ei kuulu tämän työn piiriin, joten ohjaan kiinnostuneet lukijat lukemaan erinomaisen online-kirjan tähän liittyen: https://promethia-27.github.io/dependency\_injection\_like\_bevy\_from\_scratch/introductions.html.
+
+\begin{lstlisting}[caption={'bind'-komennon kutsuminen}, label={lst:calling_bind}]
+invoke<LogSuccessMessage>("bind", {address: localAddress})
+.then((result) => {
+    setLog(result);
+    setConnectionStatus((prev) => ({...prev, local: true}));
+})
+.catch((err: LogErrorMessage) => {
+    setLog(err);
+    setConnectionStatus((prev) => ({...prev, local: false}));
+});\end{lstlisting}
+
+
+Lähdekoodin \ref{lst:ipc_commands} määrittelee 5 IPC-komentoa, jota käytetään käyttöliittymän ja Rust-prosessin välisessä kommunikaatiossa. Näitä komentoja voidaan myöhemmin kutsua käyttöliittymästä käsin käyttäen \lstinline{invoke}-funktiota, kuten lähdekoodissa \ref{lst:calling_bind} on esitetty. \par
+
+\lstinline{bind}-komento liittää verkkosovittimen \lstinline{address} parametrin osoitteeseen. Liittämisen hoitaa \lstinline{ConnectionManager} rakenne, joka käynnistää myös tarvittavat säikeet viestien ja kuittauksien vastaanottoa varten, sekä säikeen viestien lähettämisetä varten. Lopuksi \lstinline{bind}-komento käynnistää säikeen joka kuuntelee \lstinline{ConnectionManager}:n tuottamia tapahtumia.
+\lstinline{bind}-komennossa käynnistetty säie ohjaa \lstinline{ConnectionManager}:n tuottamat tapahtumat \lstinline{ConnectionProcessor} rakenteeseen, joka lajittelee tapahtumat niiden tyypin mukaan ja suorittaa tarvittavan strategian tapahtuman käsittelyyn.\par
+
+
+\begin{lstlisting}[basicstyle=\small\ttfamily,caption={'connect'-komento}, label={lst:connect}]
+#[tauri::command]
+pub fn connect(address: &str, state: State<AppState>)
+-> LogMessageResult {
+let app_state_lock = state.connector_state.lock().unwrap();
+let connector = &app_state_lock.connector;
+let result = connector
+.as_ref()
+.ok_or(LogErrorMessage::LocalSocketNotBound)?
+.connect(address);
+result
+.map(|_| LogSuccessMessage::ConnectedToRemote(address.to_string()))
+.map_err(|e| LogErrorMessage::ConnectionError(e.to_string()))
+}
+\end{lstlisting}
+
+
+\lstinline{connect}-komento ottaa vastaan osoitteen ja sovellustilan, joka tulee Tauri:n DI-järjestelmästä ja käynnistää yhteyden. Lähdekoodissa \ref{lst:connect} rivillä 4 yhteydentila lukitaan.
+Tämä on \lstinline{Mutex<...>} rakenteen toiminto. \lstinline{lock()}-funktio lukistee \lstinline{state.connector_state} muuntujan ja palauttaa \lstinline{MutexGuard<ConnectorState>} rakenteen. Tämä suoja sallii muutoksien tekemisen \lstinline{ConnectorState} rakenteeseen vaikka viite ei normaalisti salli muutoksia. Tätä piirrettä kutsutaan nimeltä \textit{Interior Mutability}. Yhteystila on lukittuna niin kauan kuin \lstinline{MutexGuard<ConnectorState>} \par
+
+    \begin{figure}[h!]
+        \centering
+        \includegraphics[width=0.5\textwidth]{doc/latex/src/images/incoming_file.png}
+        \caption{Tulevan tiedoston tiedot}
+        \label{fig:incoming_file}
+    \end{figure}
+    
+\lstinline{send_message, send_file_info ja respond_to_file_info} lähettävät tietoja verkon yli. \lstinline{send_message} lähettää yksinkertaisen viestin vastaanottajalle.
+\lstinline{send_file_info} lähettää tiedoston metatiedot vastaanottajalle: tiedoston nimi, tiedoston \textit{MIME}-tyyppi ja koko tavuina. Näiden tietojen avulla vastaanottaja pystyy valmistautua tulevaan tiedostoon. Kuva \ref{fig:incoming_file} havainnollistaa, miltä tuleva tiedosto näyttää vastaanottajalle. Vastaanottaja pystyy valitsemaan mihin kansioon kyseinen tiedosto tullaan tallentamaan tai vaihtoehtoisesti hylkäämään tulevan tiedoston. Valinnan tekeminen laukaisee \lstinline{respond_to_file_info}-IPC-komennon, joka ilmoittaa lähettäjälle valinnasta.
+Mikäli valinta oli myönteinen, lähettäjä alkaa välittömästi lähettämään tiedostoa verkon yli. Kun taas valinta oli kielteinen, lähettäjä saa ilmoituksen hylätystä tiedostosta.
+
+
+\section{Työkalut ja prosessit}
+Tässä työssä on käyttämään standardinmallisia sovelluskehitys tapoja. Osa työkaluista ja menetelmistä on suhteelisen kokeellisia, mutta ne eivät ole olleet kriittisia osia kehityksessä vaan tuomassa parempaa kehittäjäkokemusta.
+\subsection{Versionhallinta}
+Tässä työssä käytettiin \textit{git}-versionhallintaa, jonka isännöi \textit{github.com}-palvelu. Git on toimialalla erittäin yleinen ja tärkeä työkalu lähdekoodin jakamiseen ja versionnissa. \par
+
+\textit{Pull Request}:n tekeminen on yleinen ja suositelty tapa liittää muutokset pääharaan. Tämä johtuu siitä, että kun projektissa on useita ihmisiä tekemässä, jokainen muutos vaatii toisten kehittäjien hyväksynnän. Kun kriteerit hyväksymiseen on toteutunut, 
+muutos liitetään päähaaraan. Tässä projektissa minä olin ainut tekijä, joten \textit{Pull Request}:n käyttöönotto olisi ollut suhteellisen turhaa.\par
+
+Työn toteutuksen aikana projektiin tuli noin 5 suurta refaktorointia. 
+Näitä varten käytin useita haaroja, joiden avulla pystyin pitämään päähaaran aina toimivassa tilassa. \par
+
+\begin{framed}
+Projektin lähdekoodi on saatavilla \textit{github.com}-palvelusta osoitteesta: 
+https://github.com/JoonasKajava/ReliableRealTimeTransportProtocol.
+\end{framed}
 
     
     \section{Suorityskyky}\label{sec:suorityskyky}
