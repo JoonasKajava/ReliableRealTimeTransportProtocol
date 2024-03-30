@@ -661,17 +661,17 @@ Lähdekoodissa \ref{lst:data_for_checksum} näytetään miten \lstinline{data: &
         colspec = {lll},
         row{even} = {lightgray},
         }
-        Nimi&Käyttötarkoitus \\
+        nimi&käyttötarkoitus \\
         \hline
-        ahooks & Hyödyllisiä React-koukkuja \\
-        antd & Käyttöliittymä-elementit \\
-        dayjs & Aika-tietojen käsittely \\
-        pretty-bytes & Tiedostokoon muuntaminen ihmisluettavaksi \\
-        rc-virtual-list & Virtuaaliset listat \\
-        react/react-dom & Käyttöliittymän hallinta ja piirtäminen \\
-        recoil & Käyttöliittymän tilan hallinta \\
-        typescript & Tyyppitietojen lisääminen javascriptiin \\
-        vite & Front-end ohjelmiston prosessointi
+        ahooks & hyödyllisiä react-koukkuja \\
+        antd & käyttöliittymä-elementit \\
+        dayjs & aika-tietojen käsittely \\
+        pretty-bytes & tiedostokoon muuntaminen ihmisluettavaksi \\
+        rc-virtual-list & virtuaaliset listat \\
+        react/react-dom & käyttöliittymän hallinta ja piirtäminen \\
+        recoil & käyttöliittymän tilan hallinta \\
+        typescript & tyyppitietojen lisääminen javascriptiin \\
+        vite & front-end ohjelmiston prosessointi
         \end{tblr}
         \caption{npm-riippuvuudet}
         \label{tab:npm_dependencies}
@@ -865,6 +865,29 @@ Näitä varten käytin useita haaroja, joiden avulla pystyin pitämään pääha
 Projektin lähdekoodi on saatavilla \textit{github.com}-palvelusta osoitteesta: 
 https://github.com/JoonasKajava/ReliableRealTimeTransportProtocol.
 \end{framed}
+
+\subsection{Kehitysympäristö}
+
+    \begin{table}[h!]
+        \centering
+        \begin{tblr}{
+        colspec = {ll},
+        row{even} = {lightgray},
+        }
+        Käyttöjärjestelmä & Microsoft Windows 10.0.19045 Pro \\
+        Rust-kääntäjä & rustc 1.75.0 (82e1608df 2023-12-21) \\
+        Node.js & v18.8.0
+        \end{tblr}
+        \caption{Kehitysalustan tiedot}
+        \label{tab:main_pc}
+    \end{table}
+
+    Alustana toimi taulukon \ref{tab:main_pc} pöytätietokone.
+    Editorina pääsääntöisesti oli käytössä \textit{RustRover}\footnote{Saatavilla osoitteesta: https://www.jetbrains.com/rust/}, jossa oli muutama tärkeä lisäosa, kuten \textit{IdeaVim}, \textit{Grazie Pro}, \textit{SonarLint} ja \textit{WakaTime}.
+    UDP-pakettien seurantaan käytin WireShark-ohjelmistoa.
+    
+    \section{Yhteenveto}     
+    
 
     
     \section{Suorityskyky}\label{sec:suorityskyky}
