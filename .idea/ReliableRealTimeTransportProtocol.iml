@@ -7,6 +7,8 @@
       <sourceFolder url="file://$MODULE_DIR$/demo/sender/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/demo/messanger/src-tauri/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/lib_rrttp/benches" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/lib_rrttp/tests" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/testing/src" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/lib_rrttp/target" />
       <excludeFolder url="file://$MODULE_DIR$/demo/receiver/target" />
       <excludeFolder url="file://$MODULE_DIR$/demo/sender/target" />
@@ -17,6 +19,7 @@
       <excludeFolder url="file://$MODULE_DIR$/doc/latex/out" />
       <excludeFolder url="file://$MODULE_DIR$/lib_rrttp/.idea/sonarlint" />
       <excludeFolder url="file://$MODULE_DIR$/out" />
+      <excludeFolder url="file://$MODULE_DIR$/testing/target" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

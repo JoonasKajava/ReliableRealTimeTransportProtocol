@@ -1,18 +1,18 @@
 use std::fs;
 use std::path::Path;
 
-use tauri::AppHandle;
 use tauri::{Manager, State};
+use tauri::AppHandle;
 
 use lib_rrttp::application_layer::connection_manager::{
     ConnectionManager, ConnectionManagerInterface,
 };
 
+use crate::AppState;
 use crate::connection_processor::ConnectionProcessor;
 use crate::message::Message;
 use crate::models::file_models::{FileInfo, FileMetadata};
 use crate::models::log_message::{LogErrorMessage, LogMessageResult, LogSuccessMessage};
-use crate::AppState;
 
 #[tauri::command]
 pub fn bind(address: &str, state: State<AppState>) -> LogMessageResult {
@@ -63,10 +63,9 @@ pub fn connect(address: &str, state: State<AppState>) -> LogMessageResult {
         .as_ref()
         .ok_or(LogErrorMessage::LocalSocketNotBound)?
         .connect(address);
-    match result {
-        Ok(_) => Ok(LogSuccessMessage::ConnectedToRemote(address.to_string())),
-        Err(e) => Err(LogErrorMessage::ConnectionError(e.to_string())),
-    }
+    result
+        .map(|_| LogSuccessMessage::ConnectedToRemote(address.to_string()))
+        .map_err(|e| LogErrorMessage::ConnectionError(e.to_string()))
 }
 
 #[tauri::command]

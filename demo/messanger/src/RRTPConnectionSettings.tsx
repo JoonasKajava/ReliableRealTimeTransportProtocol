@@ -21,7 +21,6 @@ export const RRTPConnectionSettings = () => {
         invoke<LogSuccessMessage>("bind", {address: localAddress}).then((result) => {
             setLog(result);
             setConnectionStatus((prev) => ({...prev, local: true}));
-
         }).catch((err: LogErrorMessage) => {
             setLog(err);
             setConnectionStatus((prev) => ({...prev, local: false}));

@@ -1,5 +1,5 @@
 import "./App.css";
-import {Col, ConfigProvider, Row, theme} from "antd";
+import {Col, ConfigProvider, Row} from "antd";
 import {RRTPStatus} from "./RRTPStatus.tsx";
 import {RRTPConnectionSettings} from "./RRTPConnectionSettings.tsx";
 import {RRTPLog} from "./RRTPLog.tsx";
@@ -8,7 +8,9 @@ import {FileManager} from "./FileManager.tsx";
 
 
 function App() {
-    return <ConfigProvider theme={{algorithm: theme.darkAlgorithm}}>
+    return <ConfigProvider
+        // theme={{algorithm: theme.darkAlgorithm}}
+    >
         <Row>
             <Col span={12}>
                 <RRTPConnectionSettings/>
@@ -17,7 +19,7 @@ function App() {
                 <RRTPStatus/>
             </Col>
         </Row>
-        <Row gutter={16} >
+        <Row gutter={16}>
             <Col span={12}>
                 <FileManager/>
                 <RRTPLog/>
