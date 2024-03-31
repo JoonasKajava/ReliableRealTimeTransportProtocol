@@ -4,7 +4,6 @@
 \usepackage{layout}
 \usepackage{graphicx}
 \usepackage{geometry}
-\usepackage{blindtext}
 \usepackage{lastpage}
 \usepackage{listings}
 \usepackage{multirow}
@@ -118,32 +117,23 @@
 
 
     \section{Johdanto}\label{sec:johdanto}
-    Tässä työssä käsitellään teoria internet protokollan luomiseen. Teorian jälkeen lukija ohjataan vaiheittan internet protokollan luomiseen UDP:n päälle. Tämän työn tarkoitus on luoda pohja yrityksille ja kehittäjille, minkälainen on internet protokollan toteutus ja mihin asioihin täytyy ottaa huomiota.
-    \par Työ on luonteeltaan tutkivaa ja tarkoitus on luoda selkeä pohja minkä perusteella on yksinkertaista hyödyntää UDP-protokollaa reaaliaikaisiin ohjelmiin.
-
-
-    \section{Internet-protokollat}
-    TCP ja UDP protokollat ovat kaksi yleisintä TCP/IP protokollaa.
-    Näistä TCP protokolla on usein käytetty palveluissa, jotka vaativat vakaata ja luotettavaa yhteyttä. UDP paras reaaliaikaisia sovelluksia varten. Tämä johtuu siitä, että TCP paketin mukana liikkuu paljon reservoituja tavuja, joita ei käytetä ollenkaan, myös otsikko päättyy turhaan täytteeseen.
-    \par
-    UDP:n etu realiaikaisessa kommunikaatiossa on, että se on kevyt ja nopea.
-    \cite{KumarSurveyUDP}
-    \par
+    Tässä työssä käsitellään teoria tietoliikenneprotokollan luomiseen. Teorian jälkeen lukija ohjataan vaiheittan protokollan luomiseen UDP:n päälle. Tarkoitus on luoda pohja yrityksille ja kehittäjille tietoliikenneprotokollan toteutukseen.
+    \par Työ on luonteeltaan tutkiva ja ohjeistava, jonka selventää reaaliaikaisien sovelluksien toteutusta.
 
 
     \section{Tavoitteet ja motivaatio}
-    Tämän työn tavoitteena on internet protokollien toimintaa ja niiden implementointia. Tilanteissa missä kaistanleveys on rajallinen ja nopea vasteaika on tärkeää, on usein kannattavaa luoda oma protokolla, joka on räätälöity sovelluksen tarpeita varten.
-    Oman protokollan käyttöönotto vaatii kohtuullisen määrän tietoa verkkosovittimien, UDP protokollan, yhtäaikaisuudesta sekä tehokkaista tietorakenteista.\par
-    Tässä dokumentissa käydään läpi internet protokollien teoriaa, toteutukset käyttäen rust ohjelmointi kieltä ja lopuksi tutkiva osuus jossa mitataan protokollien suorituskykyä ja tehokkuutta.
+    Tämän työn tavoitteena on tutkia tietoliikenneprotokollien toimintaa ja niiden toteutusta. Tilanteissa missä kaistanleveys on rajallinen ja nopea vasteaika on tärkeää, on usein kannattavaa luoda oma protokolla, joka on räätälöity sovelluksen tarpeita varten.
+    Oman protokollan käyttöönotto vaatii kohtuullisen määrän tietoa verkkosovittimien, UDP-protokollan, yhtäaikaisuudesta sekä tehokkaista tietorakenteista.\par
+    Tässä dokumentissa käydään läpi internet protokollien teoriaa, toteutukset käyttäen rust-ohjelmointikieltä ja lopuksi tutkiva osuus jossa mitataan protokollien suorituskykyä ja tehokkuutta.
 
-
-    \section{Verkkosovitin}\label{sec:verkkosovitin}
-    Rust-ohjelmointikieli käyttää linuxissa \textit{libc}-kirjastoa \cite{rust-source-unix-netrs}
-
-
-    \section{TCP/IP}\label{sec:tcpip}
-    \blindtext
-
+    \section{Tietoliikenneprotokollat}
+    TCP ja UDP protokollat ovat kaksi yleisintä TCP/IP protokollaa.
+    Näistä TCP-protokolla on usein käytetty palveluissa, jotka vaativat vakaata ja luotettavaa yhteyttä. UDP paras reaaliaikaisia sovelluksia varten. Tämä johtuu siitä, että TCP paketin mukana liikkuu paljon reservoituja tavuja, joita ei käytetä ollenkaan, myös otsikko päättyy turhaan täytteeseen.
+    \par
+    UDP:n etu realiaikaisessa kommunikaatiossa on, että se on kevyt ja nopea. Se ei kuitenkaan tarjoa kattavaa virheenkorjausta, järjestystä tai ruuhkanhallintamekanismeja. Tarkistussumma on ainut virheentarkistus, minkä UDP tarjoaa. Tarkistussumma ei kuitenkaan yksin riitä vakaaseen yhteyteen. UDP sisältä
+    lähettäjän ja vastaanottajan portit, datan koon, tarkistussumman ja datan.
+    \cite{KumarSurveyUDP}
+    \par
 
     \section{Paketti}\label{sec:paketti}
     Paketti on perustuu TCP:n ja on rakennettu UDP:n päälle. Paketin rakenne on minimaalinen ja yksinkertainen.
@@ -183,14 +173,17 @@ pub struct Frame {
     options_size: usize,
 }
     \end{lstlisting}
-    Lähdekoodissa \ref{lst:frame} määritetaan tietorakenne \textit{Frame},
-    \lstinline{[u8; MAX_FRAME_SIZE]} on taulokkotyyppi joka koostuu tavuista ja on kooltaan yhtä suuri kuin $F_{max}$.
-    \lstinline{data_length} sisältää tiedon pakettiin tallennetun datan koosta. \lstinline{options_size} sisältää tiedon paketin asetuksien koosta.\par
-    \lstinline{usize} vastaa kohde arkkitehtuurin muistiosoitteen kokoa. 32 bittisessä kohde tietokoneessa \lstinline{usize} vastaa 4 tavua ja 64 bittisessä kohteessa 8 tavua \cite{rust-doc-usize}.
-
-    \subsection{Tietojen käsittely paketissa}
+    Lähdekoodissa \ref{lst:frame} määritetään tietorakenne \textit{Frame}.
+    \lstinline{[u8; MAX_FRAME_SIZE]} on taulukkotyyppi joka koostuu tavuista ja on kooltaan yhtä suuri kuin $F_{max}$.
+    \lstinline{data_length} sisältää tiedon pakettiin tallennetun datan koosta. \lstinline{options_size} sisältää tiedon paketin asetuksien koosta.
+    
+   \begin{framed}
+        \lstinline{usize} vastaa kohde arkkitehtuurin muistiosoitteen kokoa. 32 bittisessä kohde tietokoneessa \lstinline{usize} vastaa 4 tavua ja 64 bittisessä kohteessa 8 tavua \cite{rust-doc-usize}.
+   \end{framed} 
+   
+    \subsection{Tietojenkäsittely paketissa}
     Paketti on ohjelmanmuistissa yhtenä kokonaisena taulukkona, joka koostuu tavuista.
-    Paketti sisältää tietoja 16 bittisessä ja 32 bittisessä muodossa. Nämä tiedot täytyy jakaa tavuihin lähettämistä varten.
+    Paketti sisältää tietoja 16 bittisessä ja 32 bittisessä muodossa. Nämä tiedot jaetaan tavuihin lähettämistä varten.
 
     \begin{lstlisting}[caption={Järjestusnumeron asettaminen pakettiin}, label={lst:set_seq_num}]
 pub fn set_sequence_number(&mut self, sequence_number: u32) {
@@ -200,11 +193,10 @@ pub fn set_sequence_number(&mut self, sequence_number: u32) {
 }
     \end{lstlisting}
 
-    Lähdekoodissa \ref{lst:set_seq_num} järjestysnumero muutetaan laskevaan tavujärjestykseen, käyttäen rust standardi kirjaston functiota \lstinline{to_be_bytes()} \cite{rust_doc_u32}. Tämän jälkeen se kopiodaan paketin 4 ensimmäisen tavun tilalle. \par
-    Oikea tavujärjestys on erittäin tärkeä osa tiedon siirrossa verkon ylitse. Protokollaa käyttävät tietokoneet täytyvät olla yhteisymmärryksessä mitä tavujärjestystä tiedonsiirrossa käytetään. laskeva tavujärjestys on yleisn järjestys, joten päätin käyttää sitä myös tässä protokollassa. \par
+    Lähdekoodissa \ref{lst:set_seq_num} järjestysnumero muutetaan laskevaan tavujärjestykseen, käyttäen rust standardi kirjaston funktiota \lstinline{to_be_bytes()} \cite{rust_doc_u32}. Tämän jälkeen se kopiodaan paketin 4 ensimmäisen tavun tilalle. \par
+    Oikea tavujärjestys on erittäin tärkeä osa tiedon siirrossa verkon ylitse. Protokollaa käyttävät tietokoneet täytyvät olla yhteisymmärryksessä mitä tavujärjestystä tiedonsiirrossa käytetään. laskeva tavujärjestys on yleisin järjestys, joten päätin käyttää sitä myös tässä protokollassa. \par
     Mikäli tavujärjestystä ei ota huomioon tiedonsiirrossa ja vastaanottaja sekä lähettäjän tietokoneet käyttävät eriävää tavujärjestystä, lukujen muuntaminen tavutaulukosta primitiiviseksi luvuksi tuottaa vääriä tuloksia.
     \cite{Adiga2007HowC}
-    // TODO: Lisää jotain diagrameja tähän
 
     \subsection{Kuljetuskerros}\label{subsec:kuljetuskerros}
     Kuljetuskerros hoitaa pakettien luomisen ja välittämisen paketin verkkosovittimeen.
@@ -272,14 +264,6 @@ if control_bits & 00000001 == 00000001 {
     // Kuittausbitti löytyy
 }
     \end{lstlisting}
-
-    \subsection{Sovelluskerros}\label{subsec:sovelluskerros}
-    \blindtext
-
-
-    \section{UDP}\label{sec:udp}
-    \blindtext
-
 
     \section{Arkkitehtuuri}\label{sec:arkkitehtuuri}
     \architecture
@@ -892,25 +876,35 @@ result
     \end{framed}
 
 
-
-
-    Suorituskyvyn mittaaminen toteutetaan sisäverkossa, jotta tiedonsiirto nopeus on deterministinen ja vakaa.
-    Testiympäristö koostuu yhdestä Windows tietokoneesta, joka muodostaa yhteyden itseensä käyttäen silmukka osoitetta.\par
-    Testissä tietokone siirtää itselleen silmukan kautta 50 megatavun tiedoston. Testi suoritetaan 10 putkeen jotta saadaan leville keskiarvo selville.
-
     \subsection{Tiedostonsiirtäminen}
     
     \begin{figure}[h!]
         \centering
         \includegraphics[width=\textwidth]{doc/latex/src/images/plot.png}
-        \caption{test}
-        \label{fig:incoming_file}
+        \caption{Tiedonsiirtovertailun tulokset}
+        \label{fig:performance}
     \end{figure}
 
-    
-\lstinline{send_message, send_file_info ja respond_to_file_info} lähettävät tietoja verkon yli. \lstinline{send_message} lähettää yksinkertaisen viestin vastaanottajalle.
-\lstinline{send_file_info} lähettää tiedoston metatiedot vastaanottajalle: tiedoston nimi, tiedoston \textit{MIME}-tyyppi ja koko tavuina. Näiden tietojen avulla vastaanottaja pystyy valmistautua tulevaan tiedostoon. Kuva \ref{fig:incoming_file} havainnollistaa, miltä tuleva tiedosto näyttää vastaanottajalle. Vastaanottaja pystyy valitsemaan mihin kansioon kyseinen tiedosto tullaan tallentamaan tai vaihtoehtoisesti hylkäämään tulevan tiedoston. Valinnan tekeminen laukaisee \lstinline{respond_to_file_info}-IPC-komennon, joka ilmoittaa lähettäjälle valinnasta.
-Mikäli valinta oli myönteinen, lähettäjä alkaa välittömästi lähettämään tiedostoa verkon yli. Kun taas valinta oli kielteinen, lähettäjä saa ilmoituksen hylätystä tiedostosta.
+Tiedonsiirron testaamisessa käytin 30Mt kokoista videotiedostoa, jotta 
+tiedoston eheys olisi mahdollisimman helppo tarkistaa.
+Tässä testissä verrattiin \textit{lib\_rrtp}:n, \textit{UDP}:n ja \textit{TCP}:n 
+tiedonsiirto kykyjä käyttäen silmukkaosoitetta. \par
+Kuvasta \ref{fig:performance} voidaan päätellä, että 
+\textit{lib\_rrtp}:n suorituskyky on kohtalaisen hyvä verrattuna \textit{UDP}:n ja \textit{TCP}:n. \textit{TCP} on näistä selvästi nopein, joka johtunee siitä että
+puskurin käsittely on lähes automaattinen ja puskuri kasvaa tarvittaessa. 
+\textit{UDP}:n ja \textit{lib\_rrtp}:n kanssa käytettiin 128 tavun kokoista puskuria, joka selittää näiden kahden tuloksen hitauden. Tuloksien mukaan \textit{UDP} on 
+hidas lähetyksen alussa mutta nopeutuu ajanmyötä. Aikarajoituksien takia, en
+ehtinyt selvittää olisiko tätä hitautta pystynyt korjaan jotenkin. \par
+
+Tuloksien loppupäätelmänä pidän, että \textit{lib\_rrtp} suoriutuu suhteellisen hyvin tehtävästään, mutta huomiota täytyy kiinniittä sen tehokkuuteen kun siirretään isoja tiedostoja. Kuvan \ref{fig:performance} nähdään, että kirjaston suorituskyky pienenee mitä enemmän tietoa on siirretty. Tämä johtunee siitä, että kirjaston sisäinen puskuri täytyy ja elementtien käsittely vie enemmän aikaa.
+
+
+
+\begin{framed}
+Silmukkaosoitteen takia tämä testi ei vastaa täysin todellusuutta.
+Testin tarkoitus on pääasiassa seurata tietorakenteiden käsittely tehokkuutta ilman
+verkon aiheuttamaa häiriötä.
+\end{framed}
 
 
     \section{Työkalut ja prosessit}
