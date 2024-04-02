@@ -104,7 +104,7 @@
             TCP: & Transmission Control Protocol \\
             IP:  & Internet Protocol             \\
             ACK: & Acknowledgement               \\
-            NAK: & Negative Acknowledgement      \\
+            NACK: & Negative Acknowledgement      \\
             NIC: & Network Interface Controller  \\
             ARQ: & Automatic Repeat Request      \\
             IPC: & Inter-Process Communication   \\
@@ -118,13 +118,28 @@
 
     \section{Johdanto}\label{sec:johdanto}
     Tässä työssä käsitellään teoria tietoliikenneprotokollan luomiseen. Teorian jälkeen lukija ohjataan vaiheittan protokollan luomiseen UDP:n päälle. Tarkoitus on luoda pohja yrityksille ja kehittäjille tietoliikenneprotokollan toteutukseen.
-    \par Työ on luonteeltaan tutkiva ja ohjeistava, jonka selventää reaaliaikaisien sovelluksien toteutusta.
+    \par Työ on luonteeltaan tutkiva ja ohjeistava, jonka selventää reaaliaikaisien sovelluksien toteutusta.\par
 
+    Johdannon jälkeen käydään lyhyesti läpi TCP/IP -protokollien taustaa ja
+    siirrytään käsittelemään RRTP-protokollan toteutus.
+    RRTP-protokollan toteutus alkaa käymällä läpi vakio-arvot, jotka määrittelevät paketin sijoittelun. Seuraavat luvut kuvaavat, miten pakettia käsitellään kehystasolla. \par
 
-    \section{Tavoitteet ja motivaatio}
+    Liukuva ikkunan toiminta määritellään käymällä yleispätevä teoria liukuvasta ikkunasta läpi ja esitetään miten liukuvaa ikkunaa käsitellään kooditasolla. Tämän jälkeen keskustellaan tarkemmin \textit{Valikoiva toisto ARQ}-nimisestä tekniikasta.
+    Kyseinen tekniikka mahdollistaa pakettien lähettämisen ja vastaanottamisen epämääräisessä järjestyksessä. \par
+
+    Viestien käsittelyssä käydään läpi eri tietomuodot, joita voidaan käyttää tietonsiirrossa. Skeemapohjaisen tiedon ja binääritiedon erot esitetään esimerkkien avulla.\par
+
+    Viimeisenä RRTP-protokollasta käydään läpi virheenkorjaus. 
+    Tarkistussumman sijoitus paketissa havainnollistetaan ja käydään läpi
+    tarkistussumman muodostus.\par
+
+    RRTP-protokollaa varten toteutettiin myös demo-sovellus, joka tarjoaa 
+    toiminnot viestien ja tiedostojen lähettämistä varten. Demo-sovelluksesta käydään 
+    läpi sen riippuvuudet eri kirjastoihin ja miten se käsittelee rust-prosessin ja 
+    käyttöliittymän välisen kommunikaation. \par
+
     Tämän työn tavoitteena on tutkia tietoliikenneprotokollien toimintaa ja niiden toteutusta. Tilanteissa missä kaistanleveys on rajallinen ja nopea vasteaika on tärkeää, on usein kannattavaa luoda oma protokolla, joka on räätälöity sovelluksen tarpeita varten.
     Oman protokollan käyttöönotto vaatii kohtuullisen määrän tietoa verkkosovittimien, muista tietoliikenneprotokollista, yhtäaikaisuudesta sekä tehokkaista tietorakenteista.\par
-    Tässä dokumentissa käydään läpi internet-protokollien teoriaa, toteutukset käyttäen rust-ohjelmointikieltä ja lopuksi tutkiva osuus jossa mitataan protokollien suorituskykyä ja tehokkuutta.
 
     \section{Tietoliikenneprotokollat}
     TCP ja UDP protokollat ovat kaksi yleisintä TCP/IP protokollaa.
