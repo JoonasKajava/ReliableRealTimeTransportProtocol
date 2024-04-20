@@ -120,6 +120,12 @@
     Tässä työssä käsitellään teoria tietoliikenneprotokollan luomiseen. Teorian jälkeen lukija ohjataan vaiheittan protokollan luomiseen UDP:n päälle. Tarkoitus on luoda pohja yrityksille ja kehittäjille tietoliikenneprotokollan toteutukseen.
     \par Työ on luonteeltaan tutkiva ja ohjeistava, jonka selventää reaaliaikaisien sovelluksien toteutusta.\par
 
+    Toteutuksessa käytetään Rust-ohjelmointikieltä, joka sovelluu erinomaisesti järjestelmäohjelmointiin. Rust-kieli mahdollistaa laitteiston matalan tason hallinnan
+    samaan tapaan kuin C ja C++ -ohjelmointikielet. Rust-kieli ei käytä roskankerääjää vaan muistin vapautus tapahtuu \textit{'borrow checker'}-sääntöjen mukaisesti.
+    \textit{'Borrow checker'} takaa Rust-kielen muistiturvallisuuden. 
+    Rust-kieli tarjoaa myös monia moderneja kieli ominaisuuksia kuten: \textit{type
+    inference, pattern matching} ja \textit{traits} \cite{rust-book}.
+
     Johdannon jälkeen käydään lyhyesti läpi TCP/IP -protokollien taustaa ja
     siirrytään käsittelemään RRTP-protokollan toteutus.
     RRTP-protokollan toteutus alkaa käymällä läpi vakio-arvot, jotka määrittelevät paketin sijoittelun. Seuraavat luvut kuvaavat, miten pakettia käsitellään kehystasolla. \par
@@ -145,12 +151,20 @@
     TCP ja UDP protokollat ovat kaksi yleisintä TCP/IP protokollaa.
     Näistä TCP-protokolla on usein käytetty palveluissa, jotka vaativat vakaata ja luotettavaa yhteyttä. UDP paras reaaliaikaisia sovelluksia varten. Tämä johtuu siitä, että TCP paketin mukana liikkuu paljon reservoituja tavuja, joita ei käytetä ollenkaan, myös otsikko päättyy turhaan täytteeseen.
     \par
-    UDP:n etu realiaikaisessa kommunikaatiossa on, että se on kevyt ja nopea. Se ei kuitenkaan tarjoa kattavaa virheenkorjausta, järjestystä tai ruuhkanhallintamekanismeja. Tarkistussumma on ainut virheentarkistus, minkä UDP tarjoaa. Tarkistussumma ei kuitenkaan yksin riitä vakaaseen yhteyteen. UDP sisältä
+    UDP:n etu realiaikaisessa kommunikaatiossa on, että se on kevyt ja nopea. Se ei kuitenkaan tarjoa kattavaa virheenkorjausta, järjestystä tai ruuhkanhallintamekanismeja. Tarkistussumma on ainut virheentarkistus, minkä UDP tarjoaa. Tarkistussumma ei kuitenkaan yksin riitä vakaaseen yhteyteen. UDP sisältää
     lähettäjän ja vastaanottajan portit, datan koon, tarkistussumman ja datan.
     \cite{KumarSurveyUDP}
     \par
 
    \section{RRTP-protokolla}\label{sec:protocol}
+    RRTP-protokolla on reaaliaikaiseen kommunikointiin erikoistunut tietoliikenneprotokolla, jonka toteutus havainnollistetaan tässä työssä.
+
+    Protokollan paketti sisältää ohjausbittejä, jotka sisältävät tärkeää tietoa paketista.
+    Liukuvaa ikkunaa hyödynnetään pakettin järjestämiseen ja samanaikaiseen lähettämiseen.
+    Vastaanottaja ja lähettäjä voivat välittää pakettejä keskenään niin järjestyksestä riippumatta, sillä liukuva ikkunan puskuri järjestää paketit niiden järjestysnumeron mukaan.
+    
+    
+   
 
     \subsection{Paketti}\label{sec:paketti}
     Paketti on perustuu TCP:n ja on rakennettu UDP:n päälle. Paketin rakenne on minimaalinen ja yksinkertainen.
@@ -883,7 +897,7 @@ result
     \end{table}
 
     \begin{framed}
-        Tuloksista voidaan myös todeta, että \lstinline{LinkedList} tietorakennetta ei tulisi käyttää vain harvoissa tilanteissa. Rust-kielen standardi-kirjaston dokumentaatio vahvistaa tämän \cite{rust-linked-list}. Kääntäjä pystyy tekemään erinomaisia optimointeja näille muille tietorakenteille ja tietokoneen prosessori pystyy hyödyntämään välimuistia tehokkaammin.
+        Tuloksista voidaan myös todeta, että \lstinline{LinkedList} tietorakennetta tulisi käyttää vain harvoissa tilanteissa. Rust-kielen standardi-kirjaston dokumentaatio vahvistaa tämän \cite{rust-linked-list}. Kääntäjä pystyy tekemään erinomaisia optimointeja näille muille tietorakenteille ja tietokoneen prosessori pystyy hyödyntämään välimuistia tehokkaammin.
     \end{framed}
 
 
