@@ -100,7 +100,10 @@
             Ohjaajat: & Lehtori Miikka Mäki-Uuro\\
         \end{tabular}
         \sepline
-        
+        asdfasdf  
+        \sepline
+        Avainsanat: Rust, UDP, serialisointi, suorityskyky, liukuva ikkuna, protokolla 
+        \newpage
 
         \newpage
 
@@ -113,13 +116,15 @@
             Date:                 & {\selectlanguage{english}\today}                                         \\
             \\
             Degree:               & Bachelor of Engineering                        \\
-            Degree Programmme:    & Information and Communication Technology       \\
+            Degree Program:    & Information and Communication Technology       \\
             Professional Major:   & Game Applications                              \\
             Supervisors:          & Senior Lecturer Miikka Mäki-Uuro            \\
         \end{tabular}
         \sepline
 
-        This Bachelor's thesis highlights points of consideration when implementing       internet-protocols. Using UDP reliably requires implementation of sliding window, which will be covered in this thesis. Implementations in this thesis have been done using Rust language, which is a relatively young programming language (8 years).  
+        This Bachelor's thesis highlights points of consideration when implementing       internet-protocols. Using UDP reliably requires implementation of sliding window, which will be covered in this thesis. Implementations in this thesis have been done using Rust language, which was a relatively young programming language at the moment of writing this thesis (8 years). \par
+
+        
 
         \sepline
         Keywords: Rust, UDP, serialization, performance, sliding window, protocol 
@@ -180,7 +185,7 @@ Toteutuksessa käytetään Rust-ohjelmointikieltä, joka sovelluu erinomaisesti 
     Tämän työn tavoitteena on tutkia tietoliikenneprotokollien toimintaa ja niiden toteutusta. Tilanteissa missä kaistanleveys on rajallinen ja nopea vasteaika on tärkeää, on usein kannattavaa luoda oma protokolla, joka on räätälöity sovelluksen tarpeita varten.
     Oman protokollan käyttöönotto vaatii kohtuullisen määrän tietoa verkkosovittimien, muista tietoliikenneprotokollista, yhtäaikaisuudesta sekä tehokkaista tietorakenteista.\par
 
-    \section{Tietoliikenneprotokollat}
+   \section{RRTP-protokolla}\label{sec:protocol}
     TCP ja UDP protokollat ovat kaksi yleisintä TCP/IP protokollaa.
     Näistä TCP-protokolla on usein käytetty palveluissa, jotka vaativat vakaata ja luotettavaa yhteyttä. UDP paras reaaliaikaisia sovelluksia varten. Tämä johtuu siitä, että TCP paketin mukana liikkuu paljon reservoituja tavuja, joita ei käytetä ollenkaan, myös otsikko päättyy turhaan täytteeseen.
     \par
@@ -188,9 +193,8 @@ Toteutuksessa käytetään Rust-ohjelmointikieltä, joka sovelluu erinomaisesti 
     lähettäjän ja vastaanottajan portit, datan koon, tarkistussumman ja datan.
     \cite{KumarSurveyUDP}
     \par
-
-   \section{RRTP-protokolla}\label{sec:protocol}
-    RRTP-protokolla on reaaliaikaiseen kommunikointiin erikoistunut tietoliikenneprotokolla, jonka toteutus havainnollistetaan tässä työssä.
+   
+    Tässä työssä kehitettiin RRTP-protokolla joka on reaaliaikaiseen kommunikointiin erikoistunut tietoliikenneprotokolla.\par
 
     Protokollan paketti sisältää ohjausbittejä, jotka sisältävät tärkeää tietoa paketista.
     Liukuvaa ikkunaa hyödynnetään pakettin järjestämiseen ja samanaikaiseen lähettämiseen.
@@ -374,7 +378,7 @@ impl Drop for ConnectionManager {
 
     \subsection{Liukuva ikkuna}\label{sec:liukuva_ikkuna}
     \slidingWindow
-    Liukuva ikkuna on tietorakennea tekniikka, jonka sallii pakettien lähettämisen ja vastaanottamisen epämääräisessä järjestyksessä. 
+    Liukuva ikkuna on tietorakenne tekniikka, jonka sallii pakettien lähettämisen ja vastaanottamisen epämääräisessä järjestyksessä. 
     
 
 
@@ -630,9 +634,9 @@ fn calculate_checksum(data: &[u8]) -> u16 {
 
     \begin{framed}
         C-ohjelmointikielessä kokonaisluvun ylivuotoa ei ole määritelty. Tämä voi ja on johtanut useisiin tietoturvaongelmiin. Ylivuotoa voi olla vaikea havaita, sillä C-ohjelma jatkaa toimintaa vaikka ylivuoto tapahtuu.\par
-        Rust-ohjelmointikielessä kokonaisluvun ylivuoto on määritelty. Ylivuoto johtaa aina ohjelman paniikkiin ja sen seurauksena sen sammumiseen. Tämä käytännössä eliminoi ylivuodon aiheuttamat tietoturvaongelmat \cite[ch.~3.2]{rust-book}.
+    Rust-ohjelmointikielessä kokonaisluvun ylivuoto on määritelty. Ylivuoto johtaa aina ohjelman paniikkiin\footnotemark{} ja sen seurauksena sen sammumiseen. Tämä käytännössä eliminoi ylivuodon aiheuttamat tietoturvaongelmat \cite[luku 3.2]{rust-book}.
     \end{framed}
-
+    \footnotetext{Rust-ohjelmointikielessä \textit{paniikki} viittaa virheeseen josta ei voi palautua. Paniikki johtaa aina prosessin sammumiseen \cite[luku 9.3]{rust-book}.}
     \begin{minipage}{\linewidth}
 
     Lähdekoodissa \ref{lst:data_for_checksum} näytetään miten \lstinline{data: &[u8]} muodostetaan. Tarkistussumma sisältää lähettäjän ja vastaanottajan IP-osoitteet, portit, protokollan (17), UDP-osuuden koon ja lopuksi kuorman \cite{RFC-768, protocol-numbers}. \par
