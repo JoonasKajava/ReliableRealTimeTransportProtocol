@@ -1,6 +1,6 @@
 %! suppress = NonBreakingSpace
 \documentclass[a4paper,12pt]{article}
-\usepackage[finnish]{babel}
+\usepackage[english, finnish]{babel}
 \usepackage{layout}
 \usepackage{graphicx}
 \usepackage{geometry}
@@ -30,16 +30,26 @@
 
 
 \input{doc/latex/src/architecture}
+\input{doc/latex/src/sliding_window}
 
 
 \onehalfspacing
 
 
-
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks,
+    citecolor=black,
+    filecolor=black,
+    linkcolor=black,
+    urlcolor=black
+}
 
 
 
 \title{Luotettava UDP-yhteys}
+\newcommand{\englishTitle}{Creating reliable internet-protocol on top of UDP}
+
 \author{Joonas Kajava}
 \date{\today}
 
@@ -58,6 +68,9 @@
 
 \begin{document}
     \begin{titlepage}
+    
+        \pagestyle{empty}
+        
         \includegraphics[width=0.5\textwidth]{images/metropolia}\par\vspace{2cm}
         {\Large \me}\par \vspace{1cm}
 
@@ -72,7 +85,6 @@
         \today
 
         \newpage
-        \thispagestyle{empty}
 
         \section*{Tiivistelmä}
 
@@ -84,36 +96,58 @@
             \\
             Tutkinto: & Insinööri (AMK) \\
             Tutkinto-ohjelma: & Tieto- ja viestintätekniikka \\
-            Ammatillinen pääaine: & Ammatillinen pääaine \\
+            Ammatillinen pääaine: & Pelisovellukset \\
             Ohjaajat: & Lehtori Miikka Mäki-Uuro\\
         \end{tabular}
         \sepline
+        
+
         \newpage
-        \thispagestyle{empty}
+
+        \section*{Abstract}
+
+        \begin{tabular} {l l}
+            Author:               & \me                                            \\
+            Title:                & \englishTitle                                  \\
+            Number of Pages:      & \pageCount{} pages + \appendixCount{} appendices \\
+            Date:                 & {\selectlanguage{english}\today}                                         \\
+            \\
+            Degree:               & Bachelor of Engineering                        \\
+            Degree Programmme:    & Information and Communication Technology       \\
+            Professional Major:   & Game Applications                              \\
+            Supervisors:          & Senior Lecturer Miikka Mäki-Uuro            \\
+        \end{tabular}
+        \sepline
+
+        This Bachelor's thesis highlights points of consideration when implementing       internet-protocols. Using UDP reliably requires implementation of sliding window, which will be covered in this thesis. Implementations in this thesis have been done using Rust language, which is a relatively young programming language (8 years).  
+
+        \sepline
+        Keywords: Rust, UDP, serialization, performance, sliding window, protocol 
+        \newpage
 
 
         \tableofcontents
         \newpage
-        \thispagestyle{empty}
 
 
         \section*{Lyhenteet}
         \begin{tabular}{l l}
-            UDP: & User Datagram Protocol        \\
-            TCP: & Transmission Control Protocol \\
-            IP:  & Internet Protocol             \\
             ACK: & Acknowledgement               \\
+            ARQ: & Automatic Repeat Request      \\
+            DI:  & Dependency Injection          \\
+            IP:  & Internet Protocol             \\
+            IPC: & Inter-Process Communication   \\
             NACK: & Negative Acknowledgement      \\
             NIC: & Network Interface Controller  \\
-            ARQ: & Automatic Repeat Request      \\
-            IPC: & Inter-Process Communication   \\
-            DI:  & Dependency Injection          \\
+            TCP: & Transmission Control Protocol \\
+            UDP: & User Datagram Protocol        \\
         \end{tabular}
         \newpage
 
 
     \end{titlepage}
 
+\pagestyle{plain}
 
     \section{Johdanto}\label{sec:johdanto}
     Tässä työssä käsitellään teoria tietoliikenneprotokollan luomiseen. Teorian jälkeen lukija ohjataan vaiheittan protokollan luomiseen UDP:n päälle. Tarkoitus on luoda pohja yrityksille ja kehittäjille tietoliikenneprotokollan toteutukseen.
@@ -339,6 +373,7 @@ impl Drop for ConnectionManager {
 
 
     \subsection{Liukuva ikkuna}\label{sec:liukuva_ikkuna}
+    \slidingWindow
     Liukuva ikkuna on tietorakennea tekniikka, jonka sallii pakettien lähettämisen ja vastaanottamisen epämääräisessä järjestyksessä. 
     
 
