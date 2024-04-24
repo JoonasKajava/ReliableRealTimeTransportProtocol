@@ -39,10 +39,16 @@
     \begin{tikzpicture}[]
     
         \node(data1)[data]{1};
-        \foreach \x [remember=\x as \lastx (initially 1)] in {2,...,10}{
+        \node(data2)[data, right=0cm of data1]{2};
+        \node(data3)[data, right=0.5cm of data2]{3};
+        \foreach \x [remember=\x as \lastx (initially 3)] in {4,...,10}{
             \node(data\x)[data, right=0cm of data\lastx]{\x};
         };
-        
+
+        \node (shiftedNodes) [fit=(data1) (data2)] {};
+
+        \node (shiftDesc) [above=of shiftedNodes.north west] {Siirretään ylempiin kerroksiin};
+       \draw [->] (shiftDesc) -- (shiftedNodes) {}; 
         
         \node (window) [draw=black, line width=2pt, inner xsep=0, inner ysep=0.5cm, fit=(data3) (data4) (data5) (data6) ] {};
         
