@@ -47,7 +47,7 @@
 
         \node (shiftedNodes) [fit=(data1) (data2)] {};
 
-        \node (shiftDesc) [above=of shiftedNodes.north west] {Siirretään ylempiin kerroksiin};
+        \node (shiftDesc) [above=of shiftedNodes.north west, align=left] {Siirretään ylempiin \\kerroksiin};
        \draw [->] (shiftDesc) -- (shiftedNodes) {}; 
         
         \node (window) [draw=black, line width=2pt, inner xsep=0, inner ysep=0.5cm, fit=(data3) (data4) (data5) (data6) ] {};

@@ -105,8 +105,6 @@
         Avainsanat: Rust, UDP, serialisointi, suorityskyky, liukuva ikkuna, protokolla 
         \newpage
 
-        \newpage
-
         \section*{Abstract}
 
         \begin{tabular} {l l}
@@ -122,12 +120,17 @@
         \end{tabular}
         \sepline
 
-        This Bachelor's thesis highlights points of consideration when implementing       internet-protocols. Using UDP reliably requires implementation of sliding window, which will be covered in this thesis. Implementations in this thesis have been done using Rust language, which was a relatively young programming language at the moment of writing this thesis (8 years). \par
+        This Bachelor's thesis highlights points of consideration when implementing       internet-protocols. Using UDP reliably requires implementation of sliding window, which will be covered in this thesis. Implementations in this thesis have been done using Rust language, which has been gaining popularity among developers. End product was RRTP-protocol that combines sliding window and other features to allow reliable connection with two computers. \par
 
-        
+        Robustness of the protocol is tested using a demo application that was also developed in this thesis. The demo application was created using \textit{'Tauri'} framework that has Rust process at it's core while rendering user interface using web technologies. The demo application allows two computers to exchange text messages and files over the network. \par
+
+        Lastly performance analysis has been performed for data structures used in the protocol. Analysis indicates that \lstinline{LinkedList} is not suitable for this project, while \lstinline{Vec} is more appropriate for this project.
+        \par
+
+        The thesis concludes with a reflection section that discusses development practices and tools used in this thesis. Git was used as the version control system and development environment consisted of Windows machine with \textit{RustRover}.
 
         \sepline
-        Keywords: Rust, UDP, serialization, performance, sliding window, protocol 
+        Keywords: Rust, UDP, data structures, performance, sliding window, protocol 
         \newpage
 
 
