@@ -23,7 +23,3 @@ harness = false
 [[bench]]
 name = "collections"
 harness = false
-
-[[bench]]
-name = "transfer_performance"
-harness = false
