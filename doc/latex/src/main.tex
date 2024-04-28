@@ -18,6 +18,7 @@
 \usepackage[style=vancouver]{biblatex}
 \usepackage{xcolor}
 \usepackage{tabularray}
+\usepackage[T1]{fontenc}
 \addbibresource{mendeley.bib}
 % \usepackage{showframe}
 \lstset{language=Rust, style=boxed,
@@ -100,7 +101,13 @@
             Ohjaajat: & Lehtori Miikka Mäki-Uuro\\
         \end{tabular}
         \sepline
-        asdfasdf  
+        Tämä insinöörityö korostaa huomion aiheita, joita internet-protokollan kehityksessä tulee vastaan. Luotettavan UDP-yhteyden tekemisessä hyödynnytään liukuvaa ikkunaa, jonka toteutus käydään läpi tässä työssä. Implementaatiot on toteutettu käyttäen Rust-kieltä, joka suosio on kasvanut kehittäjien keskuudessa. Työn lopputuloksena syntyi RRTP-protokolla, joka yhdistää liukuvan ikkunan ja muita ominaisuuksia luotettavan yhteyden muodostamiseen kahden tietokoneen välille. \par
+
+        Protokollan kestävyys testattiin demo sovelluksella, joka kehitettiin tässä työssä. Demo sovellus luotiin käyttämällä \textit{'Tauri'} ohjelmistokehystä, jolla on Rust ydinprosessi, joka käyttää verkkoteknologiaa käyttöliittymän piirtämiseen. \par
+
+        Viimeisenä toteutettiin suorituskyky analyysi, jossa vertailtiin tietorakenteiden nopeuksia protokollan käyttötarkoituksissa. Analyysin perusteella huomattiin, että \lstinline{LinkedList} ei ole sopiva tähän projektiin. Tuloksien perusteella valittiin \lstinline{Vec}, joka sopii parhaiten projektin käyttötarkoituksiin.\par
+
+        Lopuksi työssä pohditaan työtapoja ja työkaluja, jota käytettiin kehituksessä. Git oli projektissa käytetty version hallinta järjestelmä ja kehitysympäristö koostui Windows-tietokoneesta sekä \textit{RustRover}:sta.
         \sepline
         Avainsanat: Rust, UDP, serialisointi, suorityskyky, liukuva ikkuna, protokolla 
         \newpage
@@ -141,12 +148,16 @@
         \section*{Lyhenteet}
         \begin{tabular}{l l}
             ACK: & Acknowledgement               \\
+            API: & Application Programming Interface \\
             ARQ: & Automatic Repeat Request      \\
             DI:  & Dependency Injection          \\
             IP:  & Internet Protocol             \\
             IPC: & Inter-Process Communication   \\
-            NACK: & Negative Acknowledgement      \\
+            MIME: & Multipurpose Internet Mail Extensions \\
+            NACK: & Negative Acknowledgement     \\
             NIC: & Network Interface Controller  \\
+            OOP: & Object-Oriented Programming   \\
+            RPC: & Remote Procedure Call         \\
             TCP: & Transmission Control Protocol \\
             UDP: & User Datagram Protocol        \\
         \end{tabular}
@@ -164,10 +175,10 @@
 Toteutuksessa käytetään Rust-ohjelmointikieltä, joka sovelluu erinomaisesti järjestelmäohjelmointiin. Rust-kieli mahdollistaa laitteiston matalan tason hallinnan
     samaan tapaan kuin C ja C++ -ohjelmointikielet. Rust-kieli ei käytä roskankerääjää vaan muistin vapautus tapahtuu \textit{'borrow checker'}-sääntöjen mukaisesti.
     \textit{'Borrow checker'} takaa Rust-kielen muistiturvallisuuden. 
-    Rust-kieli tarjoaa myös monia moderneja kieli ominaisuuksia kuten: \textit{type
+    Rust-kieli tarjoaa myös monia moderneja kieliominaisuuksia kuten: \textit{type
     inference, pattern matching} ja \textit{traits} \cite{rust-book}.
 
-    Johdannon jälkeen käydään lyhyesti läpi TCP/IP -protokollien taustaa ja
+    Johdannon jälkeen käydään lyhyesti läpi TCP/IP-protokollien taustaa ja
     siirrytään käsittelemään RRTP-protokollan toteutus.
     RRTP-protokollan toteutus alkaa käymällä läpi vakio-arvot, jotka määrittelevät paketin sijoittelun. Seuraavat luvut kuvaavat, miten pakettia käsitellään kehystasolla. \par
 
@@ -189,7 +200,7 @@ Toteutuksessa käytetään Rust-ohjelmointikieltä, joka sovelluu erinomaisesti 
     Oman protokollan käyttöönotto vaatii kohtuullisen määrän tietoa verkkosovittimien, muista tietoliikenneprotokollista, yhtäaikaisuudesta sekä tehokkaista tietorakenteista.\par
 
    \section{RRTP-protokolla}\label{sec:protocol}
-    TCP ja UDP protokollat ovat kaksi yleisintä TCP/IP protokollaa.
+    TCP ja UDP protokollat ovat kaksi yleisintä TCP/IP-protokollaa.
     Näistä TCP-protokolla on usein käytetty palveluissa, jotka vaativat vakaata ja luotettavaa yhteyttä. UDP paras reaaliaikaisia sovelluksia varten. Tämä johtuu siitä, että TCP paketin mukana liikkuu paljon reservoituja tavuja, joita ei käytetä ollenkaan, myös otsikko päättyy turhaan täytteeseen.
     \par
     UDP:n etu realiaikaisessa kommunikaatiossa on, että se on kevyt ja nopea. Se ei kuitenkaan tarjoa kattavaa virheenkorjausta, järjestystä tai ruuhkanhallintamekanismeja. Tarkistussumma on ainut virheentarkistus, minkä UDP tarjoaa. Tarkistussumma ei kuitenkaan yksin riitä vakaaseen yhteyteen. UDP sisältää
@@ -277,8 +288,7 @@ pub struct Frame {
     frame: [u8; MAX_FRAME_SIZE],
     data_length: usize,
     options_size: usize,
-}
-    \end{lstlisting}
+}\end{lstlisting}
 
 
     
@@ -297,8 +307,7 @@ pub fn set_sequence_number(&mut self, sequence_number: u32) {
     let net_sequence_number = sequence_number.to_be_bytes();
     self.frame[SEQUENCE_NUMBER_OCTET..4]
     .copy_from_slice(&net_sequence_number);
-}
-    \end{lstlisting}
+}\end{lstlisting}
 
 
     Oikea tavujärjestys on erittäin tärkeä osa verkon ylitse tehtävää tiedonsiirtoa. Protokollaa käyttävien tietokoneiden täytyy olla yhteisymmärryksessä siitä, mitä tavujärjestystä tiedonsiirrossa käytetään. Laskeva tavujärjestys on yleisin järjestys, joten päätin käyttää sitä myös tässä protokollassa. \par
@@ -356,12 +365,11 @@ pub struct ConnectionManager {
     transmitter_thread: Option<thread::JoinHandle<()>>,
     socket: Arc<SocketAbstraction>,
     message_sender: SyncSender<Vec<u8>>,
-}
-    \end{lstlisting}
+}\end{lstlisting}
 
     \lstinline{ConnectionManager} pitää muistissa viitteet vastaanottaja- ja lähettäjäsäikeisiin.
     \lstinline{Option<...>} määrittelee valinnaisen arvon, joka tarkoittaa, että kyseinen muuttuja ei
-    välttämättä sisällä käyttökelpoista arvoa. Tämä vastaa muissa useissa ohjelmointikielissä \lstinline{null} arvoa \cite{rust_book_enum}. Näitä kahta muuttujaa käytetään säikeiden sulavaan sulkemiseen kun \lstinline{ConnectionManager} pudotetaan muistista.
+    välttämättä sisällä käyttökelpoista arvoa. Tämä vastaa muissa useissa ohjelmointikielissä \lstinline{null} arvoa \cite[luku 6.1]{rust-book}. Näitä kahta muuttujaa käytetään säikeiden sulavaan sulkemiseen kun \lstinline{ConnectionManager} pudotetaan muistista.
 
     \lstinline{ConnectionManager} implementoi \lstinline{Drop}-ominaisuuden, joka liittää vastaanottaja-
     ja lähettäjäsäikeet. Näin ohjelma jää odottamaan, että nämä kaksi säiettä sulkeutuvat oikein \cite{rust_doc_joinhandle}.
@@ -520,7 +528,7 @@ receiving_window.shift_window().into_iter().for_each(|frame| {
     Mikäli tätä konfiguraatiota haluttaisiin muuttaa verkon yli tulevalla tiedolla, skeemapohjainen data soveltuu tähän parhaiten. Näin lähettäjä pystyy kertomaan viestissä, miten dataa luetaan.
 
 
-    Lähdekoodissa \ref{lst:json_data} ja taulukossa \ref{tab:binary_data} havainnollistetaan kaksi tapaa koodata data tiedonsiirtoa varten. JSON-data on helposti luettavaa, mutta se sisältää ylimääräisiä merkkejä, joita tietokone ei tarvitse. Binääritieto sisältää kaiken tarvittavan tiedon, joka riittää tietokoneelle, mutta tekee siitä vaikeasti luettavaa ihmiselle. Binääritieto vie huomattavasti vähemmän tilaa kuin tavallinen JSON data.
+    Lähdekoodissa \ref{lst:json_data} ja taulukossa \ref{tab:binary_data} havainnollistetaan kaksi tapaa koodata data tiedonsiirtoa varten. JSON-data on helposti luettavaa, mutta se sisältää ylimääräisiä merkkejä, joita tietokone ei tarvitse. Binääritieto sisältää kaiken tarvittavan tiedon, joka riittää tietokoneelle, mutta tekee siitä vaikeasti luettavaa ihmiselle. Binääritieto vie huomattavasti vähemmän tilaa kuin tavallinen JSON-data.
     Lähdekoodin \ref{lst:json_data} muoto vie 26 tavua, kun taas taulukon \ref{tab:binary_data} vie 19 tavua. Tämä ero suurenee huomattavasti, kun tieton määrä kasvaa. \par
 
     \begin{lstlisting}[caption={JSON-data}, label={lst:json_data}]
@@ -674,7 +682,7 @@ fn checksum() {
         \end{lstlisting}
     \end{minipage}
 
-    Modernien tietokoneiden verkkokortti hoitaa tämän tarkistussumman käsittelyn \cite{TCP/IPLearn}.
+    Modernien tietokoneiden verkkokortti hoitaa tämän tarkistussumman käsittelyn \cite{VivianoTCP/IPLearn}.
 
 
     \section{Demo-sovellus}\label{sec:demo}
@@ -984,7 +992,7 @@ verkon aiheuttamaa häiriötä.
     muutos liitetään päähaaraan.\par
 
     Työn toteutuksen aikana projektiin tuli noin 5 suurta refaktorointia.
-    Näitä varten käytin useita haaroja, joiden avulla pystyin pitämään päähaaran aina toimivassa tilassa. \par
+    Näitä varten käytettiin useita haaroja, joiden avulla pystyttiin pitämään päähaara aina toimivassa tilassa. \par
 
     \begin{framed}
         Projektin lähdekoodi on saatavilla \textit{github.com}-palvelusta osoitteesta:
