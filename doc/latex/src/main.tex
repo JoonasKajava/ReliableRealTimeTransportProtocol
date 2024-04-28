@@ -390,18 +390,22 @@ impl Drop for ConnectionManager {
     \subsection{Liukuva ikkuna}\label{sec:liukuva_ikkuna}
     \slidingWindow
     Liukuva ikkuna on tietorakenne tekniikka, jonka sallii pakettien lähettämisen ja vastaanottamisen epämääräisessä järjestyksessä. 
+    Liukuvaa ikkunaa hyödynnetään vastaanottamisessa ja lähettämisessä. Tätä varten ohjelmassa elää kaksi instassia liukuvasta ikkunasta, jotka on havainnollistettu kuvassa \ref{fig:arkkitehtuuri}. Lähettäjä ja vastaanottaja -ikkunat jakavat suurimman osan toiminnallisuuksista \lstinline{Window} implementaation kautta, joka on esitetty lähdekoodissa \ref{lst:window}. 
     
-
-
-
-    \begin{lstlisting}[caption={Lähettävän ikkunan rakenne}, label={lst:twindow}]
-pub struct TransmitterWindow {
-    inner_window: Window,
-    socket: Arc<SocketAbstraction>,
-    events_sender: Sender<ConnectionEventType>,
-    ack_receiver: Receiver<u32>,
-    data_queue: Vec<Option<QueueFrame>>,
+\begin{lstlisting}[caption={Ikkunan rakenne}, label={lst:window}]
+pub struct Window {
+    frame_status: Vec<bool>,
+    window_size: u32,
+    window_left_edge: u32,
 }\end{lstlisting}
+
+\lstinline{frame_status} kentällä on kaksi tarkoitusta riippuen vastaanotto tai lähetys tilasta. kummassakin tilanteessa kenttä on aina ikkunan $w_s$ kokoinen. Vastaanotto tilanteessa kenttä pitää kirjaa onnistuneiden pakettien vastaanottamisesta. Lähetys tilanteessa kenttä pitää kirjaa paketeista, jotka ovat saapuneet onnistuneesti toiseen tietokoneeseen. \par
+
+\lstinline{window_size} on aina $w_s$ kokoinen. Ikkunan kokoa on mahdollista muuttaa käyttämällä \lstinline{set_window_size} funktiota, joka muuttaa tämän kentän arvoa ja muuttaa \lstinline{frame_status} taulukon kokoa \footnote{Tämä toiminnallisuus ei tällä hetkellä ole käytössä, sillä ikkunan koon synkronointia yhteyksien välillä ei ole implementoitu.}.\par
+
+\lstinline{window_left_edge} vastaa muuntujaa $n_s$. Vastaanottajan tilanteessa se sisältää pienimmän järjestysnumeron, jota ei ole vastaanotettu. Lähettäjän tilanteessa se sisältää pienimmän järjestysnumeron joka ei ole vielä saapunut vastaanottajalle. Tämän kentän kasvu tarkoittaa ikkunan liukumista eteenpäin. 
+
+
 
     Tässä ohjelmassa puskurit ovat toteutettu käyttämällä heap-allokoituja vektoreita. \lstinline{Vec} on yleisesti paras tietorakenne tämän tyylisiä operaatioita varten. Vertailu muihin tietorakenteisiin löysyy osiosta \ref{sec:structures}.
 
@@ -424,25 +428,17 @@ pub struct ReceiverWindow {
     buffer: Vec<Option<Frame>>,
 }\end{lstlisting}
 
-    Rust-kielessä ei pysty tekemään perintää samantyylisesti kuin yleisissä OOP-kielissä. Tämän takia
-    käytetään suunnittelutapaa nimeltä "\textit{Composition over Inheritance}" \cite{Ivicevic202228Inheritance}.
-
-
-
     \begin{framed}
-        Vastaanottava ikkuna pitää muistissa pienimmän järjestysnumeron $n_s$, minkä se on vastaanottanut.
-        Vastaanottava ikkuna hylkää kaikki paketit, joiden järjestysnumero on ikkunan ulkopuolella $n_x < n_s$ tai $n_x > n_s + w_s$. Jos järjestysnumero on ikkunan sisällä, se hyväksytään ja merkitään vastaanotetuksi. Mikäli $n_x = n_s + 1$, ikkunaa voidaan siirtää eteenpäin.
-        Ikkunan siirto tapahtuu kulkemalla hyväksyttyjen järjestysnumeroiden listaa eteenpäin, kunnes vastaan tulee järjestysnumero jota ei ole vielä vastaanotettu. Kulkiessa tapahtuneiden askelien määrä lisätään muuntujaan $n_s$.
+        Rust-kielessä ei pysty tekemään perintää samantyylisesti kuin yleisissä OOP-kielissä. Tämän takia
+        käytetään suunnittelutapaa nimeltä "\textit{Composition over Inheritance}" \cite{Ivicevic202228Inheritance}.
     \end{framed}
+
+    Vastaanottava ikkuna pitää muistissa pienimmän järjestysnumeron $n_s$, minkä se on vastaanottanut.
+    Vastaanottava ikkuna hylkää kaikki paketit, joiden järjestysnumero on ikkunan ulkopuolella $n_x < n_s$ tai $n_x > n_s + w_s$. Jos järjestysnumero on ikkunan sisällä, se hyväksytään ja merkitään vastaanotetuksi. Mikäli $n_x = n_s + 1$, ikkunaa voidaan siirtää eteenpäin.
+    Ikkunan siirto tapahtuu kulkemalla hyväksyttyjen järjestysnumeroiden listaa eteenpäin, kunnes vastaan tulee järjestysnumero jota ei ole vielä vastaanotettu. Kulkiessa tapahtuneiden askelien määrä lisätään muuntujaan $n_s$.
 
     Tässä toteutuksessa $n_s$ löytyy yleisen ikkunan (lähdekoodi \ref{lst:window}) sisältä kentästä \lstinline{window_left_edge: u32}.
 
-\begin{lstlisting}[caption={Ikkunan rakenne}, label={lst:window}]
-pub struct Window {
-    frame_status: Vec<bool>,
-    window_size: u32,
-    window_left_edge: u32,
-}\end{lstlisting}
 
     \subsubsection{Vastaanottajan toiminta}
     Datan vastaanottaminen tapahtuu vastaanottajasäikeessä, joka käynnistetään yhteyden muodostamisessa.
@@ -505,6 +501,51 @@ receiving_window.shift_window().into_iter().for_each(|frame| {
     . Tämän jälkeen ohjausbitit luetaan paketista kappaleen \ref{subsec:control_bits} mukaisesti. Vastaanotetusta paketista lähetetään tieto ylempiin kerroksiin (kuten sovellys), jotka voivat käyttää tätä tietoa esim. latausindikaattorin tekemisessä. \par
 
     Mikäli paketti on viimeinen viesti, puskuri siirretään uuteen listaan ja lähetetään ylemmille kerroksille.
+
+    \subsubsection{Lähettäjän toiminta}\label{subsec:sender_impl}
+    Dataa voidaan lähettää käyttämällä \lstinline{ConnectionManager}:sta löytyvällä kanavalla. Lähettäjä säie seuraa tätä kanavaa ja käsittelee sieltä tulevat viestit lähdekoodin \ref{lst:append_to_queue} mukaisesti. \par
+
+    Aluksi viestit leikataan osiin, jossa jokainen osa on kooltaan $D_s$ tai pienempi. Tämän jälkeen valmis kehys lisätään jonoon, josta se lähetetään käyttäen lähetys säikeen liukuvaa ikkunaa.
+    
+    \begin{lstlisting}[caption={Datan käsittely lähettämistä varten}, label={lst:append_to_queue}]
+pub fn append_to_queue(&mut self, data: impl Into<Vec<u8>>) {
+    let data_bytes = data.into();
+    let data_size = data_bytes.len();
+    let fragments = (data_size as f64 / MAX_DATA_SIZE as f64)
+    .ceil() as u32;
+    for i in 0..fragments {
+        let buffer_shift = (i as usize) * MAX_DATA_SIZE;
+        let buffer_left = data_size - buffer_shift;
+        let data_lower_bound = buffer_shift;
+        let data_upper_bound = buffer_shift + min(buffer_left,
+        MAX_DATA_SIZE);
+        let data_slice =
+        &data_bytes[data_lower_bound..data_upper_bound];
+        let mut frame = Frame::default();
+        frame.set_data(data_slice);
+        if i == fragments - 1 {
+            frame.set_control_bits(ControlBits::EOM.bits());
+        }
+        self.data_queue.push(Some(QueueFrame {
+            frame,
+            status: FrameStatus::NotSent,
+        }));
+    }
+}
+\end{lstlisting}
+ 
+Kun lähetys säie lukee \lstinline{data_queue} taulukkoa ja aloittaa datan lähettämisen, kun se sisältää kehyksiä. Taulukko käydään läpi, jokaisen kehyksen tilanne luetaan. Jokaisella kehyksellä on kolme mahdollista tilaa: \textit{ei lähetetty}, \textit{lähetetty} ja \textit{tunnustettu}. Pakettien lähtötilanne on \textit{ei lähetetty}. Mikäli taulukon läpikäydessä kohdataan jo aikasemmin lähetetty kehys, sen lähetys ajankohtaa verrataan aikakatkaisu muuttujaan. Aikakatkaisun avulla lähettäjä voi lähettää kehyksen uudelleen, mikäli lähetys ajankohdasta on kulunut tarpeeksi aikaa. Lähetyksen jälkeen kehyksen tila päivitetään \textit{lähetetty}-tilaan, jonka mukana kulkee tieto lähetys ajankohdasta. \par
+
+Lähetys säie seuraa myös tunnustuskanavaa, joka välittää tiedon \textit{ACK}-paketin saapumisesta. Tieto paketin saapumisesta tulee kuvan \ref{fig:arkkitehtuuri} pistoke abstraktiosta. Kun \textit{ACK}-paketti saapuu, se hylätään, jos sen järjestysnumero ei ole lähettävän ikkunan sisällä. Järjestysnumeron perusteella vastaava kehys etsitään \lstinline{data_queue} taulukosta ja sen tila muutetaan \textit{tunnustetuksi}. \par
+    
+    \begin{lstlisting}[caption={Lähettävän ikkunan rakenne}, label={lst:twindow}]
+pub struct TransmitterWindow {
+    inner_window: Window,
+    socket: Arc<SocketAbstraction>,
+    events_sender: Sender<ConnectionEventType>,
+    ack_receiver: Receiver<u32>,
+    data_queue: Vec<Option<QueueFrame>>,
+}\end{lstlisting}
 
     \subsubsection{Valikoiva toisto ARQ}\label{subsec:valikoiva_toisto}
     Valikoiva toisto ARQ englanniksi \textit{Selective Repeat} on tehokkaampi verrattuna toisiin ARQ protokolliin, joista yksi esimerkki on \textit{Stop-and-wait ARQ}.
