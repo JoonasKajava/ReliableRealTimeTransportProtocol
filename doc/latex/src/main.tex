@@ -1,6 +1,7 @@
 %! suppress = NonBreakingSpace
 \documentclass[a4paper,12pt]{article}
 \usepackage[english, finnish]{babel}
+\usepackage{makecell}
 \usepackage{layout}
 \usepackage{graphicx}
 \usepackage{geometry}
@@ -18,7 +19,12 @@
 \usepackage[style=vancouver]{biblatex}
 \usepackage{xcolor}
 \usepackage{tabularray}
+\usepackage{tabularx}
 \usepackage[T1]{fontenc}
+\usepackage{helvet}
+
+\renewcommand{\familydefault}{\sfdefault}
+
 \addbibresource{mendeley.bib}
 % \usepackage{showframe}
 \lstset{language=Rust, style=boxed,
@@ -28,6 +34,8 @@
 }
 \renewcommand{\lstlistingname}{Lähdekoodi}
 \interfootnotelinepenalty=10000
+
+\definecolor{title}{RGB}{155, 50, 35}
 
 
 \input{doc/latex/src/architecture}
@@ -48,14 +56,14 @@
 
 
 
-\title{Luotettava UDP-yhteys}
-\newcommand{\englishTitle}{Creating reliable internet-protocol on top of UDP}
+\title{Luotettava tiedonvälitys UDP-yhteydellä}
+\newcommand{\englishTitle}{Reliable data tranfer with UDP connection}
 
 \author{Joonas Kajava}
 \date{\today}
 
 \newcommand{\me}{Joonas Kajava}
-\renewcommand{\title}{Luotettava UDP-yhteys}
+\renewcommand{\title}{Luotettava tiedonvälitys UDP-yhteydellä}
 
 \newcommand{\appendixCount}{0}
 
@@ -75,7 +83,7 @@
         \includegraphics[width=0.5\textwidth]{images/metropolia}\par\vspace{2cm}
         {\Large \me}\par \vspace{1cm}
 
-        {\Huge \title}\par \vspace{1cm}
+        {\Huge \textcolor{title}{\title}}\par \vspace{1cm}
 
         \vfill
 
@@ -86,6 +94,8 @@
         \today
 
         \newpage
+
+
 
         \section*{Tiivistelmä}
 
@@ -101,15 +111,16 @@
             Ohjaajat: & Lehtori Miikka Mäki-Uuro\\
         \end{tabular}
         \sepline
-        Tämä insinöörityö korostaa huomion aiheita, joita internet-protokollan kehityksessä tulee vastaan. Luotettavan UDP-yhteyden tekemisessä hyödynnytään liukuvaa ikkunaa, jonka toteutus käydään läpi tässä työssä. Implementaatiot on toteutettu käyttäen Rust-kieltä, joka suosio on kasvanut kehittäjien keskuudessa. Työn lopputuloksena syntyi RRTP-protokolla, joka yhdistää liukuvan ikkunan ja muita ominaisuuksia luotettavan yhteyden muodostamiseen kahden tietokoneen välille. \par
+        Tämä insinöörityö korostaa huomion aiheita, joita internet-protokollan kehityksessä tulee vastaan. Luotettavan UDP-yhteyden tekemisessä hyödynnytään liukuvaa ikkunaa, jonka toteutus käydään läpi tässä työssä. Implementaatiot on toteutettu käyttäen Rust-kieltä, joka suosio on kasvanut kehittäjien keskuudessa. Työn lopputuloksena syntyi RRTP-protokolla, joka yhdistää liukuvan ikkunan ja muita ominaisuuksia luotettavan yhteyden muodostamiseen. \par
 
-        Protokollan kestävyys testattiin demo sovelluksella, joka kehitettiin tässä työssä. Demo sovellus luotiin käyttämällä \textit{'Tauri'} ohjelmistokehystä, jolla on Rust ydinprosessi, joka käyttää verkkoteknologiaa käyttöliittymän piirtämiseen. \par
+        Protokollan kestävyys testattiin demo sovelluksella, joka kehitettiin tässä työssä käyttämällä \textit{'Tauri'} ohjelmistokehystä.\par
 
         Viimeisenä toteutettiin suorituskyky analyysi, jossa vertailtiin tietorakenteiden nopeuksia protokollan käyttötarkoituksissa. Analyysin perusteella huomattiin, että \lstinline{LinkedList} ei ole sopiva tähän projektiin. Tuloksien perusteella valittiin \lstinline{Vec}, joka sopii parhaiten projektin käyttötarkoituksiin.\par
 
-        Lopuksi työssä pohditaan työtapoja ja työkaluja, jota käytettiin kehituksessä. Git oli projektissa käytetty version hallinta järjestelmä ja kehitysympäristö koostui Windows-tietokoneesta sekä \textit{RustRover}:sta.
-        \sepline
+        Lopuksi työssä pohditaan työtapoja ja työkaluja, jota käytettiin kehituksessä. Git oli projektissa käytetty version hallinta järjestelmä ja kehitysympäristö koostui Windows-tietokoneesta sekä \textit{RustRover}:sta. \par
         Avainsanat: Rust, UDP, serialisointi, suorityskyky, liukuva ikkuna, protokolla 
+        \sepline
+        Tämän opinnäytetyön alkuperä on tarkastettu Turnitin Originality Check -ohjelmalla.
         \newpage
 
         \section*{Abstract}
@@ -136,7 +147,6 @@
 
         The thesis concludes with a reflection section that discusses development practices and tools used in this thesis. Git was used as the version control system and development environment consisted of Windows machine with \textit{RustRover}.
 
-        \sepline
         Keywords: Rust, UDP, data structures, performance, sliding window, protocol 
         \newpage
 
@@ -146,21 +156,23 @@
 
 
         \section*{Lyhenteet}
-        \begin{tabular}{l l}
-            ACK: & Acknowledgement               \\
-            API: & Application Programming Interface \\
-            ARQ: & Automatic Repeat Request      \\
-            DI:  & Dependency Injection          \\
-            IP:  & Internet Protocol             \\
-            IPC: & Inter-Process Communication   \\
-            MIME: & Multipurpose Internet Mail Extensions \\
-            NACK: & Negative Acknowledgement     \\
-            NIC: & Network Interface Controller  \\
-            OOP: & Object-Oriented Programming   \\
-            RPC: & Remote Procedure Call         \\
-            TCP: & Transmission Control Protocol \\
-            UDP: & User Datagram Protocol        \\
-        \end{tabular}
+        \begin{tblr}{
+        colspec = {l X}, rowsep = 1ex
+        }
+            ACK: & \textit{Acknowledgement}. Vastaanottajan kuittaus saapuneesta paketista. \\
+            API: & \textit{Application Programming Interface}. Komponenttien välinen ohjelmointirajapinta. \\
+            ARQ: & \textit{Automatic Repeat Request}. Automaattinen uudelleenlähetys.\\
+            DI:  & \textit{Dependency Injection}. Riippuvuuksien injektointi, jonka avulla tarvittavat riippuvuudet on saatavilla tietyissä funktioissa. \\
+            IP:  & \textit{Internet Protocol} \\
+            IPC: & \textit{Inter-Process Communication}. Prosessien välinen kommunikaatio. \\
+            MIME: & \textit{Multipurpose Internet Mail Extensions}. MIME-tyyppi kertoo tiedostomuodon standardin mukaisella tavall. \\
+            NACK: & \textit{Negative Acknowledgement}. Negatiivinen vastaanottajan kuittaus. \\
+            NIC: & \textit{Network Interface Controller}. Verkkosovitin, jonka tehtävä on muodostaa yhteys lähiverkkoon. \\
+            OOP: & \textit{Object-Oriented Programming}. Olio-ohjelmointi. \\
+            RPC: & \textit{Remote Procedure Call}. Etäproseduurikutsu, jonka avulla asiakasohjelma voi lähettää kutsuviestin palvelinohjelmalle. \\
+            TCP: & \textit{Transmission Control Protocol}. Tietoliikenneprotokolla, joka muodostaa jatkuvan yhteyden tietokoneiden välille. \\
+            UDP: & \textit{User Datagram Protocol}. Yksinkertainen tietoliikenneprotokolla, joka ei tarjoa virheenkorjausta.\\
+        \end{tblr}
         \newpage
 
 
