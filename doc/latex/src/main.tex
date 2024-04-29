@@ -321,6 +321,8 @@ pub fn set_sequence_number(&mut self, sequence_number: u32) {
     Mikäli tavujärjestystä ei ota huomioon tiedonsiirrossa ja vastaanottajan sekä lähettäjän tietokoneet käyttävät eri tavujärjestystä, lukujen muuntaminen tavutaulukosta primitiiviseksi luvuksi johtaa vääriin tuloksiin.
     \cite{Adiga2007HowC}
 
+\newpage
+
     \subsubsection{Kuljetuskerros}\label{subsec:kuljetuskerros}
     Kuljetuskerros hoitaa pakettien luomisen ja paketin välittämisen verkkosovittimeen.
     Se määrittelee seuraavat osat protokollasta:
@@ -353,6 +355,8 @@ pub fn set_sequence_number(&mut self, sequence_number: u32) {
 
 
     Vastaanottaja tarkistaa ohjausbittien olemassaolon bittioperaatiolla lähdekoodin \ref{lst:ack_check} mukaisesti.
+\newpage
+    
     \begin{lstlisting}[caption={Kuittasbitin tarkistus ohjausbiteistä}, label={lst:ack_check}]
 if control_bits & 00000001 == 00000001 {
     // Kuittausbitti löytyy
@@ -365,7 +369,9 @@ if control_bits & 00000001 == 00000001 {
     hoitaa vastaanottavaa säiettä ja lähettävää säiettä. Kun sovellus haluaa käynnistää yhteyden,
     \lstinline{ConnectionManager} luo pistokkeen sovelluksen antamaan osoitteeseen.
     Lähetys- ja vastaanottosäikeet käynnistyvät, kun pistokkeen luonti onnistuu.
-    \par
+    
+    \newpage
+    
     \begin{lstlisting}[caption={ConnectionManager:n rakenne}, label={lst:connectionmanager}]
 pub struct ConnectionManager {
     listener_thread: Option<thread::JoinHandle<()>>,
@@ -393,11 +399,15 @@ impl Drop for ConnectionManager {
     }
 }\end{lstlisting}
 
+\newpage
+
 
     \subsection{Liukuva ikkuna}\label{sec:liukuva_ikkuna}
     \slidingWindow
     Liukuva ikkuna on tietorakenne tekniikka, jonka sallii pakettien lähettämisen ja vastaanottamisen epämääräisessä järjestyksessä. 
     Tätä tekniikkaa hyödynnetään pakettien vastaanottamisessa ja lähettämisessä. Ohjelmassa elää kaksi instassia liukuvasta ikkunasta, jotka on havainnollistettu arkkitehtuuri kuvassa \ref{fig:arkkitehtuuri}. Lähettäjä ja vastaanottaja -ikkunat jakavat suurimman osan toiminnallisuuksista \lstinline{Window} implementaation kautta, joka on esitetty lähdekoodissa \ref{lst:window}. 
+
+\newpage
     
 \begin{lstlisting}[caption={Ikkunan rakenne}, label={lst:window}]
 pub struct Window {
@@ -413,6 +423,8 @@ pub struct Window {
 \lstinline{window_left_edge} vastaa muuttujaa $n_s$. Vastaanottajan tilanteessa se sisältää pienimmän järjestysnumeron, jota ei ole vastaanotettu, kun taas lähettäjän tilanteessa se sisältää pienimmän järjestysnumeron, joka ei ole vielä saapunut vastaanottajalle. Tämän kentän kasvu tarkoittaa ikkunan liukumista eteenpäin. 
 
     Tässä ohjelmassa puskurit ovat toteutettu käyttämällä heap-allokoituja vektoreita. \lstinline{Vec} on yleisesti paras tietorakenne tämän tyylisiä operaatioita varten. Vertailu muihin tietorakenteisiin löysyy osiosta \ref{sec:structures}.
+
+\newpage
 
     \subsubsection{Ikkunan siirto vastaanottaessa}
 
@@ -790,6 +802,8 @@ fn checksum() {
         \label{tab:npm_dependencies}
     \end{table}
 
+\newpage
+
     \subsection{Ohjelman käynnistysvaihe}
 
     Demo-ohjelma alkaa \lstinline{main.rs}-tiedoston \lstinline{fn main()}-funktiosta.
@@ -872,6 +886,8 @@ tauri::async_runtime::spawn(async move {
 app.manage(app_state);\end{lstlisting}
 
     Sovelluksen tila sisältää yhteyden tilan, viestien tilan ja viitteen lokikanavan lähettävään päähän. Lähdekoodin \ref{lst:app_state} riveillä 11 ja 13 on huomattava, että nämä ovat \lstinline{Mutex<...>} primitiivin sisällä. \lstinline{ConnectorState} ja \lstinline{MessageState} eivät toteuta \lstinline{Send}-ominaisuutta, joka löytyy \lstinline{setup}-funktion tunnisteesta. \lstinline{Sender<...>} toteuttaa \lstinline{Send}-ominaisuuden, joten sitä ei tarvitse erikseen laittaa \lstinline{Mutex<...>}:in sisälle.
+
+\newpage
     
     \begin{lstlisting}[caption={Sovelluksen tilan rakenne}, label={lst:app_state}]
 struct ConnectorState {
