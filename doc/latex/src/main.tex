@@ -21,10 +21,13 @@
 \usepackage{tabularray}
 \usepackage{tabularx}
 \usepackage[T1]{fontenc}
-\usepackage{helvet}
 \usepackage{csquotes}
 
-\renewcommand{\familydefault}{\sfdefault}
+%\usepackage{helvet}
+%\renewcommand{\familydefault}{\sfdefault}
+\usepackage{fontspec}
+\setmainfont{Arial}
+
 
 \addbibresource{mendeley.bib}
 % \usepackage{showframe}
@@ -321,7 +324,6 @@ pub fn set_sequence_number(&mut self, sequence_number: u32) {
     Mikäli tavujärjestystä ei ota huomioon tiedonsiirrossa ja vastaanottajan sekä lähettäjän tietokoneet käyttävät eri tavujärjestystä, lukujen muuntaminen tavutaulukosta primitiiviseksi luvuksi johtaa vääriin tuloksiin.
     \cite{Adiga2007HowC}
 
-\newpage
 
     \subsubsection{Kuljetuskerros}\label{subsec:kuljetuskerros}
     Kuljetuskerros hoitaa pakettien luomisen ja paketin välittämisen verkkosovittimeen.
@@ -355,7 +357,6 @@ pub fn set_sequence_number(&mut self, sequence_number: u32) {
 
 
     Vastaanottaja tarkistaa ohjausbittien olemassaolon bittioperaatiolla lähdekoodin \ref{lst:ack_check} mukaisesti.
-\newpage
     
     \begin{lstlisting}[caption={Kuittausbitin tarkistus ohjausbiteistä}, label={lst:ack_check}]
 if control_bits & 00000001 == 00000001 {
@@ -371,7 +372,6 @@ if control_bits & 00000001 == 00000001 {
     \lstinline{ConnectionManager} luo pistokkeen sovelluksen antamaan osoitteeseen.
     Lähetys- ja vastaanottosäikeet käynnistyvät, kun pistokkeen luonti onnistuu.
     
-    \newpage
     
     \begin{lstlisting}[caption={ConnectionManager:n rakenne}, label={lst:connectionmanager}]
 pub struct ConnectionManager {
@@ -400,7 +400,6 @@ impl Drop for ConnectionManager {
     }
 }\end{lstlisting}
 
-\newpage
 
 
     \subsection{Liukuva ikkuna}\label{sec:liukuva_ikkuna}
@@ -408,7 +407,6 @@ impl Drop for ConnectionManager {
     Liukuva ikkuna on tietorakenne tekniikka, jonka sallii pakettien lähettämisen ja vastaanottamisen epämääräisessä järjestyksessä. 
     Tätä tekniikkaa hyödynnetään pakettien vastaanottamisessa ja lähettämisessä. Ohjelmassa elää kaksi instanssia liukuvasta ikkunasta, jotka on havainnollistettu arkkitehtuuri kuvassa \ref{fig:arkkitehtuuri}. Lähettäjä ja vastaanottaja -ikkunat jakavat suurimman osan toiminnallisuuksista \lstinline{Window} implementaation kautta, joka on esitetty lähdekoodissa \ref{lst:window}. 
 
-\newpage
     
 \begin{lstlisting}[caption={Ikkunan rakenne}, label={lst:window}]
 pub struct Window {
@@ -425,7 +423,6 @@ pub struct Window {
 
     Tässä ohjelmassa puskurit ovat toteutettu käyttämällä kasa-allokoituja vektoreita. \lstinline{Vec} on yleisesti paras tietorakenne tämän tyylisiä operaatioita varten. Vertailu muihin tietorakenteisiin löytyy osiosta \ref{sec:structures}.
 
-\newpage
 
     \subsubsection{Ikkunan siirto vastaanottaessa}
 
@@ -445,10 +442,8 @@ pub struct ReceiverWindow {
     buffer: Vec<Option<Frame>>,
 }\end{lstlisting}
 
-    \begin{framed}
-        Rust-kielessä ei pysty tekemään perintää samantyylisesti, kuin yleisissä OOP-kielissä. Tämän takia
-        käytetään suunnittelutapaa nimeltä "\textit{Composition over Inheritance}" \cite{Ivicevic202228Inheritance}.
-    \end{framed}
+    Rust-kielessä ei pysty tekemään perintää samantyylisesti, kuin yleisissä OOP-kielissä. Tämän takia
+    käytetään suunnittelutapaa nimeltä "\textit{Composition over Inheritance}" \cite{Ivicevic202228Inheritance}.
 
     Vastaanottava ikkuna pitää muistissa pienimmän järjestysnumeron $n_s$, minkä se on vastaanottanut.
     Vastaanottava ikkuna hylkää kaikki paketit, joiden järjestysnumero on ikkunan ulkopuolella $n_x < n_s$ tai $n_x > n_s + w_s$. Jos järjestysnumero on ikkunan sisällä, se hyväksytään ja merkitään vastaanotetuksi. Mikäli $n_x = n_s + 1$, ikkunaa voidaan siirtää eteenpäin.
@@ -581,7 +576,7 @@ pub struct TransmitterWindow {
     \subsubsection{Skeemapohjainen tieto}
     Skeemapohjaista dataa kannattaa hyödyntää silloin, kun vastaanottajalla ei ole tarkkaa tietoa siitä mitä tietoja data sisältää. Tästä hyvä esimerkki on konfiguraatiodata.
     Useat konfiguraatio mahdollisuudet eivät ole pakollisia ja sen takia niille on määritelty oletusarvot. Konfiguraatio voi sisältää tuhansia eri vaihtoehtoja ja ne ovat nimetty sovituilla termeillä. \par
-    Mikäli konfiguraatiotietoja haluttaisiin siirtää verkon yli, skeemapohjainen data soveltuu tähän parhaiten. Näin lähettäjä pystyy kertomaan viestissä, miten tietoja data sisältää.
+    Mikäli konfiguraatiotietoja haluttaisiin siirtää verkon yli, skeemapohjainen data soveltuu tähän parhaiten. Näin lähettäjä pystyy kertomaan viestissä, mitä tietoja data sisältää.
 
 
     Lähdekoodissa \ref{lst:json_data} ja taulukossa \ref{tab:binary_data} havainnollistetaan kaksi tapaa koodata data tiedonsiirtoa varten. JSON-data on helposti luettavaa, mutta se sisältää ylimääräisiä merkkejä, joita tietokone ei tarvitse. Binääritieto sisältää kaiken tarvittavan tiedon, joka riittää tietokoneelle, mutta tekee siitä vaikeasti luettavaa ihmiselle. Binääritieto vie huomattavasti vähemmän tilaa, kuin tavallinen JSON-data.\par
@@ -696,9 +691,7 @@ fn calculate_checksum(data: &[u8]) -> u16 {
 
 
     C-ohjelmointikielessä kokonaisluvun ylivuotoa ei ole määritelty. Tämä voi ja on johtanut useisiin tietoturvaongelmiin. Ylivuotoa voi olla vaikea havaita, sillä C-ohjelma jatkaa toimintaa, vaikka ylivuoto tapahtuu.\par
-    Rust-ohjelmointikielessä kokonaisluvun ylivuoto on määritelty. Ylivuoto johtaa aina ohjelman paniikkiin\footnotemark{} ja sen seurauksena sen sammumiseen. Tämä käytännössä eliminoi ylivuodon aiheuttamat tietoturvaongelmat \cite[luku 3.2]{rust-book}.
-    \footnotetext{Rust-ohjelmointikielessä \textit{paniikki} viittaa virheeseen, josta ei voi palautua. Paniikki johtaa aina prosessin sammumiseen \cite[luku 9.3]{rust-book}.}
-    \begin{minipage}{\linewidth}
+    Rust-ohjelmointikielessä kokonaisluvun ylivuoto on määritelty. Ylivuoto johtaa aina ohjelman paniikkiin\footnote{Rust-ohjelmointikielessä \textit{paniikki} viittaa virheeseen, josta ei voi palautua. Paniikki johtaa aina prosessin sammumiseen \cite[luku 9.3]{rust-book}.} ja sen seurauksena sen sammumiseen. Tämä käytännössä eliminoi ylivuodon aiheuttamat tietoturvaongelmat \cite[luku 3.2]{rust-book}.
 
     Lähdekoodissa \ref{lst:data_for_checksum} näytetään miten \lstinline{data: &[u8]} muodostetaan. Tarkistussumma sisältää lähettäjän ja vastaanottajan IP-osoitteet, portit, protokollan (17), UDP-osuuden koon ja lopuksi kuorman \cite{RFC-768, protocol-numbers}. \par
 
@@ -730,7 +723,6 @@ fn checksum() {
     assert_eq!(checksum, 0xc2a7);
 }
         \end{lstlisting}
-    \end{minipage}
 
     Modernien tietokoneiden verkkokortti hoitaa tämän tarkistussumman käsittelyn \cite{VivianoTCP/IPLearn}.
 
@@ -797,7 +789,6 @@ fn checksum() {
         \label{tab:npm_dependencies}
     \end{table}
 
-\newpage
 
     \subsection{Ohjelman käynnistysvaihe}
 
@@ -835,23 +826,7 @@ ReceivedCompleteMessage([0, 72, 101, 108, 108, 111,
 
 
 
-    Sovellustila alustetaan \lstinline{tauri:app:Builder} struktuurin \lstinline{setup}-funktiolla, jonka tunniste on kuvattu lähdekoodissa \ref{lst:setup_signature}. Tämän tunnisteen ymmärtäminen on tärkeää, sillä Rust-kääntäjä on erittäin tarkka rajoituksista, mitä tunniste asettaa. Rajoitukset ovat tärkeitä, sillä niiden avulla pystytään takaamaan muistiturvallisuus, jopa useiden säikeiden välillä \cite[ch. 8.2]{rust-book}. \par
-
-    Lähdekoodin \ref{lst:setup_signature} tunniste on suhteellisen monimutkainen, mutta se voidaan lukea seuraavasti:
-
-    \begin{enumerate}
-        \item \lstinline{pub fn} Kyseessä on julkinen funktio \lstinline{setup}.
-        \item \lstinline{<F>} on geneerinen tyyppiparametri \lstinline{F}.
-        \item \lstinline{mut self} funktio suoritetaan \lstinline{tauri:app:Builder} rakenteella.
-        \item \lstinline{setup: F} funktio ottaa vastaan parametrin, jonka tyyppi on geneerisen parametrin \lstinline{F} mukainen.
-        \item \lstinline{-> Self} funktio palauttaa \lstinline{tauri:app:Builder} rakenteen.
-        \item \lstinline{where} määrittelee geneeriset tyyppiparametrit.
-        \item \lstinline{F:} aloittaa parametrin \lstinline{F} määrityksen.
-        \item \lstinline{FnOnce(&mut App<R>) ->} määrittelee sulkeuman, joka voidaan suorittaa vähintään kerran. Sulkeuma saa parametrin mukana muuttuvan viitteen \lstinline{App<R>} muuttuja.
-        \item \lstinline{Result<(), Box<dyn std::error::Error>>} tarkoittaa, että sulkeuma ei palauta mitään \lstinline{()} tai se palauttaa virheen, joka implementoi \lstinline{std::error::Error} ominaisuuden.
-        \item \lstinline{Send} on erittäin tärkeä tieto sulkeumasta. Tämä tarkoittaa sitä, että sulkeuma ja sen käyttämien asioiden täytyy olla turvallisia säikeiden välistä siirtoa varten. Tämä tarkoittaa myös sitä, että demosovelluksen tilarakenne on turvallista siirtää toiseen säikeeseen.
-        \item \lstinline{'static} on käyttöikätunniste, joka vaatii että sulkeuma ja sen käyttämät asiat ovat koko sovelluksen elinajan käyttökelpoisia.
-    \end{enumerate}
+    Sovellustila alustetaan \lstinline{tauri:app:Builder} struktuurin \lstinline{setup}-funktiolla, jonka tunniste on kuvattu lähdekoodissa \ref{lst:setup_signature}. Funktion tunniste sisältää tiedot sen vaatimuksista, joita täytyy noudattaa sen sisällä. Näistä vaatimuksista \lstinline{Send} on erityisen tärkeä, sillä se takaa muistiturvallisuuden säikeiden välillä. Tämä mahdollistaa kanavien käytön sulkeumassa ilman muistiongelmia \cite[ch. 8.2]{rust-book}. \par
 
     \begin{lstlisting}[caption={Setup-funktion tunniste}, label={lst:setup_signature}]
 pub fn setup<F>(mut self, setup: F) -> Self
@@ -883,7 +858,6 @@ app.manage(app_state);\end{lstlisting}
 
     Sovelluksen tila sisältää yhteyden tilan, viestien tilan ja viitteen lokikanavan lähettävään päähän. Lähdekoodin \ref{lst:app_state} riveillä 11 ja 13 on huomattava, että nämä ovat \lstinline{Mutex<...>} primitiivin sisällä. \lstinline{ConnectorState} ja \lstinline{MessageState} eivät toteuta \lstinline{Send}-ominaisuutta, joka löytyy \lstinline{setup}-funktion tunnisteesta. \lstinline{Sender<...>} toteuttaa \lstinline{Send}-ominaisuuden, joten sitä ei tarvitse erikseen laittaa \lstinline{Mutex<...>}:in sisälle.
 
-\newpage
     
     \begin{lstlisting}[caption={Sovelluksen tilan rakenne}, label={lst:app_state}]
 struct ConnectorState {
@@ -984,7 +958,6 @@ result
         \centering
         \begin{tblr}{
             colspec = {ll},
-            row{even} = {lightgray},
         }
             Tietorakenne & Tulos     \\
             \hline
@@ -1026,11 +999,9 @@ Kokonaisuudessaan \textit{lib\_rrtp} suoriutuu suhteellisen hyvin tehtävästä�
 
 
 
-\begin{framed}
 Silmukkaosoitteen takia tämä testi ei vastaa täysin todellisuutta.
 Testin tarkoitus on pääasiassa seurata tietorakenteiden käsittelyn tehokkuutta ilman
 verkon aiheuttamaa häiriötä.
-\end{framed}
 
 
     \section{Työkalut ja prosessit}
@@ -1045,10 +1016,8 @@ verkon aiheuttamaa häiriötä.
     Työn toteutuksen aikana projektiin tuli noin 5 suurta refaktorointia.
     Näitä varten käytettiin useita haaroja, joiden avulla pystyttiin pitämään päähaara aina toimivassa tilassa. \par
 
-    \begin{framed}
-        Projektin lähdekoodi on saatavilla \textit{github.com}-palvelusta osoitteesta:
-        https://github.com/JoonasKajava/ReliableRealTimeTransportProtocol.
-    \end{framed}
+    Projektin lähdekoodi on saatavilla \textit{github.com}-palvelusta osoitteesta:
+    https://github.com/JoonasKajava/ReliableRealTimeTransportProtocol.
 
     \subsection{Kehitysympäristö}
 
@@ -1056,7 +1025,6 @@ verkon aiheuttamaa häiriötä.
         \centering
         \begin{tblr}{
             colspec = {ll},
-            row{even} = {lightgray},
         }
             Käyttöjärjestelmä & Microsoft Windows 10.0.19045 Pro    \\
             Rust-kääntäjä     & rustc 1.75.0 (82e1608df 2023-12-21) \\
@@ -1073,21 +1041,21 @@ verkon aiheuttamaa häiriötä.
 
     \section{Yhteenveto}
     Tavoitteena tässä opinnäytetyössä oli tutustua Rust-ohjelmointikieleen ja
-    reaaliaikaisten kommunikaatiojärjestelmien luontiin. Työn tuloksena syntyi \textit{lib\_RRTP}-kirjasto, joka hyödyntää UDP-protokollaa reaaliaikaiseen kommunikointiin. UDP-protokollan päälle lisättiin useita toimintoja, jotta yhteys toimii vakaasti. \par
+    reaaliaikaisten kommunikaatiojärjestelmien luontiin. Työn tuloksena syntyi RRTP-protokolla, joka hyödyntää liukuvaa ikkunaa ja muita toimintoja luotettavan yhteyden muodostamiseen.\par
 
-    \textit{lib\_RRTP} pystyy siirtämään viestejä sekä tiedostoja ilman tiedon korruptiota. Lähdekoodi on suurimmaksi osaksi idiomaattista Rust-koodia ja käyttöliittymän React-koodi käyttää ajankohtaisia suosituksia ja menetelmiä.
+    RRTP-protokolla pystyy siirtämään viestejä ja tiedostoja ilman tiedon korruptiota. Lähdekoodi on suurimmaksi osaksi idiomaattista Rust-koodia ja käyttöliittymän React-koodi käyttää ajankohtaisia suosituksia ja menetelmiä.
     Koodi on jaettu yksinkertaisiin moduuleihin ja suunniteltu niin, että laajennukset tai muutokset ovat helppoja toteuttaa.\par
 
-    \textit{lib\_RRTP}:n jatkokehityspolku on selkeä. Kirjastoon voidaan toteuttaa lisää TCP:n hyödyntämiä tekniikoita, kuten dynaaminen aikakatkaisu paketeille ja dynaaminen koko liukuvalle ikkunalle. Nämä kaksi tekniikkaa saadaan helposti lisättyä \textit{lib\_RRTP}-kirjastoon, koska muutokset otettiin huomiion arkkitehtuurin suunnittelussa.\par
+    Jatkokehityspolku on selkeä. Protokollaan voidaan toteuttaa lisää TCP:n hyödyntämiä tekniikoita, kuten dynaaminen aikakatkaisu paketeille ja dynaaminen koko liukuvalle ikkunalle. Nämä kaksi tekniikkaa saadaan helposti lisättyä, koska muutokset otettiin huomiion arkkitehtuurin suunnittelussa.\par
 
-    Lopputuloksena syntyi vakaa ja toimiva kirjasto reaaliaikaiselle kommunikaatiolle. Kirjasto kirjoitettiin kokonaan käyttäen turvallista Rust-kieltä, joka 
+    Lopputuloksena syntyi vakaa ja toimiva protokolla reaaliaikaiselle kommunikaatiolle. Protokolla kirjoitettiin kokonaan käyttäen turvallista Rust-kieltä, joka 
     Rust takaa muistiturvallisuuden samalla tavalla kuin ohjelmointikielet, jotka käyttävät automaattista roskienkeräystä. Lisäksi Rust-kielen vaativa syntaksi ja
     tyyppimallit takaavat, että ohjelmassa ei voi olla epäkelpoisia tiloja.
     Tätä filosofiaa pystyttiin myös jatkamaan käyttöliittymän puolella käyttämällä
     tarkkoja TypeScript sääntöjä sekä TypeShare-kirjastoa, jotta Rust-tyypit saatiin vastaamaan täsmälleen TypeScript-tyyppejä.\par
 
     Protokollan kehityksessä opittiin miten säikeiden hallinta tulee toteuttaa ja miten Rust-kieli auttaa tässä. Tärkeänä osana oli myös toteuttaa toimiva käyttöliittymä, joka pystyy hyödyntämään rust-kielen vahvuuksia. Tämä on erityisen tärkeää sillä
-    uskon vahvasti, että rust-kieli on tulevaisuuden kieli. Sitä käytetään jo muun muassa Linux:n ja Windows:n kernelissä. Rust-kielen turvallisuus, tehokkuus ja modernit ominaisuudet tekevät siitä lähes täydellisen kielen, jolla on mahdollisuus korvata c ja c++ tulevaisuudessa.
+    uskon vahvasti, että Rust-kieli on tulevaisuuden kieli. Sitä käytetään jo muun muassa Linux:n ja Windows:n kernelissä. Rust-kielen turvallisuus, tehokkuus ja modernit ominaisuudet tekevät siitä lähes täydellisen kielen, jolla on mahdollisuus korvata c ja c++ tulevaisuudessa.
 
 
     \newpage
