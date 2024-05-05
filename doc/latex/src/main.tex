@@ -397,7 +397,7 @@ impl Drop for ConnectionManager {
 
     \subsection{Liukuva ikkuna}\label{sec:liukuva_ikkuna}
     Liukuva ikkuna on tietorakenne tekniikka, jonka sallii pakettien lähettämisen ja vastaanottamisen epämääräisessä järjestyksessä. 
-    Tätä tekniikkaa hyödynnetään pakettien vastaanottamisessa ja lähettämisessä. Ohjelmassa elää kaksi instanssia liukuvasta ikkunasta, jotka on havainnollistettu arkkitehtuuri kuvassa \ref{fig:arkkitehtuuri}. Lähettäjä ja vastaanottaja -ikkunat jakavat suurimman osan toiminnallisuuksista \lstinline{Window} implementaation kautta, joka on esitetty lähdekoodissa \ref{lst:window}. 
+    Kirjasto käyttää kahta liukuvaa ikkunaa, jotka on havainnollistettu arkkitehtuuri kuvassa \ref{fig:arkkitehtuuri}. Lähettäjä ja vastaanottaja -ikkunat jakavat suurimman osan toiminnallisuuksista \lstinline{Window} implementaation kautta, joka on esitetty lähdekoodissa \ref{lst:window}. 
 
     
 \begin{lstlisting}[caption={Ikkunan rakenne}, label={lst:window}]
@@ -698,7 +698,7 @@ fn checksum() {
 
     \section{Demo-sovellus}\label{sec:demo}
 
-    Osana tätä työtä toteutettiin esimerkkiohjelma, jolla pystyy luotettavasti siirtämään tiedostoja ja viestejä verkon yli. Demo-sovellus on rakennettu käyttäen Tauri- ja React-kirjastoja. Koska Rust-ohjelmointikieli on vielä nuori, käyttöliittymän ekosysteemi ei ole vielä kypsä \cite{AreYet}. 
+    Osana tätä työtä toteutettiin esimerkkiohjelma, jolla pystyy luotettavasti siirtämään tiedostoja ja viestejä verkon yli. Demo-sovellus on rakennettu käyttäen Tauri- ja React-kirjastoja. Koska Rust-ohjelmointikieli on vielä nuori ja kattavia käyttöliittymä kirjastoja ei ole montaa \cite{AreYet}. 
     Egui\footnote{Egui on kypsä ja sillä on hyvä dokumentaatio, mutta \textit{immidiate mode} aiheuttaa vaikeuksia ulkoasun määrittelyssä. } ja Iced projektit olivat hyviä vaihtoehtoja Taurille, mutta niiden dokumentaatio ja yleinen kypsyys eivät olleet riittäviä tämän projektin tarpeisiin. \par
 
 
@@ -919,7 +919,7 @@ result
     \section{Suorituskyky}\label{sec:suorityskyky}
 
     \subsection{Tietorakenteet}\label{sec:structures}
-    Tämän ohjelman luonteen kannalta on tärkeää, että käytetään tehokkaita tietorakenteita. Ohjelman täytyy pystyä tehokkaasti käsittelemään listoja, jotka sisältävät tuhansia elementtejä. \par
+    RRTP-kirjasto käsittelee huomattavan määrän dataa tietorakenteiden avulla, joten tehokkaiden tietorakenteiden käyttö on tärkeää. Kirjaston täytyy pystyä tehokkaasti käsittelemään listoja, jotka sisältävät tuhansia elementtejä. \par
     Mittauksessa mitattiin tavallisen taulukon, kasavaratun taulukon,
     \lstinline{Vec}:n, \lstinline{VecDeque} ja \lstinline{LinkedList} suoriutumista, kun tietorakenteen elementtejä siirretään vasemmalle. Jokainen tietorakenne täytettiin 100 000 elementillä ja elementtejä siirrettiin parhaiten sopivalla tavalla.
     Mittaus tehtiin käyttäen \textit{criterion}-kirjastoa ja 100:n näytemäärällä.
