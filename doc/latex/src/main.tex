@@ -121,7 +121,7 @@
 
         Protokollan kestävyys testattiin demo sovelluksella, joka kehitettiin tässä työssä käyttämällä \textit{'Tauri'} ohjelmistokehystä. Sovellus hyödyntää RRTP-ohjelmakirjastoa yhteyden muodostukseen ja tiedon välittämiseen kahden tietokoneen välillä. \par
 
-        Kehityksen aikana toteutettiin suorituskyky analyysejä, jossa vertailtiin tietorakenteiden nopeuksia protokollan käyttötarkoituksissa. Analyysin perusteella huomattiin, että \textit{LinkedList} ei ole sopiva tähän projektiin. Toteutukseen valittiin \textit{Vec} tietorakenne, joka suorityskyky oli erinomainen ja sopi parhaiten projektin käyttötarkoituksiin.\par
+        Kehityksen aikana toteutettiin suorituskyky analyysejä, jossa vertailtiin tietorakenteiden nopeuksia protokollan käyttötarkoituksissa. Analyysin perusteella huomattiin, että \textit{LinkedList} ei ole sopiva tähän projektiin. Toteutukseen valittiin \textit{Vec} tietorakenne, joka suorituskyky oli erinomainen ja sopi parhaiten projektin käyttötarkoituksiin.\par
 
         Lopuksi pohdittiin työtapoja ja työkaluja, joita käytettiin kehityksessä. Työssä käytettiin Git version hallintaa ja kehitysympäristö koostui Windows-tietokoneesta sekä \textit{RustRover}:sta. 
         
@@ -206,7 +206,7 @@
     Rust-kieli tarjoaa myös monia moderneja kieliominaisuuksia kuten: \textit{type
     inference, pattern matching} ja \textit{traits} \cite{rust-book}.
 
-    Johdannon jälkeen siirrytään käsittelemään RRTP-protokollan toteuttavan kirjaston toiminta. RRTP-kirjasto on neljään osaan jaettu kokonaisuus, joka käyttää säikeitä ja kanavia sisäiseen tiedon siirtoon. Kirjaston avulla ohjelmat, kuten tässä työssä kehitetty demosovellus pystyvat kommunikoimaan viestien ja tiedostojen avulla. 
+    Johdannon jälkeen siirrytään käsittelemään RRTP-protokollan toteuttavan kirjaston toiminta. RRTP-kirjasto on neljään osaan jaettu kokonaisuus, joka käyttää säikeitä ja kanavia sisäiseen tiedon siirtoon. Kirjaston avulla ohjelmat, kuten tässä työssä kehitetty demosovellus pystyvät kommunikoimaan viestien ja tiedostojen avulla. 
     Toteutuksen läpikäynti alkaa paketin vakioiden ja rakenteen määrityksellä, jonka jälkeen siirrytään käsittelemään kirjaston arkkitehtuuria. \par
 
     Luotettavuus tässä tietoliikenne protokollassa tulee liukuvasta ikkunasta. Se sallii pakettien lähettämisen ja vastaanottamisen epämääräisessä järjestyksessä sekä takaa viestien perille pääsyn aikakatkaisun avulla. Työssä liukuvan ikkunan toiminta määritellään käymällä yleispätevä teoria läpi ja esitetään sen toiminta kooditasolla. Tämän jälkeen keskustellaan tarkemmin \textit{Valikoiva toisto ARQ}-nimisestä tekniikasta. \par
@@ -239,7 +239,7 @@
     Vastaanottaja ja lähettäjä voivat välittää paketteja keskenään järjestyksestä riippumatta, sillä ikkunan puskuri järjestää paketit niiden järjestysnumeron mukaan.
 
     \subsection{Paketti}\label{sec:paketti}
-    Paketti joka on havainnollistettu taulukossa \ref{tab:packet}, perustuu kevyesti TCP:n ja on rakennettu UDP:n päälle. Paketin rakenne on minimaalinen ja yksinkertainen, joka sisältää tarvittavat kentät luotettavaan yhteyteen. Nämä kentät ovat järjestysnumero, ohjausbitit ja kentät datan hallintaa varten. Pakettiin sisältyy myös yksi tavun kokoinen varattu kenttä, jota voidaan käyttää tulevaisuudessa. Myös 6 ohjausbittiä ei ole käytössä.
+    Paketti, joka on havainnollistettu taulukossa \ref{tab:packet}, perustuu kevyesti TCP:n ja on rakennettu UDP:n päälle. Paketin rakenne on minimaalinen ja yksinkertainen, joka sisältää tarvittavat kentät luotettavaan yhteyteen. Nämä kentät ovat järjestysnumero, ohjausbitit ja kentät datan hallintaa varten. Pakettiin sisältyy myös yksi tavun kokoinen varattu kenttä, jota voidaan käyttää tulevaisuudessa. Myös 6 ohjausbittiä ei ole käytössä.
 
     \subsubsection{Vakiot}
     Taulukossa \ref{tab:vakiot} määritetyt vakiot ovat tärkeitä protokollan toiminnan kannalta. Vastaanottajalla ja lähettäjällä täytyy olla samat vakiot käytössä, jotta pakettien muodostaminen sekä lukeminen onnistuu. Eroavaisuudet näissä vakioissa vastaanottajan ja lähettäjän välillä tarkoittaa mahdollisesti sitä, että vastaanottaja aloittaa datan lukemisen väärästä kohdasta.
@@ -769,7 +769,7 @@ fn checksum() {
 
 
     Lokitus konfiguraatio tapahtuu \lstinline{setup_logger()}-funktion kautta, joka määrittelee lähdekoodin \ref{lst:logging_config} mukaiset asetukset.
-    Lähdekoodissa \ref{lst:log_example} on havainnollistettu esimerkki lokitapahtumasta, josta ilmenee selkeästi tapahtumaaika,
+    Lähdekoodissa \ref{lst:log_example} on havainnollistettu esimerkki lokitapahtumasta, josta ilmenee selkeästi tapahtuma aika,
     viestin taso, tapahtuman moduuli ja itse viestin sisältö.
 
     \begin{lstlisting}[caption={Esimerkki lokitapahtumasta}, label={lst:log_example}]
@@ -808,7 +808,7 @@ Result<(), Box<dyn std::error::Error>> + Send + 'static
     \end{lstlisting}
 
 
-    \lstinline{setup} sulkeamassa, joka on kuvattu lähdekoodissa \ref{lst:setup}, luodaan lokituskanava riveillä 1-4. Nämä kanavat mahdollistavat viestimisen säikeiden välillä ilman lukkoja. Tätä kanavaa pitkin Rust-prosessi pystyy lähettämään käyttöliittymään viestejä mistä tahansa säikeestä. Kanavan viestejä pystyy vastaanottamaan vain yhdessä paikassa\footnote{On olemassa Rust-yhteisön ylläpitämiä paketteja, jotka sallivat usean vastaanottajan, kuten \lstinline{crossbeam}.}, mutta viestien lähetyksessä ei ole tätä rajoitusta \cite[ch. 16.2]{rust-book}. Rivillä 7 luodaan säie viestien lukemista varten. Säie odottaa viestejä kanavasta ja saatuaan viestin, se välittää sen käyttöliittymään IPC-viestillä. Rivillä 5 luodaan sovelluksen tilarakenne, joka vastaanottaa lokikanavan lähettävän pään. Tämän jälkeen kutsutaan Tauri-sovelluskehystä hallitsemaan tätä tilaa.
+    \lstinline{setup} sulkeumassa, joka on kuvattu lähdekoodissa \ref{lst:setup}, luodaan lokituskanava riveillä 1\textendash4. Nämä kanavat mahdollistavat viestimisen säikeiden välillä ilman lukkoja. Tätä kanavaa pitkin Rust-prosessi pystyy lähettämään käyttöliittymään viestejä mistä tahansa säikeestä. Kanavan viestejä pystyy vastaanottamaan vain yhdessä paikassa\footnote{On olemassa Rust-yhteisön ylläpitämiä paketteja, jotka sallivat usean vastaanottajan, kuten \lstinline{crossbeam}.}, mutta viestien lähetyksessä ei ole tätä rajoitusta \cite[ch. 16.2]{rust-book}. Rivillä 7 luodaan säie viestien lukemista varten. Säie odottaa viestejä kanavasta ja saatuaan viestin, se välittää sen käyttöliittymään IPC-viestillä. Rivillä 5 luodaan sovelluksen tilarakenne, joka vastaanottaa lokikanavan lähettävän pään. Tämän jälkeen kutsutaan Tauri-sovelluskehystä hallitsemaan tätä tilaa.
     
     \begin{lstlisting}[caption={setup-sulkeuma}, label={lst:setup}]
 let (log_sender, log_receiver): (
@@ -916,7 +916,7 @@ result
         \label{fig:incoming_file}
     \end{figure}
 
-    \section{Suorityskyky}\label{sec:suorityskyky}
+    \section{Suorituskyky}\label{sec:suorityskyky}
 
     \subsection{Tietorakenteet}\label{sec:structures}
     Tämän ohjelman luonteen kannalta on tärkeää, että käytetään tehokkaita tietorakenteita. Ohjelman täytyy pystyä tehokkaasti käsittelemään listoja, jotka sisältävät tuhansia elementtejä. \par
@@ -951,12 +951,12 @@ result
 
 Tiedonsiirron testaamisessa käytettiin 30Mt kokoista videotiedostoa, jotta 
 tiedoston eheys olisi mahdollisimman helppo tarkistaa.
-Tässä testissä verrattiin \textit{lib\_rrtp}:n, \textit{UDP}:n ja \textit{TCP}:n 
+Tässä testissä verrattiin RRTP-kirjaston, \textit{UDP}:n ja \textit{TCP}:n 
 tiedonsiirtokykyä käyttäen silmukkaosoitetta. \par
 Kuvasta \ref{fig:performance} voidaan päätellä, että 
-\textit{lib\_rrtp}:n suorituskyky on kohtalaisen hyvä verrattuna \textit{UDP}:hen ja \textit{TCP}:hen. \textit{TCP} on näistä selvästi nopein, mikä johtunee siitä, että
+RRTP-kirjaston suorituskyky on kohtalaisen hyvä verrattuna \textit{UDP}:hen ja \textit{TCP}:hen. \textit{TCP} on näistä selvästi nopein, mikä johtunee siitä, että
 TCP:ssä puskurin käsittely on lähes automaattinen ja puskuri kasvaa tarvittaessa. 
-\textit{UDP}:n ja \textit{lib\_rrtp}:n kanssa käytettiin 128 tavun kokoista puskuria, mikä selittää näiden kahden tuloksen hitauden. Tulosten mukaan \textit{UDP} on 
+\textit{UDP}:n ja RRTP-kirjaston kanssa käytettiin 128 tavun kokoista puskuria, mikä selittää näiden kahden tuloksen hitauden. Tulosten mukaan \textit{UDP} on 
 hidas lähetyksen alussa mutta nopeutuu ajan kuluessa. Työn aikarajoitusten takia jatkotutkimusta tiedosiirron hitaudesta ei toteutettu. \par
     
     \begin{figure}[h!]
@@ -967,7 +967,7 @@ hidas lähetyksen alussa mutta nopeutuu ajan kuluessa. Työn aikarajoitusten tak
     \end{figure}
 
     
-Kokonaisuudessaan \textit{lib\_rrtp} suoriutuu suhteellisen hyvin tehtävästään, mutta huomiota täytyy kiinnittää sen tehokkuuteen isoja tiedostoja siirrettäessä. Kuvasta \ref{fig:performance} nähdään, että kirjaston suorituskyky pienenee mitä enemmän tietoa on siirretty. Tämä johtunee siitä, että kirjaston sisäinen puskuri täytyy ja elementtien käsittely vie enemmän aikaa.
+Kokonaisuudessaan RRTP-kirjasto suoriutuu suhteellisen hyvin tehtävästään, mutta huomiota täytyy kiinnittää sen tehokkuuteen isoja tiedostoja siirrettäessä. Kuvasta \ref{fig:performance} nähdään, että kirjaston suorituskyky pienenee mitä enemmän tietoa on siirretty. Tämä johtunee siitä, että kirjaston sisäinen puskuri täytyy ja elementtien käsittely vie enemmän aikaa.
 
 
 
@@ -977,12 +977,12 @@ verkon aiheuttamaa häiriötä.
 
 
     \section{Työkalut ja prosessit}
-    Tässä työssä on käytetty alalla laajalti hyväksyttyjä sovelluskehitystapoja. Osa työkaluista ja menetelmistä on suhteelisen kokeellisia. Niitä käytettiin kuitenkin vain kehittäjäkokemuksen parantamiseen, eikä niitä käytetty työn kannalta kriittisissä osissa.
+    Tässä työssä on käytetty alalla laajalti hyväksyttyjä sovelluskehitystapoja. Osa työkaluista ja menetelmistä on suhteellisen kokeellisia. Niitä käytettiin kuitenkin vain kehittäjäkokemuksen parantamiseen, eikä niitä käytetty työn kannalta kriittisissä osissa.
 
     \subsection{Versionhallinta}
     Tässä työssä käytettiin \textit{git}-versionhallintaa, \textit{github.com}-palvelun isännöimänä. Git on toimialalla erittäin yleinen ja tärkeä työkalu lähdekoodin jakamiseen ja versionhallintaan. \par
 
-    \textit{Pull Request}:ien tekeminen on yleinen ja suositelty tapa liittää muutokset pääharaan. Tämä johtuu siitä, että kun projektissa on useita ihmisiä tekemässä, jokainen muutos vaatii toisten kehittäjien hyväksynnän. Kun kriteerit hyväksymiseen on toteutunut,
+    \textit{Pull Request}:ien tekeminen on yleinen ja suositeltu tapa liittää muutokset pääharaan. Tämä johtuu siitä, että kun projektissa on useita ihmisiä tekemässä, jokainen muutos vaatii toisten kehittäjien hyväksynnän. Kun kriteerit hyväksymiseen on toteutunut,
     muutos liitetään päähaaraan.\par
 
     Työn toteutuksen aikana projektiin tuli noin 5 suurta refaktorointia.
@@ -1013,21 +1013,21 @@ verkon aiheuttamaa häiriötä.
 
     \section{Yhteenveto}
     Tavoitteena tässä opinnäytetyössä oli tutustua Rust-ohjelmointikieleen ja
-    reaaliaikaisten kommunikaatiojärjestelmien luontiin. Työn tuloksena syntyi RRTP-protokolla, joka hyödyntää liukuvaa ikkunaa ja muita toimintoja luotettavan yhteyden muodostamiseen.\par
+    reaaliaikaisten kommunikaatiojärjestelmien luontiin. Työn tuloksena syntyi RRTP-kirjasto, joka hyödyntää liukuvaa ikkunaa ja muita toimintoja luotettavan yhteyden muodostamiseen.\par
 
-    RRTP-protokolla pystyy siirtämään viestejä ja tiedostoja ilman tiedon korruptiota. Lähdekoodi on suurimmaksi osaksi idiomaattista Rust-koodia ja käyttöliittymän React-koodi käyttää ajankohtaisia suosituksia ja menetelmiä.
+    RRTP-kirjasto pystyy siirtämään viestejä ja tiedostoja ilman tiedon korruptiota. Lähdekoodi on suurimmaksi osaksi idiomaattista Rust-koodia ja käyttöliittymän React-koodi käyttää ajankohtaisia suosituksia ja menetelmiä.
     Koodi on jaettu yksinkertaisiin moduuleihin ja suunniteltu niin, että laajennukset tai muutokset ovat helppoja toteuttaa.\par
 
-    Jatkokehityspolku on selkeä. Protokollaan voidaan toteuttaa lisää TCP:n hyödyntämiä tekniikoita, kuten dynaaminen aikakatkaisu paketeille ja dynaaminen koko liukuvalle ikkunalle. Nämä kaksi tekniikkaa saadaan helposti lisättyä, koska muutokset otettiin huomiion arkkitehtuurin suunnittelussa.\par
+    Jatkokehityspolku on selkeä. Protokollaan voidaan toteuttaa lisää TCP:n hyödyntämiä tekniikoita, kuten dynaaminen aikakatkaisu paketeille ja dynaaminen koko liukuvalle ikkunalle. Nämä kaksi tekniikkaa saadaan helposti lisättyä, koska muutokset otettiin huomioon arkkitehtuurin suunnittelussa.\par
 
-    Lopputuloksena syntyi vakaa ja toimiva protokolla reaaliaikaiselle kommunikaatiolle. Protokolla kirjoitettiin kokonaan käyttäen turvallista Rust-kieltä, joka 
+    Lopputuloksena syntyi vakaa ja toimiva kirjasto reaaliaikaiselle kommunikaatiolle. Kirjasto kirjoitettiin kokonaan käyttäen turvallista Rust-kieltä, joka 
     Rust takaa muistiturvallisuuden samalla tavalla kuin ohjelmointikielet, jotka käyttävät automaattista roskienkeräystä. Lisäksi Rust-kielen vaativa syntaksi ja
     tyyppimallit takaavat, että ohjelmassa ei voi olla epäkelpoisia tiloja.
     Tätä filosofiaa pystyttiin myös jatkamaan käyttöliittymän puolella käyttämällä
     tarkkoja TypeScript sääntöjä sekä TypeShare-kirjastoa, jotta Rust-tyypit saatiin vastaamaan täsmälleen TypeScript-tyyppejä.\par
 
-    Protokollan kehityksessä opittiin miten säikeiden hallinta tulee toteuttaa ja miten Rust-kieli auttaa tässä. Tärkeänä osana oli myös toteuttaa toimiva käyttöliittymä, joka pystyy hyödyntämään rust-kielen vahvuuksia. Tämä on erityisen tärkeää sillä
-    uskon vahvasti, että Rust-kieli on tulevaisuuden kieli. Sitä käytetään jo muun muassa Linux:n ja Windows:n kernelissä. Rust-kielen turvallisuus, tehokkuus ja modernit ominaisuudet tekevät siitä lähes täydellisen kielen, jolla on mahdollisuus korvata c ja c++ tulevaisuudessa.
+    Protokollan kehityksessä tutustuttiin säikeiden turvalliseen käyttöön ja miten Rust-kieli auttaa tässä. Tärkeänä osana oli myös toteuttaa toimiva käyttöliittymä, joka pystyy hyödyntämään Rust-kielen vahvuuksia. Tämä on erityisen tärkeää sillä
+    uskon vahvasti, että Rust-kieli on tulevaisuuden kieli. Sitä käytetään jo muun muassa Linux:n ja Windows:n kernelissä. Rust-kielen turvallisuus, tehokkuus ja modernit ominaisuudet tekevät siitä lähes täydellisen kielen, jolla on mahdollisuus korvata C ja C++ tulevaisuudessa.
 
 
     \newpage
