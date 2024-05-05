@@ -1,6 +1,7 @@
 %! suppress = NonBreakingSpace
 \documentclass[a4paper,12pt]{article}
 \usepackage[english, finnish]{babel}
+\usepackage{setspace}
 \usepackage{makecell}
 \usepackage{layout}
 \usepackage{graphicx}
@@ -60,14 +61,13 @@
 
 
 
-\title{Luotettava tiedonvälitys UDP-yhteydellä}
-\newcommand{\englishTitle}{Reliable data tranfer with UDP connection}
+\renewcommand{\title}{Tietoliikenneprotokollan kehitys UDP:n päälle}
+\newcommand{\englishTitle}{Development of transport protocol on top of UDP}
 
 \author{Joonas Kajava}
 \date{\today}
 
 \newcommand{\me}{Joonas Kajava}
-\renewcommand{\title}{Luotettava tiedonvälitys UDP-yhteydellä}
 
 \newcommand{\appendixCount}{0}
 
@@ -115,18 +115,25 @@
             Ohjaajat: & Lehtori Miikka Mäki-Uuro\\
         \end{tabular}
         \sepline
-        Tämä insinöörityö korostaa huomion aiheita, joita internet-protokollan kehityksessä tulee vastaan. Luotettavan UDP-yhteyden tekemisessä hyödynnetään liukuvaa ikkunaa, jonka toteutus käydään läpi tässä työssä. Implementaatiot on toteutettu käyttäen Rust-kieltä, joka suosio on kasvanut kehittäjien keskuudessa. Työn lopputuloksena syntyi RRTP-protokolla, joka yhdistää liukuvan ikkunan ja muita ominaisuuksia luotettavan yhteyden muodostamiseen. \par
+        \begin{singlespace}
+        
+        Tämä insinöörityö käy läpi tietoliikenneprotokollan kehityksen UDP:n päälle. Protokollaa varten tehtiin ohjelmakirjasto Rust-kielelle, minkä toteutus ja toiminta käydään työssä läpi. Lopputuloksena syntyi RRTP-protokollan toteuttava ohjelmakirjasto, joka yhdistää liukuvan ikkunan ja muita ominaisuuksia luotettavan yhteyden muodostamiseen. \par
 
-        Protokollan kestävyys testattiin demo sovelluksella, joka kehitettiin tässä työssä käyttämällä \textit{'Tauri'} ohjelmistokehystä.\par
+        Protokollan kestävyys testattiin demo sovelluksella, joka kehitettiin tässä työssä käyttämällä \textit{'Tauri'} ohjelmistokehystä. Sovellus hyödyntää RRTP-ohjelmakirjastoa yhteyden muodostukseen ja tiedon välittämiseen kahden tietokoneen välillä. \par
 
-        Viimeisenä toteutettiin suorituskyky analyysi, jossa vertailtiin tietorakenteiden nopeuksia protokollan käyttötarkoituksissa. Analyysin perusteella huomattiin, että \lstinline{LinkedList} ei ole sopiva tähän projektiin. Tuloksien perusteella valittiin \lstinline{Vec}, joka sopii parhaiten projektin käyttötarkoituksiin.\par
+        Kehityksen aikana toteutettiin suorituskyky analyysejä, jossa vertailtiin tietorakenteiden nopeuksia protokollan käyttötarkoituksissa. Analyysin perusteella huomattiin, että \textit{LinkedList} ei ole sopiva tähän projektiin. Toteutukseen valittiin \textit{Vec} tietorakenne, joka suorityskyky oli erinomainen ja sopi parhaiten projektin käyttötarkoituksiin.\par
 
-        Lopuksi työssä pohditaan työtapoja ja työkaluja, jota käytettiin kehityksessä. Git oli projektissa käytetty version hallinta järjestelmä ja kehitysympäristö koostui Windows-tietokoneesta sekä \textit{RustRover}:sta. \par
+        Lopuksi pohdittiin työtapoja ja työkaluja, joita käytettiin kehityksessä. Työssä käytettiin Git version hallintaa ja kehitysympäristö koostui Windows-tietokoneesta sekä \textit{RustRover}:sta. 
+        
+        \end{singlespace}
+        
+        \par
         Avainsanat: Rust, UDP, suorituskyky, liukuva ikkuna, protokolla 
         \sepline
         Tämän opinnäytetyön alkuperä on tarkastettu Turnitin Originality Check -ohjelmalla.
+        
         \newpage
-
+        
         \section*{Abstract}
 
         \begin{tabular} {l l}
@@ -142,16 +149,21 @@
         \end{tabular}
         \sepline
 
-        This Bachelor's thesis highlights points of consideration when implementing       internet-protocols. Using UDP reliably requires implementation of sliding window, which will be covered in this thesis. Implementations in this thesis have been done using Rust language, which has been gaining popularity among developers. End product was RRTP-protocol that combines sliding window and other features to allow reliable connection with two computers. \par
+\begin{singlespace}
+    
 
-        Robustness of the protocol is tested using a demo application that was also developed in this thesis. The demo application was created using \textit{'Tauri'} framework that has Rust process at it's core while rendering user interface using web technologies. The demo application allows two computers to exchange text messages and files over the network. \par
+        This Bachelor's thesis goes through developing transport protocol on top of UDP. Library for Rust programming language was created for the protocol and it's implementation will be showcased in the thesis. End product was a library that implements RRTP-protocol, which combines sliding window and other techniques for reliable connection.\par
 
-        Lastly performance analysis has been performed for data structures used in the protocol. Analysis indicates that \lstinline{LinkedList} is not suitable for this project, while \lstinline{Vec} is more appropriate for this project.
+        Robustness of the protocol is tested using a demo application that was also developed in this thesis. The application was created using \textit{'Tauri'} framework that utilizies RRTP-library to handle connection and data tranfer between two computers. \par
+
+        During development performance analysis was performed for data structures used in the protocol. Analysis indicated that \textit{LinkedList} is not suitable for this project, while \textit{Vec} is more appropriate for this project.
         \par
 
         The thesis concludes with a reflection section that discusses development practices and tools used in this thesis. Git was used as the version control system and development environment consisted of Windows machine with \textit{RustRover}.
 
-        Keywords: Rust, UDP, data structures, performance, sliding window, protocol 
+\end{singlespace}
+
+        Keywords: Rust, UDP, performance, sliding window, protocol 
         \newpage
 
 
@@ -185,31 +197,31 @@
 \pagestyle{plain}
 
     \section{Johdanto}\label{sec:johdanto}
-    Tässä työssä käsitellään teoria tietoliikenneprotokollan luomiseen. Teorian jälkeen lukija ohjataan vaiheittain protokollan luomiseen UDP:n päälle. Tarkoitus on luoda pohja yrityksille ja kehittäjille tietoliikenneprotokollan toteutukseen.
-    \par Työ on luonteeltaan tutkiva ja ohjeistava, jonka selventää reaaliaikaisien sovelluksien toteutusta.\par
+    Tässä työssä kehitetään tietoliikenneprotokolla UDP:n päälle. Tarkoitus on luoda pohja yrityksille ja kehittäjille tietoliikenneprotokollan toteutukseen.
+    Työ on luonteeltaan tutkiva ja ohjeistava, jonka selventää reaaliaikaisien sovelluksien toteutusta.\par
 
-Toteutuksessa käytetään Rust-ohjelmointikieltä, joka soveltuu erinomaisesti järjestelmäohjelmointiin. Rust-kieli mahdollistaa laitteiston matalan tason hallinnan
+    Protokollaa varten tehdään RRTP-ohjelmistokirjasto käyttäen Rust-ohjelmointikieltä, joka soveltuu erinomaisesti järjestelmäohjelmointiin. Rust-kieli mahdollistaa laitteiston matalan tason hallinnan
     samaan tapaan kuin C ja C++ -ohjelmointikielet. Iso etu kielessä on, että se käyttää automaattista muistin hallintaa, joka ei käytä roskankerääjää vaan muistin vapautus tapahtuu \textit{'borrow checker'}-sääntöjen mukaisesti.
     \textit{'Borrow checker'} takaa Rust-kielen muistiturvallisuuden. 
     Rust-kieli tarjoaa myös monia moderneja kieliominaisuuksia kuten: \textit{type
     inference, pattern matching} ja \textit{traits} \cite{rust-book}.
 
-    Johdannon jälkeen siirrytään käsittelemään RRTP-protokollan toteutus, joka on luotettava UDP:n perustuva tietoliikenne protokolla.
-    Toteutus alkaa käymällä läpi vakioarvot, jotka määrittelevät paketin sijoittelun. Seuraavat luvut kuvaavat, miten pakettia käsitellään kehystasolla. \par
+    Johdannon jälkeen siirrytään käsittelemään RRTP-protokollan toteuttavan kirjaston toiminta. RRTP-kirjasto on neljään osaan jaettu kokonaisuus, joka käyttää säikeitä ja kanavia sisäiseen tiedon siirtoon. Kirjaston avulla ohjelmat, kuten tässä työssä kehitetty demosovellus pystyvat kommunikoimaan viestien ja tiedostojen avulla. 
+    Toteutuksen läpikäynti alkaa paketin vakioiden ja rakenteen määrityksellä, jonka jälkeen siirrytään käsittelemään kirjaston arkkitehtuuria. \par
 
-    Luotettavuus tässä tietoliikenne protokollassa tulee liukuvasta ikkunasta. Se sallii pakettien lähettämisen ja vastaanottamisen epämääräisessä järjestyksessä sekä takaa viestien perille pääsyn aikakatkaisun avulla. Työssä liukuvan ikkunan toiminta määritellään käymällä yleispätevä teoria läpi ja esitetään sen toiminta kooditasolla. Tämän jälkeen keskustellaan tarkemmin \textit{Valikoiva toisto ARQ}-nimisestä tekniikasta.
+    Luotettavuus tässä tietoliikenne protokollassa tulee liukuvasta ikkunasta. Se sallii pakettien lähettämisen ja vastaanottamisen epämääräisessä järjestyksessä sekä takaa viestien perille pääsyn aikakatkaisun avulla. Työssä liukuvan ikkunan toiminta määritellään käymällä yleispätevä teoria läpi ja esitetään sen toiminta kooditasolla. Tämän jälkeen keskustellaan tarkemmin \textit{Valikoiva toisto ARQ}-nimisestä tekniikasta. \par
 
     Viestien käsittelyssä käydään läpi eri tietomuodot, joita voidaan käyttää tiedonsiirrossa. tietomuotojen määritys on tärkeää tiedonsiirrossa, sillä vastaanottajan ja lähettäjän täytyy olla yhteisymmärryksessä niistä. Demosovelluksessa tiedonsiirto tapahtuu käyttäen binäärimuotoa, mutta skeemapohjaisen tiedon käyttäminen on mahdollista. Skeemapohjaisen tiedon ja binääritiedon erot esitetään esimerkkien avulla.\par
 
     Viimeisenä RRTP-protokollasta käydään läpi virheenkorjaus. Virheenkorjaukseen kuuluu tarkistussumma, joka koostuu 16-bitistä. Tarkistussumman sijoitus paketissa havainnollistetaan ja käydään läpi
     tarkistussumman muodostus.\par
 
-    RRTP-protokollaa varten toteutettiin myös demosovellus, joka tarjoaa 
+    RRTP-kirjastoa varten toteutettiin myös demosovellus, joka tarjoaa 
     toiminnot viestien ja tiedostojen lähettämistä varten. Demo-sovelluksesta käydään 
-    läpi sen riippuvuudet eri kirjastoihin ja miten se käsittelee Rust-prosessin ja 
-    käyttöliittymän välisen kommunikaation. \par
+    läpi sen riippuvuudet eri kirjastoihin ja miten Rust-prosessin ja 
+    käyttöliittymän välinen kommunikaatio toimii. \par
 
-    Tämän työn tavoitteena on tutkia tietoliikenneprotokollien toimintaa ja niiden toteutusta. Tilanteissa missä kaistanleveys on rajallinen ja nopea vasteaika merkitsee, on usein kannattavaa kehittää protokolla, joka on räätälöity sovelluksen tarpeita varten.
+    Tämän työn tavoitteena oli tutkia tietoliikenneprotokollien toimintaa ja niiden toteutusta. Tilanteissa missä kaistanleveys on rajallinen ja nopea vasteaika vaatimus on usein kannattavaa kehittää protokolla, joka on mukautettu sovelluksen tarpeita varten.
 
    \section{RRTP-protokolla}\label{sec:protocol}
     TCP ja UDP protokollat ovat kaksi yleisintä TCP/IP-protokollaa.
