@@ -154,7 +154,7 @@
 
         This Bachelor's thesis goes through developing transport protocol on top of UDP. Library for Rust programming language was created for the protocol and it's implementation will be showcased in the thesis. End product was a library that implements RRTP-protocol, which combines sliding window and other techniques for reliable connection.\par
 
-        Robustness of the protocol is tested using a demo application that was also developed in this thesis. The application was created using \textit{'Tauri'} framework that utilizies RRTP-library to handle connection and data tranfer between two computers. \par
+        Robustness of the protocol is tested using a demo application that was also developed in this thesis. The application was created using \textit{'Tauri'} framework that utilizes RRTP-library to handle connection and data tranfer between two computers. \par
 
         During development performance analysis was performed for data structures used in the protocol. Analysis indicated that \textit{LinkedList} is not suitable for this project, while \textit{Vec} is more appropriate for this project.
         \par
@@ -358,21 +358,22 @@ if control_bits & 00000001 == 00000001 {
 
     \subsection{Arkkitehtuuri}\label{sec:arkkitehtuuri}
     RRTP-protokollan toteuttava kirjasto on jaettu neljään osaan. Nämä osat kommunikoivat keskenään kanavien avulla. Kirjaston arkkitehtuuri on havainnollistettu kuvassa \ref{fig:arkkitehtuuri}. 
-    \architecture
 
     Kirjaston ydin on \lstinline{ConnectionManager}, joka on vastuussa yhteyksien hallinnasta. Sen tehtävä on
     hoitaa vastaanottavaa säiettä ja lähettävää säiettä. Kun sovellus haluaa käynnistää yhteyden,
     \lstinline{ConnectionManager} luo pistokkeen sovelluksen antamaan osoitteeseen.
     Lähetys- ja vastaanottosäikeet käynnistyvät, kun pistokkeen luonti onnistuu. \lstinline{ConnectionManager} rakenne on määritelty lähdekoodin \ref{lst:connectionmanager} mukaisesti.
     
-    
-    \begin{lstlisting}[caption={ConnectionManager:n rakenne}, label={lst:connectionmanager}]
+    \begin{lstlisting}[float, caption={ConnectionManager:n rakenne}, label={lst:connectionmanager}]
 pub struct ConnectionManager {
     listener_thread: Option<thread::JoinHandle<()>>,
     transmitter_thread: Option<thread::JoinHandle<()>>,
     socket: Arc<SocketAbstraction>,
     message_sender: SyncSender<Vec<u8>>,
 }\end{lstlisting}
+
+    \architecture
+    
 
     \lstinline{ConnectionManager}:lla on omistajuus vastaanottaja- ja lähettäjäsäikeisiin.
     \lstinline{Option<...>} määrittelee valinnaisen arvon, joka tarkoittaa, että kyseinen muuttuja ei
@@ -381,7 +382,7 @@ pub struct ConnectionManager {
     \lstinline{ConnectionManager} implementoi \lstinline{Drop}-ominaisuuden, joka liittää vastaanottaja-
     ja lähettäjäsäikeet. Näin ohjelma jää odottamaan, että nämä kaksi säiettä sulkeutuvat oikein \cite{rust_doc_joinhandle}.
 
-    \begin{lstlisting}[caption={Drop-ominaisuuden toteutus ConnectionManager:ille}, label={lst:connectionmanager_drop}]
+    \begin{lstlisting}[float, caption={Drop-ominaisuuden toteutus ConnectionManager:ille}, label={lst:connectionmanager_drop}]
 impl Drop for ConnectionManager {
     fn drop(&mut self) {
         if let Some(x) = self.listener_thread.take() {
@@ -484,36 +485,9 @@ pub fn shift_window(&mut self) -> Vec<Frame> {
     Mikäli paketti on viimeinen viesti, puskuri siirretään uuteen listaan ja lähetetään ylemmille kerroksille.
 
     \subsubsection{Lähettäjän toiminta}\label{subsec:sender_impl}
-    Dataa voidaan lähettää käyttämällä \lstinline{ConnectionManager}:sta löytyvällä kanavalla. Lähettäjä säie seuraa tätä kanavaa ja käsittelee sieltä tulevat viestit lähdekoodin \ref{lst:append_to_queue} mukaisesti. \par
+    Dataa voidaan lähettää käyttämällä \lstinline{ConnectionManager}:sta löytyvällä kanavalla. Lähettäjä säie seuraa tätä kanavaa ja käsittelee sieltä tulevat viestit. \par
 
     Aluksi viestit leikataan osiin, jossa jokainen osa on kooltaan $D_s$ tai pienempi. Tämän jälkeen valmis kehys lisätään jonoon, josta se lähetetään käyttäen lähetys säikeen liukuvaa ikkunaa.
-    
-    \begin{lstlisting}[caption={Datan käsittely lähettämistä varten}, label={lst:append_to_queue}]
-pub fn append_to_queue(&mut self, data: impl Into<Vec<u8>>) {
-    let data_bytes = data.into();
-    let data_size = data_bytes.len();
-    let fragments = (data_size as f64 / MAX_DATA_SIZE as f64)
-    .ceil() as u32;
-    for i in 0..fragments {
-        let buffer_shift = (i as usize) * MAX_DATA_SIZE;
-        let buffer_left = data_size - buffer_shift;
-        let data_lower_bound = buffer_shift;
-        let data_upper_bound = buffer_shift + min(buffer_left,
-        MAX_DATA_SIZE);
-        let data_slice =
-        &data_bytes[data_lower_bound..data_upper_bound];
-        let mut frame = Frame::default();
-        frame.set_data(data_slice);
-        if i == fragments - 1 {
-            frame.set_control_bits(ControlBits::EOM.bits());
-        }
-        self.data_queue.push(Some(QueueFrame {
-            frame,
-            status: FrameStatus::NotSent,
-        }));
-    }
-}
-\end{lstlisting}
  
 Lähetys säie lukee \lstinline{data_queue} taulukkoa ja aloittaa datan lähettämisen, kun se sisältää kehyksiä. Taulukko käydään läpi, jokaisen kehyksen tilanne luetaan. Jokaisella kehyksellä on kolme mahdollista tilaa: \textit{ei lähetetty}, \textit{lähetetty} ja \textit{kuitattu}. Pakettien lähtötilanne on \textit{ei lähetetty}. Mikäli taulukon läpikäydessä kohdataan jo aikaisemmin lähetetty kehys, sen lähetys ajankohtaa verrataan aikakatkaisu muuttujaan. Aikakatkaisun avulla lähettäjä voi lähettää kehyksen uudelleen, mikäli lähetys ajankohdasta on kulunut tarpeeksi aikaa. Lähetyksen jälkeen kehyksen tila päivitetään \textit{lähetetty}-tilaan, jonka mukana kulkee tieto lähetys ajankohdasta. \par
 
@@ -690,8 +664,7 @@ fn checksum() {
     data.extend_from_slice(&payload);
     let checksum = calculate_checksum(&data);
     assert_eq!(checksum, 0xc2a7);
-}
-        \end{lstlisting}
+}\end{lstlisting}
 
     Modernien tietokoneiden verkkokortti hoitaa tämän tarkistussumman käsittelyn \cite{VivianoTCP/IPLearn}.
 
@@ -779,7 +752,7 @@ ReceivedCompleteMessage([0, 72, 101, 108, 108, 111,
 32, 87, 111, 114, 108, 100])
     \end{lstlisting}
     
-    Lähdekoodi \ref{lst:log_example} esittää mahdollisen lokitapahtuman. Sovellus voi kirjoittaa lokitapahtuman käyttämällä \lstinline{log}-kirjaston tarjoamia makroja\footnote{Mahdolliset makrot ovat: debug, error, info, log, trace, warn.}: \lstinline|info!("Processing connection event: {:?}", event);|\par
+    Lähdekoodi \ref{lst:log_example} esittää mahdollisen lokitapahtuman. Sovellus voi kirjoittaa lokitapahtuman käyttämällä \lstinline{log}-kirjaston tarjoamia makroja\footnote{Mahdolliset makrot ovat: debug, error, info, log, trace, warn.}:\\ \lstinline|info!("Processing connection event: {:?}", event);|\par
 
     \begin{lstlisting}[caption={Lokituskonfiguraatio}, label={lst:logging_config}]
 fern::Dispatch::new()
@@ -881,7 +854,7 @@ invoke<LogSuccessMessage>("bind", {address: localAddress})
     setConnectionStatus((prev) => ({...prev, local: false}));
 });\end{lstlisting}
 
-    \lstinline{bind}-komento liittää verkkosovittimen \lstinline{address} parametrin osoitteeseen. Liittämisen hoitaa \lstinline{ConnectionManager} rakenne, joka käynnistää myös tarvittavat säikeet viestien ja kuittauksien vastaanottoa varten, sekä säikeen viestien lähettämisetä varten. Lopuksi \lstinline{bind}-komento käynnistää säikeen, joka kuuntelee \lstinline{ConnectionManager}:n tuottamia tapahtumia.
+    \lstinline{bind}-komento liittää verkkosovittimen \lstinline{address} parametrin osoitteeseen. Liittämisen hoitaa \lstinline{ConnectionManager} rakenne, joka käynnistää myös tarvittavat säikeet viestien ja kuittauksien vastaanottoa varten, sekä säikeen viestien lähettämisetä varten. Lopuksi \lstinline{bind}-komento käynnistää säikeen, joka kuuntelee\\ \lstinline{ConnectionManager}:n tuottamia tapahtumia.
     \lstinline{bind}-komennossa käynnistetty säie ohjaa \lstinline{ConnectionManager}:n tuottamat tapahtumat \lstinline{ConnectionProcessor} rakenteeseen, joka lajittelee tapahtumat niiden tyypin mukaan ja suorittaa tarvittavan strategian tapahtuman käsittelyyn.\par
 
 
