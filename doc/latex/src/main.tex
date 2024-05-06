@@ -5,7 +5,7 @@
 \usepackage{makecell}
 \usepackage{layout}
 \usepackage{graphicx}
-\usepackage{geometry}
+\usepackage[top=2.5cm,bottom=3cm,left=4cm,right=2cm,includehead]{geometry}
 \usepackage{lastpage}
 \usepackage{listings}
 \usepackage{multirow}
@@ -23,6 +23,20 @@
 \usepackage{tabularx}
 \usepackage[T1]{fontenc}
 \usepackage{csquotes}
+\usepackage[titles]{tocloft}
+\usepackage{fancyhdr}
+\usepackage{caption}
+
+
+\captionsetup{justification=raggedright,singlelinecheck=false}
+
+\renewcommand{\cftdot}{}
+
+\fancyhead{}
+\fancyhead[R]{\thepage}
+\fancyfoot{}
+
+\renewcommand{\headrule}{}
 
 %\usepackage{helvet}
 %\renewcommand{\familydefault}{\sfdefault}
@@ -31,7 +45,7 @@
 
 
 \addbibresource{mendeley.bib}
-% \usepackage{showframe}
+ % \usepackage{showframe}
 \lstset{language=Rust, style=boxed,
     captionpos=b,
     literate={ö}{{\"o}}1
@@ -194,7 +208,7 @@
 
     \end{titlepage}
 
-\pagestyle{plain}
+\pagestyle{fancy}
 
     \section{Johdanto}\label{sec:johdanto}
     Tässä työssä kehitetään tietoliikenneprotokolla UDP:n päälle. Tarkoitus on luoda pohja yrityksille ja kehittäjille tietoliikenneprotokollan toteutukseen.
@@ -351,7 +365,7 @@ pub fn set_sequence_number(&mut self, sequence_number: u32) {
 
     Vastaanottaja tarkistaa ohjausbittien olemassaolon bittioperaatiolla lähdekoodin \ref{lst:ack_check} mukaisesti.
     
-    \begin{lstlisting}[caption={Kuittausbitin tarkistus ohjausbiteistä}, label={lst:ack_check}]
+    \begin{lstlisting}[float, caption={Kuittausbitin tarkistus ohjausbiteistä}, label={lst:ack_check}]
 if control_bits & 00000001 == 00000001 {
     // Kuittausbitti löytyy
 }\end{lstlisting}
@@ -364,7 +378,7 @@ if control_bits & 00000001 == 00000001 {
     \lstinline{ConnectionManager} luo pistokkeen sovelluksen antamaan osoitteeseen.
     Lähetys- ja vastaanottosäikeet käynnistyvät, kun pistokkeen luonti onnistuu. \lstinline{ConnectionManager} rakenne on määritelty lähdekoodin \ref{lst:connectionmanager} mukaisesti.
     
-    \begin{lstlisting}[float, caption={ConnectionManager:n rakenne}, label={lst:connectionmanager}]
+    \begin{lstlisting}[caption={ConnectionManager:n rakenne}, label={lst:connectionmanager}]
 pub struct ConnectionManager {
     listener_thread: Option<thread::JoinHandle<()>>,
     transmitter_thread: Option<thread::JoinHandle<()>>,
@@ -372,17 +386,17 @@ pub struct ConnectionManager {
     message_sender: SyncSender<Vec<u8>>,
 }\end{lstlisting}
 
-    \architecture
     
 
     \lstinline{ConnectionManager}:lla on omistajuus vastaanottaja- ja lähettäjäsäikeisiin.
     \lstinline{Option<...>} määrittelee valinnaisen arvon, joka tarkoittaa, että kyseinen muuttuja ei
-    välttämättä sisällä käyttökelpoista arvoa. Tämä vastaa muissa useissa ohjelmointikielissä \lstinline{null} arvoa \cite[luku 6.1]{rust-book}. Näitä kahta muuttujaa käytetään säikeiden sulavaan sulkemiseen, kun \lstinline{ConnectionManager} pudotetaan muistista.
-
-    \lstinline{ConnectionManager} implementoi \lstinline{Drop}-ominaisuuden, joka liittää vastaanottaja-
+    välttämättä sisällä käyttökelpoista arvoa. Tämä vastaa muissa useissa ohjelmointikielissä \lstinline{null} arvoa \cite[luku 6.1]{rust-book}. Näitä kahta muuttujaa käytetään säikeiden sulavaan sulkemiseen, kun \lstinline{ConnectionManager} pudotetaan muistista. \lstinline{ConnectionManager} toteuttaa \lstinline{Drop}-ominaisuuden, joka liittää vastaanottaja-
     ja lähettäjäsäikeet. Näin ohjelma jää odottamaan, että nämä kaksi säiettä sulkeutuvat oikein \cite{rust_doc_joinhandle}.
+    
+    \architecture
+    
 
-    \begin{lstlisting}[float, caption={Drop-ominaisuuden toteutus ConnectionManager:ille}, label={lst:connectionmanager_drop}]
+    \begin{lstlisting}[caption={Drop-ominaisuuden toteutus ConnectionManager:ille}, label={lst:connectionmanager_drop}]
 impl Drop for ConnectionManager {
     fn drop(&mut self) {
         if let Some(x) = self.listener_thread.take() {
@@ -418,6 +432,7 @@ pub struct Window {
     
     Tässä ohjelmassa puskurit ovat toteutettu käyttämällä kasa-allokoituja vektoreita. \lstinline{Vec} on yleisesti paras tietorakenne tämän tyylisiä operaatioita varten. Vertailu muihin tietorakenteisiin löytyy osiosta \ref{sec:structures}.
 
+\newpage
 
     \subsubsection{Ikkunan siirto vastaanottaessa}
 
@@ -672,7 +687,7 @@ fn checksum() {
     \section{Demo-sovellus}\label{sec:demo}
 
     Osana tätä työtä toteutettiin esimerkkiohjelma, jolla pystyy luotettavasti siirtämään tiedostoja ja viestejä verkon yli. Demo-sovellus on rakennettu käyttäen Tauri- ja React-kirjastoja. Koska Rust-ohjelmointikieli on vielä nuori ja kattavia käyttöliittymä kirjastoja ei ole montaa \cite{AreYet}. 
-    Egui\footnote{Egui on kypsä ja sillä on hyvä dokumentaatio, mutta \textit{immidiate mode} aiheuttaa vaikeuksia ulkoasun määrittelyssä. } ja Iced projektit olivat hyviä vaihtoehtoja Taurille, mutta niiden dokumentaatio ja yleinen kypsyys eivät olleet riittäviä tämän projektin tarpeisiin. \par
+    Egui\footnote{Egui on yleisesti käytetty ja sillä on hyvä dokumentaatio, mutta \textit{immidiate mode} aiheuttaa vaikeuksia ulkoasun määrittelyssä. } ja Iced projektit olivat hyviä vaihtoehtoja Taurille, mutta niiden dokumentaatio ja yleinen kypsyys eivät olleet riittäviä tämän projektin tarpeisiin. \par
 
 
     Demo-sovellus on rakennettu käyttäen Tauri-ohjelmistokehystä.
@@ -829,7 +844,7 @@ struct AppState {
     \subsection{IPC-Komennot}
     IPC-komennot merkitään \lstinline{#[tauri::command]} attribuutilla. Funktio täytyy olla merkitty kyseillä attribuutilla, jotta sitä pystyy käyttämään lähdekoodin \ref{lst:ipc_commands} määrityksessä. Tauri pystyy tarjoamaan viitteet muun muassa sovellustilaan ja sovelluskahvaan käyttämällä \textit{Dependency Injection} nimistä suunnittelutapaa. Tämä suunnittelutapa on todella yleinen useissa sovelluskehyksissä kuten esimerkiksi ASP.NET Core:ssa \cite{DI_dotnet}. Tämä suunnittelutapa ei kuitenkaan ole yleinen Rust-kielessä, sillä se vaatii funktioden suorittamista dynaamisilla kutsuilla.
     ASP.NET Core:ssa \lstinline{Reflection} toiminnallisuus tarjoaa dynaamisen kutsumisen, joka tekee tästä suunnittelutavasta käytännöllisen.
-    Tauri-sovelluskehys toteuttaa tämän täyttäen \lstinline{Procedural Macros} toimintoa. 
+    Tauri-sovelluskehys toteuttaa tämän täyttäen \\ \lstinline{Procedural Macros} toimintoa. 
 
 
     Lähdekoodin \ref{lst:ipc_commands} määrittelee 5 IPC-komentoa, jota käytetään käyttöliittymän ja Rust-prosessin välisessä kommunikaatiossa. Näitä komentoja voidaan myöhemmin kutsua käyttöliittymästä käsin käyttäen \lstinline{invoke}-funktiota, kuten lähdekoodissa \ref{lst:calling_bind} on esitetty. \par
@@ -861,7 +876,7 @@ invoke<LogSuccessMessage>("bind", {address: localAddress})
 
 
     \lstinline{connect}-komento ottaa vastaan osoitteen ja sovellustilan, joka tulee Tauri:n DI-järjestelmästä ja käynnistää yhteyden. Lähdekoodissa \ref{lst:connect} rivillä 4 yhteyden tila lukitaan.
-    Tämä on \lstinline{Mutex<...>} rakenteen toiminto. \lstinline{lock()}-funktio lukistee \lstinline{state.connector_state} muuttujaan ja palauttaa \lstinline{MutexGuard<ConnectorState>} rakenteen. Tämä suoja sallii muutoksien tekemisen \lstinline{ConnectorState} rakenteeseen, vaikka viite ei normaalisti salli muutoksia. Tätä piirrettä kutsutaan nimeltä \textit{Interior Mutability}. Yhteystila on lukittuna niin kauan kun \lstinline{MutexGuard<ConnectorState>} on käytössä.\par
+    Tämä on \lstinline{Mutex<...>} rakenteen toiminto. \lstinline{lock()}-funktio lukistee \\ \lstinline{state.connector_state} muuttujan ja palauttaa \lstinline{MutexGuard<ConnectorState>} rakenteen. Tämä suoja sallii muutoksien tekemisen \lstinline{ConnectorState} rakenteeseen, vaikka viite ei normaalisti salli muutoksia. Tätä piirrettä kutsutaan nimeltä \textit{Interior Mutability}. Yhteystila on lukittuna niin kauan kun \lstinline{MutexGuard<ConnectorState>} on käytössä.\par
 
     \begin{lstlisting}[basicstyle=\small\ttfamily,caption={'connect'-komento}, label={lst:connect}]
 #[tauri::command]
