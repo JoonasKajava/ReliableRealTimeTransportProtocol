@@ -1,6 +1,7 @@
 %! suppress = NonBreakingSpace
 \documentclass[a4paper,12pt]{article}
 \usepackage[english, finnish]{babel}
+\usepackage[style=dmyyyy,datesep=.]{datetime2}
 \usepackage{setspace}
 \usepackage{makecell}
 \usepackage{layout}
@@ -26,7 +27,6 @@
 \usepackage[titles]{tocloft}
 \usepackage{fancyhdr}
 \usepackage{caption}
-
 
 \captionsetup{justification=raggedright,singlelinecheck=false}
 
@@ -120,7 +120,7 @@
         \begin{tabular} {l l}
             Tekijä:               & \me                                            \\
             Otsikko:              & \title                                         \\
-            Sivumäärä:            & \pageCount{} sivua + \appendixCount{} liitettä \\
+            Sivumäärä:            & \pageCount{} sivua                             \\
             Aika:                 & \today                                         \\
             \\
             Tutkinto: & Insinööri (AMK) \\
@@ -133,11 +133,11 @@
         
         Tämä insinöörityö käy läpi tietoliikenneprotokollan kehityksen UDP:n päälle. Protokollaa varten tehtiin ohjelmakirjasto Rust-kielelle, minkä toteutus ja toiminta käydään työssä läpi. Lopputuloksena syntyi RRTP-protokollan toteuttava ohjelmakirjasto, joka yhdistää liukuvan ikkunan ja muita ominaisuuksia luotettavan yhteyden muodostamiseen. \par
 
-        Protokollan kestävyys testattiin demo sovelluksella, joka kehitettiin tässä työssä käyttämällä \textit{'Tauri'} ohjelmistokehystä. Sovellus hyödyntää RRTP-ohjelmakirjastoa yhteyden muodostukseen ja tiedon välittämiseen kahden tietokoneen välillä. \par
+        Protokollan kestävyys testattiin demosovelluksella, joka kehitettiin tässä työssä käyttämällä Tauri-ohjelmistokehystä. Sovellus hyödyntää RRTP-ohjelmakirjastoa yhteyden muodostukseen ja tiedon välittämiseen kahden tietokoneen välillä. \par
 
-        Kehityksen aikana toteutettiin suorituskyky analyysejä, jossa vertailtiin tietorakenteiden nopeuksia protokollan käyttötarkoituksissa. Analyysin perusteella huomattiin, että \textit{LinkedList} ei ole sopiva tähän projektiin. Toteutukseen valittiin \textit{Vec} tietorakenne, joka suorituskyky oli erinomainen ja sopi parhaiten projektin käyttötarkoituksiin.\par
+        Kehityksen aikana toteutettiin suorituskykyanalyysejä, jossa vertailtiin tietorakenteiden nopeuksia protokollan käyttötarkoituksissa. Analyysin perusteella huomattiin, että LinkedList-tietorakenne ei ole sopiva tähän projektiin. Toteutukseen valittiin Vec-tietorakenne, joka suorituskyky oli erinomainen ja sopi parhaiten projektin käyttötarkoituksiin.\par
 
-        Lopuksi pohdittiin työtapoja ja työkaluja, joita käytettiin kehityksessä. Työssä käytettiin Git version hallintaa ja kehitysympäristö koostui Windows-tietokoneesta sekä \textit{RustRover}:sta. 
+        Lopuksi pohdittiin työtapoja ja työkaluja, joita käytettiin kehityksessä. Työssä käytettiin Git-versionhallintaa ja kehitysympäristö koostui Windows-tietokoneesta sekä RustRover:sta. 
         
         \end{singlespace}
         
@@ -153,7 +153,7 @@
         \begin{tabular} {l l}
             Author:               & \me                                            \\
             Title:                & \englishTitle                                  \\
-            Number of Pages:      & \pageCount{} pages + \appendixCount{} appendices \\
+            Number of Pages:      & \pageCount{} pages                             \\
             Date:                 & {\selectlanguage{english}\today}                                         \\
             \\
             Degree:               & Bachelor of Engineering                        \\
@@ -168,12 +168,12 @@
 
         This Bachelor's thesis goes through developing transport protocol on top of UDP. Library for Rust programming language was created for the protocol and it's implementation will be showcased in the thesis. End product was a library that implements RRTP-protocol, which combines sliding window and other techniques for reliable connection.\par
 
-        Robustness of the protocol is tested using a demo application that was also developed in this thesis. The application was created using \textit{'Tauri'} framework that utilizes RRTP-library to handle connection and data tranfer between two computers. \par
+        Robustness of the protocol is tested using a demo application that was also developed in this thesis. The application was created using Tauri-framework that utilizes RRTP-library to handle connection and data tranfer between two computers. \par
 
-        During development performance analysis was performed for data structures used in the protocol. Analysis indicated that \textit{LinkedList} is not suitable for this project, while \textit{Vec} is more appropriate for this project.
+        During development performance analysis was performed for data structures used in the protocol. Analysis indicated that LinkedList data structure is not suitable for this project, while Vec data structure is more appropriate for this project.
         \par
 
-        The thesis concludes with a reflection section that discusses development practices and tools used in this thesis. Git was used as the version control system and development environment consisted of Windows machine with \textit{RustRover}.
+        The thesis concludes with a reflection section that discusses development practices and tools used in this thesis. Git was used as the version control system and development environment consisted of Windows machine with RustRover.
 
 \end{singlespace}
 
@@ -193,7 +193,7 @@
             API: & \textit{Application Programming Interface}. Komponenttien välinen ohjelmointirajapinta. \\
             ARQ: & \textit{Automatic Repeat Request}. Automaattinen uudelleenlähetys.\\
             DI:  & \textit{Dependency Injection}. Riippuvuuksien injektointi, jonka avulla tarvittavat riippuvuudet on saatavilla tietyissä funktioissa. \\
-            IP:  & \textit{Internet Protocol} \\
+            IP:  & \textit{Internet Protocol}. IP-pakettien toimituksesta huolehtiva protokolla. \\
             IPC: & \textit{Inter-Process Communication}. Prosessien välinen kommunikaatio. \\
             MIME: & \textit{Multipurpose Internet Mail Extensions}. MIME-tyyppi kertoo tiedostomuodon standardin mukaisella tavalla. \\
             NACK: & \textit{Negative Acknowledgement}. Negatiivinen vastaanottajan kuittaus. \\
@@ -695,6 +695,7 @@ fn checksum() {
 
     \begin{figure}[h!]
         \centering
+        
         \includegraphics[width=\textwidth]{doc/latex/src/images/RRTP.png}
         \caption{Demo-ohjelman käyttöliittymä}
         \label{fig:demo_interface}
