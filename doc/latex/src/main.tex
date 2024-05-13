@@ -135,7 +135,7 @@
 
         Protokollan kestävyys testattiin demosovelluksella, joka kehitettiin tässä työssä käyttämällä Tauri-ohjelmistokehystä. Sovellus hyödyntää RRTP-ohjelmakirjastoa yhteyden muodostukseen ja tiedon välittämiseen kahden tietokoneen välillä. \par
 
-        Kehityksen aikana toteutettiin suorituskykyanalyysejä, jossa vertailtiin tietorakenteiden nopeuksia protokollan käyttötarkoituksissa. Analyysin perusteella huomattiin, että LinkedList-tietorakenne ei ole sopiva tähän projektiin. Toteutukseen valittiin Vec-tietorakenne, joka suorituskyky oli erinomainen ja sopi parhaiten projektin käyttötarkoituksiin.\par
+        Kehityksen aikana toteutettiin suorituskykyanalyysejä, jossa vertailtiin tietorakenteiden nopeuksia protokollan käyttötarkoituksissa. Analyysin perusteella huomattiin, että LinkedList-tietorakenne ei ole sopiva tähän projektiin. Toteutukseen valittiin Vec-tietorakenne, jonka suorituskyky oli erinomainen ja sopi parhaiten projektin käyttötarkoituksiin.\par
 
         Lopuksi pohdittiin työtapoja ja työkaluja, joita käytettiin kehityksessä. Työssä käytettiin Git-versionhallintaa ja kehitysympäristö koostui Windows-tietokoneesta sekä RustRover:sta. 
         
@@ -212,18 +212,17 @@
 
     \section{Johdanto}\label{sec:johdanto}
     Tässä työssä kehitetään tietoliikenneprotokolla UDP:n päälle. Tarkoitus on luoda pohja yrityksille ja kehittäjille tietoliikenneprotokollan toteutukseen.
-    Työ on luonteeltaan tutkiva ja ohjeistava, jonka selventää reaaliaikaisien sovelluksien toteutusta.\par
+    Työ on luonteeltaan tutkiva ja ohjeistava, joka selventää reaaliaikaisien sovelluksien toteutusta.\par
 
     Protokollaa varten tehdään RRTP-ohjelmistokirjasto käyttäen Rust-ohjelmointikieltä, joka soveltuu erinomaisesti järjestelmäohjelmointiin. Rust-kieli mahdollistaa laitteiston matalan tason hallinnan
-    samaan tapaan kuin C ja C++ -ohjelmointikielet. Iso etu kielessä on, että se käyttää automaattista muistin hallintaa, joka ei käytä roskankerääjää vaan muistin vapautus tapahtuu \textit{'borrow checker'}-sääntöjen mukaisesti.
+    samaan tapaan kuin C ja C++ -ohjelmointikielet. Iso etu Rust-kielessä on, että se käyttää automaattista muistin hallintaa, joka ei käytä roskankerääjää vaan muistin vapautus tapahtuu \textit{'borrow checker'}-sääntöjen mukaisesti.
     \textit{'Borrow checker'} takaa Rust-kielen muistiturvallisuuden. 
-    Rust-kieli tarjoaa myös monia moderneja kieliominaisuuksia kuten: \textit{type
-    inference, pattern matching} ja \textit{traits} \cite{rust-book}.
+    Rust-kieli tarjoaa myös monia moderneja kieliominaisuuksia kuten: tyyppipäättely(engl. type inference), hahmonsovitus(engl. pattern matching) ja piirteet(engl. traits) \cite{rust-book}.
 
     Johdannon jälkeen siirrytään käsittelemään RRTP-protokollan toteuttavan kirjaston toiminta. RRTP-kirjasto on neljään osaan jaettu kokonaisuus, joka käyttää säikeitä ja kanavia sisäiseen tiedon siirtoon. Kirjaston avulla ohjelmat, kuten tässä työssä kehitetty demosovellus pystyvät kommunikoimaan viestien ja tiedostojen avulla. 
     Toteutuksen läpikäynti alkaa paketin vakioiden ja rakenteen määrityksellä, jonka jälkeen siirrytään käsittelemään kirjaston arkkitehtuuria. \par
 
-    Luotettavuus tässä tietoliikenne protokollassa tulee liukuvasta ikkunasta. Se sallii pakettien lähettämisen ja vastaanottamisen epämääräisessä järjestyksessä sekä takaa viestien perille pääsyn aikakatkaisun avulla. Työssä liukuvan ikkunan toiminta määritellään käymällä yleispätevä teoria läpi ja esitetään sen toiminta kooditasolla. Tämän jälkeen keskustellaan tarkemmin \textit{Valikoiva toisto ARQ}-nimisestä tekniikasta. \par
+    Luotettavuus tässä tietoliikenneprotokollassa tulee liukuvasta ikkunasta. Se sallii pakettien lähettämisen ja vastaanottamisen epämääräisessä järjestyksessä sekä takaa viestien perille pääsyn aikakatkaisun avulla. Työssä liukuvan ikkunan toiminta määritellään käymällä yleispätevä teoria läpi ja esitetään sen toiminta kooditasolla. Tämän jälkeen keskustellaan tarkemmin \textit{Valikoiva toisto ARQ}-nimisestä tekniikasta. \par
 
     Viestien käsittelyssä käydään läpi eri tietomuodot, joita voidaan käyttää tiedonsiirrossa. tietomuotojen määritys on tärkeää tiedonsiirrossa, sillä vastaanottajan ja lähettäjän täytyy olla yhteisymmärryksessä niistä. Demosovelluksessa tiedonsiirto tapahtuu käyttäen binäärimuotoa, mutta skeemapohjaisen tiedon käyttäminen on mahdollista. Skeemapohjaisen tiedon ja binääritiedon erot esitetään esimerkkien avulla.\par
 
@@ -231,7 +230,7 @@
     tarkistussumman muodostus.\par
 
     RRTP-kirjastoa varten toteutettiin myös demosovellus, joka tarjoaa 
-    toiminnot viestien ja tiedostojen lähettämistä varten. Demo-sovelluksesta käydään 
+    toiminnot viestien ja tiedostojen lähettämistä varten. Demosovelluksesta käydään 
     läpi sen riippuvuudet eri kirjastoihin ja miten Rust-prosessin ja 
     käyttöliittymän välinen kommunikaatio toimii. \par
 
@@ -324,11 +323,11 @@ pub struct Frame {
 
 
     
-    \lstinline{usize} vastaa kohdearkkitehtuurin muistiosoitteen kokoa. 32 bittisessä kohde tietokoneessa \lstinline{usize} vastaa 4 tavua ja 64 bittisessä kohteessa 8 tavua \cite{rust-doc-usize}.
+    \lstinline{usize} vastaa kohdearkkitehtuurin muistiosoitteen kokoa. 32-bittisessä kohde tietokoneessa \lstinline{usize} vastaa 4 tavua ja 64-bittisessä kohteessa 8 tavua \cite{rust-doc-usize}.
    
     \subsubsection{Tietojenkäsittely paketissa}
     Paketti on ohjelman muistissa yhtenä kokonaisena taulukkona, joka koostuu tavuista.
-    Paketti sisältää tietoja 16 bittisessä ja 32 bittisessä muodossa. Nämä tiedot jaetaan tavuihin lähettämistä varten.
+    Paketti sisältää tietoja 16-bittisessä ja 32-bittisessä muodossa. Nämä tiedot jaetaan tavuihin lähettämistä varten.
 
     Lähdekoodissa \ref{lst:set_seq_num} järjestysnumero muutetaan laskevaan tavujärjestykseen, käyttäen Rust-standardi kirjaston funktiota \lstinline{to_be_bytes()} \cite{rust_doc_u32}. Tämän jälkeen se kopioidaan paketin 4 ensimmäisen tavun tilalle. \par
     
@@ -586,17 +585,10 @@ pub struct TransmitterWindow {
 
     Vastaanottaja lukee viestin ensimmäisen tavun ja valitsee sen perusteella oikean strategian tiedon käsittelyyn. Tässä toteutuksessa toimintotieto on yksi tavu, joka sallii 255 eri toimintoa. Mikäli tämä ei riitä, voidaan käyttää yhtä toimintoa skeemadatan siirtämiseen, mikä käytännössä avaa mahdollisuuden käyttää loputtoman määrän toimintoja. Toinen vaihtoehto on suurentaa toimintotietoa kahteen tai neljään tavuun. \par
 
-    Demossa, joka käsitellään myöhemmin luvussa \ref{sec:demo}, käytetään neljää toimintoa:
-    \begin{enumerate}
-        \item String
-        \item FileInfo
-        \item ResponseToFileInfo
-        \item FileData
-    \end{enumerate}
-
+    Demossa, joka käsitellään myöhemmin luvussa \ref{sec:demo}, käytetään neljää toimintoa: String, FileInfo, ResponseToFileInfo ja FileData.
 
     \subsection{Virheenkorjaus}\label{sec:virheenkorjaus}
-    Saapuneiden tietojen varmistukseen käytetään tarkistussummaa. Saapuneen paketin sisällöstä muodostetaan deterministisellä algoritmilla luku, jota verrataan paketin mukana tulleeseen tarkistussummaan. Mikäli summat eivät vastaa toisiaan, voidaan olettaa, että paketti on korruptoitunut ja vastaanottaja lähettää lähettäjälle \textit{NACK}-paketin. Kyseinen paketti vaatii lähettäjää lähettämään korruptoituneen paketin uudestaan
+    Saapuneiden tietojen varmistukseen käytetään tarkistussummaa. Saapuneen paketin sisällöstä muodostetaan deterministisellä algoritmilla luku, jota verrataan paketin mukana tulleeseen tarkistussummaan. Mikäli summat eivät vastaa toisiaan, voidaan olettaa, että paketti on korruptoitunut ja vastaanottaja lähettää lähettäjälle NACK-paketin. Kyseinen paketti vaatii lähettäjää lähettämään korruptoituneen paketin uudestaan
     \cite{khan-udp}.
 
     \subsubsection{Tarkistussumma}
@@ -684,29 +676,29 @@ fn checksum() {
     Modernien tietokoneiden verkkokortti hoitaa tämän tarkistussumman käsittelyn \cite{VivianoTCP/IPLearn}.
 
 
-    \section{Demo-sovellus}\label{sec:demo}
+    \section{Demosovellus}\label{sec:demo}
 
-    Osana tätä työtä toteutettiin esimerkkiohjelma, jolla pystyy luotettavasti siirtämään tiedostoja ja viestejä verkon yli. Demo-sovellus on rakennettu käyttäen Tauri- ja React-kirjastoja. Koska Rust-ohjelmointikieli on vielä nuori ja kattavia käyttöliittymä kirjastoja ei ole montaa \cite{AreYet}. 
+    Osana tätä työtä toteutettiin esimerkkiohjelma, jolla pystyy luotettavasti siirtämään tiedostoja ja viestejä verkon yli. Demosovellus on rakennettu käyttäen Tauri- ja React-kirjastoja. Koska Rust-ohjelmointikieli on vielä nuori ja kattavia käyttöliittymä kirjastoja ei ole montaa \cite{AreYet}. 
     Egui\footnote{Egui on yleisesti käytetty ja sillä on hyvä dokumentaatio, mutta \textit{immidiate mode} aiheuttaa vaikeuksia ulkoasun määrittelyssä. } ja Iced projektit olivat hyviä vaihtoehtoja Taurille, mutta niiden dokumentaatio ja yleinen kypsyys eivät olleet riittäviä tämän projektin tarpeisiin. \par
 
 
-    Demo-sovellus on rakennettu käyttäen Tauri-ohjelmistokehystä.
-    Tauri on Electronin kaltainen ohjelmistokehys\footnote{Electron pyörii Node.js runtime ympäristön päällä ja tarjoaa version Chromium selaimesta käyttöliittymän piirtämiseen.}, joka mahdollistaa sovelluksien rakentamisen käyttäen web-teknologioita. Taustalla pyörii Rust-prosessi, joka luo ikkunan käyttäen \textit{TAO}-ohjelmistokirjastoa. Tämän jälkeen \textit{WRY}-ohjelmistokirjasto luo \lstinline{WebView}-elementin, joka kutsuu käyttöjärjestelmän tarjoamaa selainta näyttämään kuvan mukaisen käyttöliittymän \ref{fig:demo_interface} \cite{tauri-app}.
+    Demosovellus on rakennettu käyttäen Tauri-ohjelmistokehystä.
+    Tauri on Electronin kaltainen ohjelmistokehys\footnote{Electron pyörii Node.js runtime ympäristön päällä ja tarjoaa version Chromium selaimesta käyttöliittymän piirtämiseen.}, joka mahdollistaa sovelluksien rakentamisen käyttäen web-teknologioita. Taustalla pyörii Rust-prosessi, joka luo ikkunan käyttäen TAO-ohjelmistokirjastoa. Tämän jälkeen WRY-ohjelmistokirjasto luo WebView-elementin, joka kutsuu käyttöjärjestelmän tarjoamaa selainta näyttämään kuvan mukaisen käyttöliittymän \ref{fig:demo_interface} \cite{tauri-app}.
 
     \begin{figure}[h!]
         \centering
         
         \includegraphics[width=\textwidth]{doc/latex/src/images/RRTP.png}
-        \caption{Demo-ohjelman käyttöliittymä}
+        \caption{Demosovelluksen käyttöliittymä}
         \label{fig:demo_interface}
     \end{figure}
     
-    Demo-ohjelmasta löytyy kaksi kenttää osoitteiden asettamiseen. Lista, joka
+    Demosovelluksesta löytyy kaksi kenttää osoitteiden asettamiseen. Lista, joka
     pitää kirjaa tapahtumista. Tilannepaneeli, joka näyttää yhteyden tilan.
     Kaksi kenttää viestien ja tiedostojen lähettämiseen. \par
 
     \subsection{Riippuvuudet}
-    Demo-sovelluksessa on mahdollista käyttää \textit{crates.io}-palvelun\footnote{Saatavilla osoitteesta: https://crates.io/} Rust-kirjastoja ja \textit{npm}-palvelun\footnote{Saatavilla osoitteesta: https://www.npmjs.com/} javascript-paketteja. Paketit mahdollistavat sovelluksen nopean kehityksen ja tarjoavat vakaita ratkaisuja eri ongelmiin. Usein pakettien käyttäminen on erittäin suositeltua, sillä niiden dokumentaatio ja valmiit ratkaisut ovat hyödyksi kehityksessä ja ylläpitämisessä.
+    Demosovelluksessa on mahdollista käyttää \textit{crates.io}-palvelun\footnote{Saatavilla osoitteesta: https://crates.io/} Rust-kirjastoja ja \textit{npm}-palvelun\footnote{Saatavilla osoitteesta: https://www.npmjs.com/} javascript-paketteja. Paketit mahdollistavat sovelluksen nopean kehityksen ja tarjoavat vakaita ratkaisuja eri ongelmiin. Usein pakettien käyttäminen on erittäin suositeltua, sillä niiden dokumentaatio ja valmiit ratkaisut ovat hyödyksi kehityksessä ja ylläpitämisessä.
 
     \begin{table}[h!]
         \centering
@@ -749,9 +741,9 @@ fn checksum() {
     \end{table}
 
 
-    \subsection{Ohjelman käynnistysvaihe}
+    \subsection{Sovelluksen käynnistysvaihe}
 
-    Demo-ohjelma alkaa \lstinline{main.rs}-tiedoston \lstinline{fn main()}-funktiosta.
+    Demosovellus alkaa \lstinline{main.rs}-tiedoston \lstinline{fn main()}-funktiosta.
     Se suorittaa 5 tärkeää toimintoa: lokitus
     konfiguraatio, sovellustilan alustaminen, lokiseurantasäikeen käynnistys, IPC-rajapintojen määritys ja lopuksi käyttöliittymän käynnistys. \\
 
