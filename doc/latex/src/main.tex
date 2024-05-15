@@ -28,6 +28,7 @@
 \usepackage{fancyhdr}
 \usepackage{caption}
 
+
 \captionsetup{justification=raggedright,singlelinecheck=false}
 
 
@@ -169,9 +170,9 @@
 \begin{singlespace}
     
 
-        This Bachelor's thesis goes through developing transport protocol on top of UDP. Library for Rust programming language was created for the protocol and it's implementation will be showcased in the thesis. End product was a library that implements RRTP-protocol, which combines sliding window and other techniques for reliable connection.\par
+        This Bachelor's thesis goes through developing transport protocol on top of UDP. RRTP-protocol was given for this transport protocol. Library for Rust programming language was created for the protocol and it's implementation will be showcased in the thesis. End product was a library that implements RRTP-protocol, which combines sliding window and other techniques for reliable connection.\par
 
-        Robustness of the protocol is tested using a demo application that was also developed in this thesis. The application was created using Tauri-framework that utilizes RRTP-library to handle connection and data tranfer between two computers. \par
+        Robustness of the protocol is tested using a demo application that was also developed in this thesis. The application was created using Tauri-framework. Tauri-framework handles drawing the user interface. Demo application utilizes RRTP-library to handle connection and data tranfer between two computers. \par
 
         During development performance analysis was performed for data structures used in the protocol. Analysis indicated that LinkedList data structure is not suitable for this project, while Vec data structure is more appropriate for this project.
         \par
@@ -203,7 +204,6 @@
             MIME: & \textit{Multipurpose Internet Mail Extensions}. MIME-tyyppi kertoo tiedostomuodon standardin mukaisella tavalla. \\
             NACK: & \textit{Negative Acknowledgement}. Negatiivinen vastaanottajan kuittaus. \\
             NIC: & \textit{Network Interface Controller}. Verkkosovitin, jonka tehtävä on muodostaa yhteys lähiverkkoon. \\
-            OOP: & \textit{Object-Oriented Programming}. Olio-ohjelmointi. \\
             RPC: & \textit{Remote Procedure Call}. Etäproseduurikutsu, jonka avulla asiakasohjelma voi lähettää kutsuviestin palvelinohjelmalle. \\
             TCP: & \textit{Transmission Control Protocol}. Tietoliikenneprotokolla, joka muodostaa jatkuvan yhteyden tietokoneiden välille. \\
             UDP: & \textit{User Datagram Protocol}. Yksinkertainen tietoliikenneprotokolla, joka ei tarjoa virheenkorjausta.\\
@@ -217,7 +217,7 @@
 
 \renewcommand{\arraystretch}{1.5}
     \section{Johdanto}\label{sec:johdanto}
-    Tässä työssä kehitetään tietoliikenneprotokolla UDP:n päälle. Tarkoitus on luoda pohja yrityksille ja kehittäjille tietoliikenneprotokollan toteutukseen.
+    Tässä työssä kehitettiin tietoliikenneprotokolla UDP:n päälle. UDP on yksinkertainen tietoliikenneprotokolla, joka ei tarjoa pakettien järjestämistä tai kattavaa virheenkorjausta. Tarkoitus on luoda pohja yrityksille ja kehittäjille tietoliikenneprotokollan toteutukseen.
     Työ on luonteeltaan tutkiva ja ohjeistava, joka selventää reaaliaikaisien sovelluksien toteutusta.\par
 
     Protokollaa varten tehdään RRTP-ohjelmistokirjasto käyttäen Rust-ohjelmointikieltä, joka soveltuu erinomaisesti järjestelmäohjelmointiin. Rust-kieli mahdollistaa laitteiston matalan tason hallinnan
@@ -241,10 +241,9 @@
     Tämän työn tavoitteena oli tutkia tietoliikenneprotokollien toimintaa ja niiden toteutusta. On usein kannattavaa kehittää sovelluksen tarpeisiin mukautettu protokolla, mikäli kaistanleveys ja vasteaika merkitsee huomattavasti.
 
    \section{RRTP-protokolla}\label{sec:protocol}
-    TCP ja UDP protokollat ovat kaksi yleisintä TCP/IP-protokollaa.
-    Näistä TCP-protokolla on usein käytetty palveluissa, jotka vaativat vakaata ja luotettavaa yhteyttä, kun taas UDP on usein paras reaaliaikaisia sovelluksia varten. Tämä johtuu siitä, että TCP paketin mukana liikkuu paljon varattuja tavuja, joita ei käytetä ollenkaan.\par
+    TCP ja UDP protokollat ovat kaksi yleisintä TCP/IP-protokollaa. TCP-protokolla on jatkuvan yhteyden muodostava tietoliikenneprotokolla, jota käytetään usein vakaata ja luotettavaa yhteyttä vaativissa palveluissa, kun taas UDP on usein paras reaaliaikaisia sovelluksia varten. Tämä johtuu siitä, että TCP-paketin mukana liikkuu paljon varattuja tavuja, joita ei käytetä ollenkaan.\par
     
-    UDP:n etu reaaliaikaisessa kommunikaatiossa on, että se on kevyt ja nopea. Se ei kuitenkaan tarjoa kattavaa virheenkorjausta, järjestystä tai ruuhkanhallintamekanismeja. Tarkistussumma on ainut virheentarkistus, minkä UDP tarjoaa. Se ei kuitenkaan yksin riitä vakaaseen yhteyteen, vaan lisäksi täytyy huomioida pakettien järjestys. Tämän takia liukuva ikkuna ja AQR ovat tärkeitä tekniikoita kommunikaation luotettavuudessa, sillä niiden avulla paketit voivat liikkua verkon yli epämääräisessä järjestyksessä. Pakettien uudelleen järjestäminen vastaanottaessa vaatii järjestysnumeron. UDP sisältää
+    UDP:n etu reaaliaikaisessa kommunikaatiossa on, että se on kevyt ja nopea. Se ei kuitenkaan tarjoa kattavaa virheenkorjausta, järjestystä tai ruuhkanhallintamekanismeja. Tarkistussumma on ainut virheentarkistus, minkä UDP tarjoaa. Se ei kuitenkaan yksin riitä vakaaseen yhteyteen, vaan lisäksi täytyy huomioida pakettien järjestys. Tämän takia liukuva ikkuna ja automaattinen uudelleenlähetys(AQR) ovat tärkeitä tekniikoita kommunikaation luotettavuudessa, sillä niiden avulla paketit voivat liikkua verkon yli epämääräisessä järjestyksessä. Pakettien uudelleen järjestäminen vastaanottaessa vaatii järjestysnumeron. UDP sisältää
     lähettäjän ja vastaanottajan portit, datan koon, tarkistussumman ja datan.
     \cite{KumarSurveyUDP}
     \par
@@ -259,7 +258,7 @@
     Paketti, joka on havainnollistettu taulukossa \ref{tab:packet}, perustuu kevyesti TCP:n ja on rakennettu UDP:n päälle. Paketin rakenne on minimaalinen ja yksinkertainen, mikä sisältää tarvittavat kentät luotettavaan yhteyteen. Nämä kentät ovat järjestysnumero, ohjausbitit ja kentät datan hallintaa varten. Pakettiin sisältyy yksi tavun kokoinen varattu kenttä, jota voidaan käyttää tulevaisuudessa. 6 ohjausbittiä ei ole käytössä, joita voidaan käyttää myöhemmin uusiin ominaisuuksiin.
 
     \subsubsection*{Vakiot}
-    Taulukossa \ref{tab:vakiot} määritetyt vakiot ovat tärkeitä protokollan toiminnan kannalta. Vastaanottajalla ja lähettäjällä täytyy olla samat vakiot käytössä, jotta pakettien muodostaminen ja lukeminen onnistuu. Eroavaisuudet näissä vakioissa vastaanottajan ja lähettäjän välillä tarkoittaa mahdollisesti sitä, että vastaanottaja aloittaa datan lukemisen väärästä kohdasta.
+    Taulukkoon \ref{tab:vakiot} on koostettu ne vakiot, jotka ovat tärkeitä protokollan toiminnan kannalta. Vastaanottajalla ja lähettäjällä täytyy olla samat vakiot käytössä, jotta pakettien muodostaminen ja lukeminen onnistuu. Eroavaisuudet näissä vakioissa vastaanottajan ja lähettäjän välillä tarkoittaa mahdollisesti sitä, että vastaanottaja aloittaa datan lukemisen väärästä kohdasta.
 
     \begin{table}[h!]
         \centering
@@ -448,8 +447,8 @@ pub struct ReceiverWindow {
     buffer: Vec<Option<Frame>>,
 }\end{lstlisting}
 
-    Rust-kielessä ei pysty tekemään perintää samantyylisesti, kuin yleisissä OOP-kielissä. Tämän takia
-    käytetään suunnittelutapaa nimeltä "\textit{Composition over Inheritance}" \cite{Ivicevic202228Inheritance}.
+    Rust-kielessä ei pysty tekemään perintää samantyylisesti, kuin yleisissä olio-ohjelmointi-kielissä. Tämän takia
+    käytetään suunnittelutapaa nimeltä "\textit{Composition over Inheritance}" \cite{Ivicevic202228Rust}.
 
     Vastaanottava ikkuna pitää muistissa pienimmän järjestysnumeron $n_s$, minkä se on vastaanottanut.
     Vastaanottava ikkuna hylkää kaikki paketit, joiden järjestysnumero on ikkunan ulkopuolella $n_x < n_s$ tai $n_x > n_s + w_s$. Jos järjestysnumero on ikkunan sisällä, se hyväksytään ja merkitään vastaanotetuksi. Mikäli $n_x = n_s + 1$, ikkunaa voidaan siirtää eteenpäin.
@@ -542,6 +541,7 @@ pub struct TransmitterWindow {
     
     Lähdekoodin \ref{lst:json_data} muoto vie 26 tavua, kun taas taulukon \ref{tab:binary_data} vie 19 tavua. Tämä ero suurenee huomattavasti, kun tiedon määrä kasvaa. \par
 
+\newpage
     \begin{lstlisting}[caption={JSON-data.}, label={lst:json_data}]
 {
     "name": "Joonas Kajava"
@@ -623,6 +623,7 @@ pub struct TransmitterWindow {
     Lähdekoodissa \ref{lst:creating_checksum} muodostetaan 16-bittinen tarkistussumma.
     \lstinline{data}-taulukon sisältämät tavut ryhmitetään 16-bittisiksi numeroiksi, minkä jälkeen ne summataan yhteen. Vaikka lopullinen tarkistussumma täytyy olla 16-bittinen, lukujen summa tallennetaan väliaikaisesti 32-bittiseen numeroon. Tämä täytyy tehdä sen takia, jotta summaoperaatiossa ei tapahdu ylivuotoa. Ilman 32-bittisen numeron apua olisi mahdollista, että summattu numero ylivuotaa, kun se ylittää luvun $2^{16} - 1$
     \cite{udp-calculation}.
+\newpage
 
 \begin{lstlisting}[caption={Tarkistussumman muodostaminen}, label={lst:creating_checksum}]
 fn calculate_checksum(data: &[u8]) -> u16 {
@@ -647,6 +648,8 @@ fn calculate_checksum(data: &[u8]) -> u16 {
     Rust-ohjelmointikielessä kokonaisluvun ylivuoto on määritelty. Ylivuoto johtaa aina ohjelman paniikkiin, joka Rust-ohjelmointikielessä viittaa virheeseen, josta ei voi palautua. Paniikki johtaa aina prosessin sammumiseen \cite[luku 9.3]{rust-book}. Tämä käytännössä poistaa ylivuodon aiheuttamat tietoturvaongelmat \cite[luku 3.2]{rust-book}.
 
     Lähdekoodissa \ref{lst:data_for_checksum} näytetään miten \lstinline{data: &[u8]} muodostetaan. Tarkistussumma sisältää lähettäjän ja vastaanottajan IP-osoitteet, portit, protokollan (17), UDP-osuuden koon ja lopuksi kuorman \cite{RFC-768, protocol-numbers}. \par
+
+\newpage
 
         \begin{lstlisting}[caption={Tietojen kasaaminen tarkistussummaa varten.}, label={lst:data_for_checksum}]
 #[test]
@@ -676,7 +679,7 @@ fn checksum() {
     assert_eq!(checksum, 0xc2a7);
 }\end{lstlisting}
 
-    Modernien tietokoneiden verkkokortti hoitaa tämän tarkistussumman käsittelyn \cite{VivianoTCP/IPLearn}.
+    Modernien tietokoneiden verkkokortti hoitaa tämän tarkistussumman käsittelyn \cite{VivianoTCP/IPOverview}.
 
 
     \section{Demosovellus}\label{sec:demo}
@@ -997,7 +1000,7 @@ verkon aiheuttamaa häiriötä.
     tarkkoja TypeScript-sääntöjä ja TypeShare-kirjastoa, jotta TypeScript-tyypit saatiin vastaamaan täsmälleen Rust-tyyppejä.\par
 
     Protokollan kehityksessä tutustuttiin säikeiden turvalliseen käyttöön ja miten Rust-kieli auttaa tässä. Tärkeänä osana oli myös toteuttaa toimiva käyttöliittymä, joka pystyy hyödyntämään Rust-kielen vahvuuksia. Tämä on erityisen tärkeää sillä
-    uskon vahvasti, että Rust-kieli on tulevaisuuden kieli. Sitä käytetään jo muun muassa Linux:n ja Windows:n kernelissä. Rust-kielen turvallisuus, tehokkuus ja modernit ominaisuudet tekevät siitä lähes täydellisen kielen, jolla on mahdollisuus korvata C- ja C++-tulevaisuudessa.
+    uskon vahvasti, että Rust-kieli on tulevaisuuden kieli. Sitä käytetään jo muun muassa Linux:n ja Windows:n kernelissä. Rust-kielen turvallisuus, tehokkuus ja modernit ominaisuudet tekevät siitä lähes täydellisen kielen, jolla on mahdollisuus korvata C- ja C++ tulevaisuudessa.
 
 
     \newpage
