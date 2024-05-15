@@ -30,6 +30,8 @@
 
 \captionsetup{justification=raggedright,singlelinecheck=false}
 
+
+\renewcommand{\arraystretch}{1.5}
 \renewcommand{\cftdot}{}
 
 \fancyhead{}
@@ -351,12 +353,12 @@ pub fn set_sequence_number(&mut self, sequence_number: u32) {
     
     \begin{table}[h!]
         \centering
-        \begin{tabular}{lll}
-            Nimi     & Lyhenne & Binääriarvo \\
-            \hline
-            Kuittaus & ACK     & 00000001    \\
-            Pääte    & EOM     & 00000010    \\
-        \end{tabular}
+        \begin{tabularx}{\textwidth}{|X|r|r|}
+        \hline
+            \textbf{Nimi}     & \textbf{Lyhenne} & \textbf{Binääriarvo} \\         \hline
+            Kuittaus & ACK     & 00000001    \\ \hline
+            Pääte    & EOM     & 00000010    \\ \hline
+        \end{tabularx}
         \caption{Ohjausbitit ja niiden arvot}
         \label{tab:control_bits}
     \end{table}
@@ -702,18 +704,16 @@ fn checksum() {
 
     \begin{table}[h!]
         \centering
-        \begin{tblr}{
-            colspec = {lX},
-        }
-            Nimi               & Käyttötarkoitus                                               \\
-            \hline
-            tauri              & Käyttöliittymän piirtäminen                                   \\
-            serde/bincode      & Tiedon serialisointi ja deserialisointi                       \\
-            fern/log/humantime & Lokitiedostojen kirjoittaminen                                \\
-            typeshare          & Typescript-rajapintojen luonti automaattisesti Rust-tyypeistä \\
-            infer              & Tiedostotietojen lukeminen                                    \\
-            thiserror/anyhow   & Virheilmoituksien luonti ja käsittely
-        \end{tblr}
+        \begin{tabularx}{\textwidth}{|X|r|}
+        \hline
+            \textbf{Nimi}      & \textbf{Käyttötarkoitus}            \\ \hline
+            tauri              & Käyttöliittymän piirtäminen                                   \\ \hline
+            serde/bincode      & Tiedon serialisointi ja deserialisointi                       \\ \hline
+            fern/log/humantime & Lokitiedostojen kirjoittaminen                                \\ \hline
+            typeshare          & Typescript-rajapintojen luonti Rust-tyypeistä \\ \hline
+            infer              & Tiedostotietojen lukeminen                                    \\ \hline
+            thiserror/anyhow   & Virheilmoituksien luonti ja käsittely \\ \hline
+        \end{tabularx}
         \caption{Rust-riippuvuudet}
         \label{tab:cargo_dependencies}
     \end{table}
@@ -721,22 +721,20 @@ fn checksum() {
 
     \begin{table}[h!]
         \centering
-        \begin{tblr}{
-            colspec = {lll},
-        }
-            nimi            & käyttötarkoitus                           \\
-            \hline
-            ahooks          & hyödyllisiä react-koukkuja                \\
-            antd            & käyttöliittymäelementit                  \\
-            dayjs           & aikatietojen käsittely                   \\
-            pretty-bytes    & tiedostokoon muuntaminen ihmisluettavaksi \\
-            rc-virtual-list & virtuaaliset listat                       \\
-            react/react-dom & käyttöliittymän hallinta ja piirtäminen   \\
-            recoil          & käyttöliittymän tilan hallinta            \\
-            typescript      & tyyppitietojen lisääminen javascriptiin   \\
-            vite            & front-end ohjelmiston prosessointi
-        \end{tblr}
-        \caption{npm-riippuvuudet.}
+        \begin{tabularx}{\textwidth}{|X|r|}
+        \hline
+            \textbf{Nimi}            & \textbf{Käyttötarkoitus}                           \\ \hline
+            ahooks          & Hyödyllisiä react-koukkuja                \\ \hline
+            antd            & Käyttöliittymäelementit                  \\ \hline
+            dayjs           & Aikatietojen käsittely                   \\ \hline
+            pretty-bytes    & Tiedostokoon muuntaminen ihmisluettavaksi \\ \hline
+            rc-virtual-list & Virtuaaliset listat                       \\ \hline
+            react/react-dom & Käyttöliittymän hallinta ja piirtäminen   \\ \hline
+            recoil          & Käyttöliittymän tilan hallinta            \\ \hline
+            typescript      & Tyyppitietojen lisääminen javascriptiin   \\  \hline
+            vite            & Front-end ohjelmiston prosessointi \\ \hline
+        \end{tabularx}
+        \caption{Npm-riippuvuudet.}
         \label{tab:npm_dependencies}
     \end{table}
 
@@ -903,17 +901,15 @@ result
 
     \begin{table}[h!]
         \centering
-        \begin{tblr}{
-            colspec = {ll},
-        }
-            Tietorakenne & Tulos     \\
-            \hline
-            Kasataulukko & 61.603 µs \\
-            Taulukko     & 72.929 µs \\
-            Vec          & 124.49 µs \\
-            VecDeque     & 176.03 µs \\
-            LinkedList   & 4.5944 ms \\
-        \end{tblr}
+        \begin{tabularx}{\textwidth}{|X|r|}
+        \hline
+            \textbf{Tietorakenne} & \textbf{Tulos}     \\ \hline
+            Kasataulukko & 61.603 µs \\ \hline
+            Taulukko     & 72.929 µs \\ \hline
+            Vec          & 124.49 µs \\ \hline
+            VecDeque     & 176.03 µs \\ \hline
+            LinkedList   & 4.5944 ms \\ \hline
+        \end{tabularx}
         \caption{Tietorakenteiden nopeus alkioiden siirrossa vasemmalle.}
         \label{tab:collection_bench}
     \end{table}
@@ -975,13 +971,13 @@ verkon aiheuttamaa häiriötä.
 
     \begin{table}[h!]
         \centering
-        \begin{tblr}{
-            colspec = {ll},
-        }
-            Käyttöjärjestelmä & Microsoft Windows 10.0.19045 Pro    \\
-            Rust-kääntäjä     & rustc 1.75.0 (82e1608df 2023-12-21) \\
-            Node.js           & v18.8.0
-        \end{tblr}
+        \begin{tabularx}{\textwidth}{|X|r|}
+            \hline
+            \textbf{Ohjelmisto} & \textbf{Versio} \\ \hline
+            Käyttöjärjestelmä & Microsoft Windows 10.0.19045 Pro    \\ \hline
+            Rust-kääntäjä     & rustc 1.75.0 (82e1608df 2023-12-21) \\ \hline
+            Node.js           & v18.8.0 \\ \hline
+        \end{tabularx}
         \caption{Kehitysalustan tiedot.}
         \label{tab:main_pc}
     \end{table}
