@@ -31,7 +31,6 @@
 \captionsetup{justification=raggedright,singlelinecheck=false}
 
 
-\renewcommand{\arraystretch}{1.5}
 \renewcommand{\cftdot}{}
 
 \fancyhead{}
@@ -216,6 +215,7 @@
 
 \pagestyle{fancy}
 
+\renewcommand{\arraystretch}{1.5}
     \section{Johdanto}\label{sec:johdanto}
     Tässä työssä kehitetään tietoliikenneprotokolla UDP:n päälle. Tarkoitus on luoda pohja yrityksille ja kehittäjille tietoliikenneprotokollan toteutukseen.
     Työ on luonteeltaan tutkiva ja ohjeistava, joka selventää reaaliaikaisien sovelluksien toteutusta.\par
@@ -263,21 +263,21 @@
 
     \begin{table}[h!]
         \centering
-        \begin{tabular}{llll}
-            Vakion-nimi          & Lyhenne & Arvo & Yksikkö \\
-            \hline
-            MAX\_DATA\_SIZE      & $D_s$   & 128  & Tavu    \\
-            SEQ\_NUM\_SIZE       & $S_s$   & 4    & Tavu    \\
-            CONTROL\_BITS\_SIZE  & $C_s$   & 1    & Tavu    \\
-            RESERVED\_SIZE       & $R_s$   & 1    & Tavu    \\
-            DATA\_LENGTH\_SIZE   & $DL_s$  & 1    & Tavu    \\
-            DATA\_OFFSET\_SIZE   & $DO_s$  & 1    & Tavu    \\
-            OPTION\_KIND\_SIZE   & $OK_s$  & 1    & Tavu    \\
-            OPTION\_LENGTH\_SIZE & $OL_s$  & 1    & Tavu    \\
-            OPTION\_DATA\_SIZE   & $OD_s$  & 4    & Tavu    \\
-            MAX\_OPTION\_COUNT   & $MO_c$  & 4    & Määrä
-        \end{tabular}
-        \caption{Vakiot ja niiden arvot}
+        \begin{tabularx}{\textwidth}{|X|r|r|r|}
+        \hline
+            \textbf{Vakion-nimi}          & \textbf{Lyhenne} & \textbf{Arvo} & \textbf{Yksikkö} \\ \hline
+            MAX\_DATA\_SIZE      & $D_s$   & 128  & Tavu    \\ \hline
+            SEQ\_NUM\_SIZE       & $S_s$   & 4    & Tavu    \\ \hline
+            CONTROL\_BITS\_SIZE  & $C_s$   & 1    & Tavu    \\ \hline
+            RESERVED\_SIZE       & $R_s$   & 1    & Tavu    \\ \hline
+            DATA\_LENGTH\_SIZE   & $DL_s$  & 1    & Tavu    \\ \hline
+            DATA\_OFFSET\_SIZE   & $DO_s$  & 1    & Tavu    \\ \hline
+            OPTION\_KIND\_SIZE   & $OK_s$  & 1    & Tavu    \\ \hline
+            OPTION\_LENGTH\_SIZE & $OL_s$  & 1    & Tavu    \\ \hline
+            OPTION\_DATA\_SIZE   & $OD_s$  & 4    & Tavu    \\ \hline
+            MAX\_OPTION\_COUNT   & $MO_c$  & 4    & Määrä \\  \hline
+        \end{tabularx}
+        \caption{Vakiot ja niiden arvot.}
         \label{tab:vakiot}
     \end{table}
 
