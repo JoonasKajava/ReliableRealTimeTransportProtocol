@@ -312,8 +312,8 @@
     \end{table}
 
     Lähdekoodissa \ref{lst:frame} määritetään tietorakenne \textit{Frame}, joka sisältää kaiken paketissa olevan tiedon.
-    \lstinline{[u8; MAX_FRAME_SIZE]} on taulukkotyyppi joka koostuu tavuista ja on kooltaan yhtä suuri kuin $F_{max}$ , joka on määritelty kaavassa \ref{eq:fmax}.
-    \lstinline{data_length} sisältää tiedon pakettiin tallennetun datan koosta, kun taas \lstinline{options_size} sisältää tiedon paketin asetuksien koosta, mitä käytetään datan asettamisen oikeaan paikkaan ja \textit{'Data Offset'} kentän asettamiseen.
+    [u8; MAX\_FRAME\_SIZE]  on taulukkotyyppi joka koostuu tavuista ja on kooltaan yhtä suuri kuin F\textsubscript{max}, joka on määritelty kaavassa \ref{eq:fmax}.
+    data\_length sisältää tiedon pakettiin tallennetun datan koosta, kun taas options\_size sisältää tiedon paketin asetuksien koosta, mitä käytetään datan asettamisen oikeaan paikkaan ja \textit{'Data Offset'} kentän asettamiseen.
     
     Paketti on määritelty seuraavasti:
     \begin{lstlisting}[caption={Paketin rakenne}, label={lst:frame}]
@@ -323,13 +323,13 @@ pub struct Frame {
     options_size: usize,
 }\end{lstlisting}
     
-    \lstinline{usize} vastaa kohdearkkitehtuurin muistiosoitteen kokoa. 32-bittisessä tietokoneessa \lstinline{usize} vastaa 4 tavua ja 64-bittisessä kohteessa 8 tavua \cite[\textit{usize}]{rust-std}.
+    usize vastaa kohdearkkitehtuurin muistiosoitteen kokoa. 32-bittisessä tietokoneessa usize vastaa 4 tavua ja 64-bittisessä kohteessa 8 tavua \cite[\textit{usize}]{rust-std}.
    
     \subsubsection*{Tietojenkäsittely paketissa}
     Paketti on ohjelman muistissa yhtenä kokonaisena taulukkona, joka koostuu tavuista.
     Taulukko sisältää tietoja 16-bittisessä ja 32-bittisessä muodossa. Nämä tiedot jaetaan tavuihin lähettämistä varten.
 
-    Lähdekoodissa \ref{lst:set_seq_num} järjestysnumero muutetaan laskevaan tavujärjestykseen käyttäen Rust-standardikirjaston \lstinline{to_be_bytes()}-aliohjelmaa \cite[\textit{u32}]{rust-std}. Tämän jälkeen tulos kopioidaan paketin ensimmäisen 4 tavun tilalle. \par
+    Lähdekoodissa \ref{lst:set_seq_num} järjestysnumero muutetaan laskevaan tavujärjestykseen käyttäen Rust-standardikirjaston to\_be\_bytes()-aliohjelmaa \cite[\textit{u32}]{rust-std}. Tämän jälkeen tulos kopioidaan paketin ensimmäisen 4 tavun tilalle. \par
     
         \begin{lstlisting}[caption={Järjestysnumeron asettaminen pakettiin}, label={lst:set_seq_num}]
 pub fn set_sequence_number(&mut self, sequence_number: u32) {
@@ -372,10 +372,10 @@ if control_bits & 00000001 == 00000001 {
     \subsection{Arkkitehtuuri}\label{sec:arkkitehtuuri}
     RRTP-protokollan toteuttava kirjasto on jaettu neljään osaan. Nämä osat kommunikoivat keskenään kanavien avulla. Kirjaston arkkitehtuuri on havainnollistettu kuvassa \ref{fig:arkkitehtuuri}. 
 
-    Kirjaston ydin on \lstinline{ConnectionManager}, joka on vastuussa yhteyksien hallinnasta. Sen tehtävä on
+    Kirjaston ydin on ConnectionManager, joka on vastuussa yhteyksien hallinnasta. Sen tehtävä on
     hoitaa vastaanottavaa säiettä ja lähettävää säiettä. Kun sovellus haluaa käynnistää yhteyden,
-    \lstinline{ConnectionManager} luo pistokkeen sovelluksen antamaan osoitteeseen.
-    Lähetys- ja vastaanottosäikeet käynnistyvät, kun pistokkeen luonti onnistuu. \lstinline{ConnectionManager} rakenne on määritelty lähdekoodin \ref{lst:connectionmanager} mukaisesti.
+    ConnectionManager luo pistokkeen sovelluksen antamaan osoitteeseen.
+    Lähetys- ja vastaanottosäikeet käynnistyvät, kun pistokkeen luonti onnistuu. ConnectionManagerin rakenne on määritelty lähdekoodin \ref{lst:connectionmanager} mukaisesti.
     
     \begin{lstlisting}[caption={ConnectionManagerin rakenne}, label={lst:connectionmanager}]
 pub struct ConnectionManager {
@@ -387,15 +387,15 @@ pub struct ConnectionManager {
 
     
 
-    \lstinline{ConnectionManager}:lla on omistajuus vastaanottaja- ja lähettäjäsäikeisiin.
-    \lstinline{Option<...>} määrittelee valinnaisen arvon, joka tarkoittaa, että kyseinen muuttuja ei
-    välttämättä sisällä käyttökelpoista arvoa. Tämä vastaa useissa ohjelmointikielissä \lstinline{null} arvoa \cite[luku 6.1]{rust-book}. Näitä kahta muuttujaa käytetään säikeiden sulavaan sulkemiseen, kun \lstinline{ConnectionManager} pudotetaan muistista. \lstinline{ConnectionManager} toteuttaa \lstinline{Drop}-ominaisuuden, joka liittää vastaanottaja-
+    ConnectionManagerilla on omistajuus vastaanottaja- ja lähettäjäsäikeisiin.
+    Option<...> määrittelee valinnaisen arvon, joka tarkoittaa, että kyseinen muuttuja ei
+    välttämättä sisällä käyttökelpoista arvoa. Tämä vastaa useissa ohjelmointikielissä null arvoa \cite[luku 6.1]{rust-book}. Näitä kahta muuttujaa käytetään säikeiden sulavaan sulkemiseen, kun ConnectionManager pudotetaan muistista. ConnectionManager toteuttaa Drop-ominaisuuden, joka liittää vastaanottaja-
     ja lähettäjäsäikeet. Näin ohjelma jää odottamaan, että nämä kaksi säiettä sulkeutuvat oikein \cite[\textit{JoinHandle}]{rust-std}.
     
     \architecture
     
 
-    \begin{lstlisting}[caption={Drop-ominaisuuden toteutus ConnectionManager:ille}, label={lst:connectionmanager_drop}]
+    \begin{lstlisting}[caption={Drop-ominaisuuden toteutus ConnectionManagerille}, label={lst:connectionmanager_drop}]
 impl Drop for ConnectionManager {
     fn drop(&mut self) {
         if let Some(x) = self.listener_thread.take() {
@@ -411,7 +411,7 @@ impl Drop for ConnectionManager {
 
     \subsection{Liukuva ikkuna}\label{sec:liukuva_ikkuna}
     Liukuva ikkuna on tekniikka, jonka sallii pakettien lähettämisen ja vastaanottamisen epämääräisessä järjestyksessä. 
-    Kirjasto käyttää kahta liukuvaa ikkunaa, jotka on havainnollistettu arkkitehtuuri kuvassa \ref{fig:arkkitehtuuri}. Lähettäjän ja vastaanottajan ikkunat jakavat suurimman osan toiminnallisuuksista \lstinline{Window} toteutuksen kautta, joka on esitetty lähdekoodissa \ref{lst:window}. 
+    Kirjasto käyttää kahta liukuvaa ikkunaa, jotka on havainnollistettu arkkitehtuuri kuvassa \ref{fig:arkkitehtuuri}. Lähettäjän ja vastaanottajan ikkunat jakavat suurimman osan toiminnallisuuksista Window toteutuksen kautta, joka on esitetty lähdekoodissa \ref{lst:window}. 
 
     
 \begin{lstlisting}[caption={Ikkunan rakenne}, label={lst:window}]
@@ -421,24 +421,21 @@ pub struct Window {
     window_left_edge: u32,
 }\end{lstlisting}
 
-\lstinline{frame_status}-kentällä on kaksi tarkoitusta riippuen vastaanotto- tai lähetystilasta. Kummassakin tilanteessa kenttä on aina ikkunan $w_s$ kokoinen. Vastaanotto tilanteessa kenttä pitää kirjaa onnistuneiden pakettien vastaanottamisesta, kun taas lähetys tilanteessa kenttä pitää kirjaa paketeista, jotka ovat saapuneet onnistuneesti toiseen tietokoneeseen.\par
+frame\_status-kentällä on kaksi tarkoitusta riippuen vastaanotto- tai lähetystilasta. Kummassakin tilanteessa kenttä on aina ikkunan w\textsubscript{s} kokoinen. Vastaanotto tilanteessa kenttä pitää kirjaa onnistuneiden pakettien vastaanottamisesta, kun taas lähetys tilanteessa kenttä pitää kirjaa paketeista, jotka ovat saapuneet onnistuneesti toiseen tietokoneeseen.\par
 
-\lstinline{window_size}-kenttä on aina $w_s$ kokoinen. Ikkunan kokoa on mahdollista muuttaa käyttämällä \lstinline{set_window_size}-aliohjelmaa, joka muuttaa tämän kentän arvoa ja muuttaa \lstinline{frame_status} taulukon kokoa.\par
+window\_size-kenttä on aina w\textsubscript{s} kokoinen. Ikkunan kokoa on mahdollista muuttaa käyttämällä set\_window\_size-aliohjelmaa, joka muuttaa tämän kentän arvoa ja muuttaa frame\_status-taulukon kokoa.\par
 
-\lstinline{window_left_edge} vastaa muuttujaa $n_s$. Vastaanottajan tilanteessa se sisältää pienimmän järjestysnumeron, jota ei ole vastaanotettu, kun taas lähettäjän tilanteessa se sisältää pienimmän järjestysnumeron, joka ei ole vielä saapunut vastaanottajalle. Muuttujan $n_s$ kasvaminen tarkoittaa ikkunan liukumista eteenpäin, joka on havainnollistettu kuvassa \ref{fig:sliding_window}. 
+window\_left\_edge vastaa muuttujaa n\textsubscript{s}. Vastaanottajan tilanteessa se sisältää pienimmän järjestysnumeron, jota ei ole vastaanotettu, kun taas lähettäjän tilanteessa se sisältää pienimmän järjestysnumeron, joka ei ole vielä saapunut vastaanottajalle. Muuttujan n\textsubscript{s} kasvaminen tarkoittaa ikkunan liukumista eteenpäin, joka on havainnollistettu kuvassa \ref{fig:sliding_window}. 
 
     \slidingWindow
     
-    Tässä ohjelmassa puskurit ovat toteutettu käyttämällä kasa-allokoituja vektoreita. \lstinline{Vec} on yleisesti paras tietorakenne tämän tyylisiä operaatioita varten. Vertailu muihin tietorakenteisiin löytyy osiosta \ref{sec:structures}.
+    Tässä ohjelmassa puskurit ovat toteutettu käyttämällä kasa-allokoituja vektoreita. Vec on yleisesti paras tietorakenne tämän tyylisiä operaatioita varten. Vertailu muihin tietorakenteisiin löytyy osiosta \ref{sec:structures}.
 
 \newpage
 
     \subsubsection*{Ikkunan siirto vastaanottaessa}
 
-
-
-
-    Vastaanottajan ikkuna määritellään lähdekoodin \ref{lst:rwindow} mukaisesti. Se sisältää yleisen \lstinline{Window} toteutuksen ja \lstinline{buffer}-kentän, jonka tarkoitus on toimia puskurina, kunnes ikkunan liukuminen aiheuttaa valmiiden pakettien siirtymisen ylempiin kerroksiin. \par
+    Vastaanottajan ikkuna määritellään lähdekoodin \ref{lst:rwindow} mukaisesti. Se sisältää yleisen Window toteutuksen ja buffer-kentän, jonka tarkoitus on toimia puskurina, kunnes ikkunan liukuminen aiheuttaa valmiiden pakettien siirtymisen ylempiin kerroksiin. \par
     
 \begin{lstlisting}[caption={Vastaanottajan ikkunan rakenne}, label={lst:rwindow}]
 pub struct ReceiverWindow {
@@ -447,21 +444,21 @@ pub struct ReceiverWindow {
 }\end{lstlisting}
 
     Rust-kielessä ei pysty tekemään perintää samantyylisesti kuin yleisissä olio-ohjelmointikielissä. Tämän takia
-    käytetään suunnittelutapaa nimeltä "\textit{Composition over Inheritance}" \cite{Ivicevic202228Rust}.
+    käytetään koostumus-suunnittelutapaa (engl. \textit{Composition}) \cite{Ivicevic202228Rust}.
 
-    Vastaanottava ikkuna pitää muistissa pienimmän järjestysnumeron $n_s$, minkä se on vastaanottanut.
-    Vastaanottava ikkuna hylkää kaikki paketit, joiden järjestysnumero on ikkunan ulkopuolella $n_x < n_s$ tai $n_x > n_s + w_s$. Jos järjestysnumero on ikkunan sisällä, se hyväksytään ja merkitään vastaanotetuksi. Mikäli $n_x = n_s + 1$, ikkunaa voidaan siirtää eteenpäin.
-    Siirto tapahtuu kulkemalla hyväksyttyjen järjestysnumeroiden listaa eteenpäin, kunnes vastaan tulee järjestysnumero, jota ei ole vielä vastaanotettu. Kulkemisen jälkeen, tapahtuneiden askelien määrä lisätään muuntujaan $n_s$.
+    Vastaanottava ikkuna pitää muistissa pienimmän järjestysnumeron n\textsubscript{s}, minkä se on vastaanottanut.
+    Vastaanottava ikkuna hylkää kaikki paketit, joiden järjestysnumero on ikkunan ulkopuolella n\textsubscript{x} < n\textsubscript{s} tai n\textsubscript{x} > n\textsubscript{s} + w\textsubscript{s}. Jos järjestysnumero on ikkunan sisällä, se hyväksytään ja merkitään vastaanotetuksi. Mikäli n\textsubscript{x} = n\textsubscript{s} + 1, ikkunaa voidaan siirtää eteenpäin.
+    Siirto tapahtuu kulkemalla hyväksyttyjen järjestysnumeroiden listaa eteenpäin, kunnes vastaan tulee järjestysnumero, jota ei ole vielä vastaanotettu. Kulkemisen jälkeen, tapahtuneiden askelien määrä lisätään muuntujaan n\textsubscript{s}.
 
-    Tässä toteutuksessa $n_s$ löytyy yleisen ikkunan (lähdekoodi \ref{lst:window}) sisältä kentästä \lstinline{window_left_edge: u32}.
+    Tässä toteutuksessa n\textsubscript{s} löytyy yleisen ikkunan (lähdekoodi \ref{lst:window}) sisältä kentästä window\_left\_edge.
 
 
     \subsubsection*{Vastaanottajan toiminta}
     Datan vastaanottaminen tapahtuu vastaanottajasäikeessä, joka käynnistetään yhteyden muodostamisessa.
     Säie pyörii ikuisessa silmukassa, jossa ensimmäinen operaatio on ikkunan siirto eteenpäin.
 
-    Lähdekoodi \ref{lst:shift_window} esittää ikkunan siirtämistä eteenpäin, jonka tehtävä on kasvattaa $n_s$ arvoa ja ilmoittaa ylemmälle kerrokselle siirron määrä.
-    \lstinline{self.frame_status} viittaa onnistuneesti lähetettyihin tai vastaanotettuihin paketteihin.
+    Lähdekoodi \ref{lst:shift_window} esittää ikkunan siirtämistä eteenpäin, jonka tehtävä on kasvattaa n\textsubscript{s} arvoa ja ilmoittaa ylemmälle kerrokselle siirron määrä.
+    frame\_status viittaa onnistuneesti lähetettyihin tai vastaanotettuihin paketteihin.
 
     \begin{lstlisting}[caption={Ikkunan siirto}, label={lst:shift_window}]
 pub fn shift_window(&mut self) -> usize {
@@ -480,7 +477,7 @@ pub fn shift_window(&mut self) -> usize {
 
     Lähdekoodissa \ref{lst:shift_rwindow} data puretaan puskurista ja puskuria siirretään eteenpäin. Tämä operaatio tuottaa
     listan paketeista, jotka ovat saapuneet onnistuneesti ja ovat oikeassa järjestyksessä. Kuva \ref{fig:sliding_window} havainnollistaa puskurin siirron ja siitä syntyvät paketit.
-    Lista käsitellään \lstinline{flatten()}-aliohjelmalla, joka tuottaa listan missä \lstinline{Option}
+    Lista käsitellään flatten-aliohjelmalla, joka tuottaa listan missä Option
     on suodatettu pois. Lopuksi puskurin kapasiteettia kutistetaan. Käsitelty lista talletaan ja siirretään käsiteltäväksi ylempiin kerroksiin. \par
 
 
@@ -493,18 +490,18 @@ pub fn shift_window(&mut self) -> Vec<Frame> {
     result
 }\end{lstlisting}
 
-    Jokainen valmis paketti käsitellään ja niiden sisältö lisätään ylemmän kerroksen puskuriin, minkä jälkeen ohjausbitit luetaan paketista kappaleen \ref{subsec:control_bits} mukaisesti. Vastaanotetusta paketista välitetään tieto ylempiin kerroksiin (kuten sovellus), jotka voivat käyttää tätä tietoa esim. latausindikaattorin tekemisessä. \par
+    Jokainen valmis paketti käsitellään ja niiden sisältö lisätään ylemmän kerroksen puskuriin, minkä jälkeen ohjausbitit luetaan paketista kappaleen \ref{subsec:control_bits} mukaisesti. Vastaanotetusta paketista välitetään tieto ylempiin kerroksiin (kuten sovellukseen), jotka voivat käyttää tätä tietoa esim. latausilmaisimen tekemiseen. \par
 
     Mikäli paketti on viimeinen viesti, puskuri siirretään uuteen listaan ja välitetään ylemmille kerroksille.
 
     \subsubsection*{Lähettäjän toiminta}\label{subsec:sender_impl}
-    Dataa voidaan lähettää käyttämällä \lstinline{ConnectionManager}:sta löytyvällä kanavalla. Lähettäjä säie seuraa tätä kanavaa ja käsittelee sieltä tulevat viestit. \par
+    Dataa voidaan lähettää käyttämällä ConnectionManagerista löytyvällä kanavalla. Lähettäjä säie seuraa tätä kanavaa ja käsittelee sieltä tulevat viestit. \par
 
-    Aluksi viestit leikataan osiin, jossa jokainen osa on kooltaan $D_s$ tai pienempi. Tämän jälkeen valmis kehys lisätään jonoon, josta se lähetetään käyttäen lähetys säikeen liukuvaa ikkunaa.
+    Aluksi viestit leikataan osiin, jossa jokainen osa on kooltaan D\textsubscript{s} tai pienempi. Tämän jälkeen valmis kehys lisätään jonoon, josta se lähetetään käyttäen lähetys säikeen liukuvaa ikkunaa.
  
-Lähetys säie lukee \lstinline{data_queue} taulukkoa ja aloittaa datan lähettämisen, kun se sisältää kehyksiä. Taulukko käsitellään ja jokaisen kehyksen tilanne luetaan. Jokaisella kehyksellä on kolme mahdollista tilaa: ei lähetetty, lähetetty ja kuitattu. Pakettien lähtötilanne on: ei lähetetty. Mikäli taulukon läpikäydessä kohdataan jo aikaisemmin lähetetty kehys, sen lähetys ajankohtaa verrataan aikakatkaisu muuttujaan. Aikakatkaisun avulla lähettäjä voi lähettää kehyksen uudelleen, mikäli lähetys ajankohdasta on kulunut tarpeeksi aikaa. Lähetyksen jälkeen kehyksen tila päivitetään lähetettytilaan, jonka mukana kulkee tieto lähetys ajankohdasta. \par
+Lähetys säie lukee data\_queue-taulukkoa ja aloittaa datan lähettämisen, kun se sisältää kehyksiä. Taulukko käsitellään ja jokaisen kehyksen tilanne luetaan. Jokaisella kehyksellä on kolme mahdollista tilaa: ei lähetetty, lähetetty ja kuitattu. Pakettien lähtötilanne on: ei lähetetty. Mikäli taulukon läpikäydessä kohdataan jo aikaisemmin lähetetty kehys, sen lähetys ajankohtaa verrataan aikakatkaisu muuttujaan. Aikakatkaisun avulla lähettäjä voi lähettää kehyksen uudelleen, mikäli lähetys ajankohdasta on kulunut tarpeeksi aikaa. Lähetyksen jälkeen kehyksen tila päivitetään lähetettytilaan, jonka mukana kulkee tieto lähetys ajankohdasta. \par
 
-Lähetys säie seuraa myös lähdekoodissa \ref{lst:twindow} määritettyä kuittauskanavaa, joka välittää tiedon ACK-paketin saapumisesta. Tieto paketin saapumisesta tulee kuvan \ref{fig:arkkitehtuuri} pistoke abstraktiosta. ACK-paketti hylätään, jos sen järjestysnumero ei ole lähettävän ikkunan sisällä. Järjestysnumeron perusteella vastaava kehys etsitään \lstinline{data_queue} taulukosta ja sen tila muutetaan kuitatuksi. \par
+Lähetys säie seuraa myös lähdekoodissa \ref{lst:twindow} määritettyä kuittauskanavaa, joka välittää tiedon ACK-paketin saapumisesta. Tieto paketin saapumisesta tulee kuvan \ref{fig:arkkitehtuuri} pistoke abstraktiosta. ACK-paketti hylätään, jos sen järjestysnumero ei ole lähettävän ikkunan sisällä. Järjestysnumeron perusteella vastaava kehys etsitään data\_queue-taulukosta ja sen tila muutetaan kuitatuksi. \par
     
     \begin{lstlisting}[caption={Lähettävän ikkunan rakenne}, label={lst:twindow}]
 pub struct TransmitterWindow {
@@ -516,7 +513,7 @@ pub struct TransmitterWindow {
 }\end{lstlisting}
 
     \subsubsection*{Valikoiva toisto ARQ}\label{subsec:valikoiva_toisto}
-    Valikoiva toisto ARQ (englanniksi selective repeat) on tehokkaampi verrattuna toisiin ARQ protokolliin, joista yksi esimerkki on Stop-and-wait ARQ.
+    Valikoiva toisto ARQ (engl. selective repeat) on tehokkaampi verrattuna toisiin ARQ protokolliin, joista yksi esimerkki on Stop-and-wait ARQ.
 
     Stop-and-wait ARQ käyttävä lähettäjä jää odottamaan jokaisesta paketista kuittausta ennen kuin siirtyy lähettämään seuraavaa pakettia. Vastaavasti vastaanottaja hylkää kaikki paketit, jotka eivät ole seuraava paketti järjestyslukujen perusteella \cite{StopAndWaitARQ}.
 
@@ -620,7 +617,7 @@ pub struct TransmitterWindow {
     \end{table}
 
     Lähdekoodissa \ref{lst:creating_checksum} muodostetaan 16-bittinen tarkistussumma.
-    \lstinline{data}-taulukon sisältämät tavut ryhmitetään 16-bittisiksi numeroiksi, minkä jälkeen ne summataan yhteen. Vaikka lopullinen tarkistussumma täytyy olla 16-bittinen, lukujen summa tallennetaan väliaikaisesti 32-bittiseen numeroon. Tämä täytyy tehdä sen takia, jotta summaoperaatiossa ei tapahdu ylivuotoa. Ilman 32-bittisen numeron apua olisi mahdollista, että summattu numero ylivuotaa, kun se ylittää luvun $2^{16} - 1$
+    data-taulukon sisältämät tavut ryhmitetään 16-bittisiksi numeroiksi, minkä jälkeen ne summataan yhteen. Vaikka lopullinen tarkistussumma täytyy olla 16-bittinen, lukujen summa tallennetaan väliaikaisesti 32-bittiseen numeroon. Tämä täytyy tehdä sen takia, jotta summaoperaatiossa ei tapahdu ylivuotoa. Ilman 32-bittisen numeron apua olisi mahdollista, että summattu numero ylivuotaa, kun se ylittää luvun 2\textsuperscript{16} - 1
     \cite{udp-calculation}.
 \newpage
 
@@ -646,7 +643,7 @@ fn calculate_checksum(data: &[u8]) -> u16 {
     C-ohjelmointikielessä kokonaisluvun ylivuotoa ei ole määritelty. Tämä voi ja on johtanut useisiin tietoturvaongelmiin. Ylivuotoa voi olla vaikea havaita, sillä C-ohjelma jatkaa toimintaa, vaikka ylivuoto tapahtuu.\par
     Rust-ohjelmointikielessä kokonaisluvun ylivuoto on määritelty. Ylivuoto johtaa aina ohjelman paniikkiin, joka Rust-ohjelmointikielessä viittaa virheeseen, josta ei voi palautua. Paniikki johtaa aina prosessin sammumiseen \cite[luku 9.3]{rust-book}. Tämä käytännössä poistaa ylivuodon aiheuttamat tietoturvaongelmat \cite[luku 3.2]{rust-book}.
 
-    Lähdekoodissa \ref{lst:data_for_checksum} näytetään miten \lstinline{data: &[u8]} muodostetaan. Tarkistussumma sisältää lähettäjän ja vastaanottajan IP-osoitteet, portit, protokollan (17), UDP-osuuden koon ja lopuksi kuorman \cite{RFC-768, protocol-numbers}. \par
+    Lähdekoodissa \ref{lst:data_for_checksum} näytetään miten calculate\_checksum-aliohjelmassa käytetty data muodostetaan. Tarkistussumma sisältää lähettäjän ja vastaanottajan IP-osoitteet, portit, protokollan (numeraalinen arvo on 17), UDP-osuuden koon ja lopuksi kuorman \cite{RFC-768, protocol-numbers}. \par
 
 \newpage
 
@@ -702,7 +699,7 @@ fn checksum() {
     Kaksi kenttää viestien ja tiedostojen lähettämiseen. \par
 
     \subsection{Riippuvuudet}
-    Demosovelluksessa on mahdollista käyttää \textit{crates.io}-palvelun Rust-kirjastoja ja \textit{npm}-palvelun javascript-paketteja. Paketit mahdollistavat sovelluksen nopean kehityksen ja tarjoavat vakaita ratkaisuja eri ongelmiin. Usein pakettien käyttäminen on erittäin suositeltua, sillä niiden dokumentaatio ja valmiit ratkaisut ovat hyödyksi kehityksessä ja ylläpitämisessä.
+    Demosovelluksessa on mahdollista käyttää crates-palvelun Rust-kirjastoja ja npm-palvelun javascript-paketteja. Paketit mahdollistavat sovelluksen nopean kehityksen ja tarjoavat vakaita ratkaisuja eri ongelmiin. Usein pakettien käyttäminen on erittäin suositeltua, sillä niiden dokumentaatio ja valmiit ratkaisut ovat hyödyksi kehityksessä ja ylläpitämisessä.
 
     \begin{table}[h!]
         \centering
@@ -743,11 +740,10 @@ fn checksum() {
 
     \subsection{Sovelluksen käynnistysvaihe}
 
-    Demosovellus alkaa \lstinline{main.rs}-tiedoston \lstinline{fn main()}-aliohjelmasta.
-    Se suorittaa 5 tärkeää toimintoa: lokitus
-    konfiguraatio, sovellustilan alustaminen, lokiseurantasäikeen käynnistys, IPC-rajapintojen määritys ja lopuksi käyttöliittymän käynnistys. \\
+    Demosovellus alkaa main.rs-tiedoston main-aliohjelmasta.
+    Se suorittaa 5 tärkeää toimintoa: lokituskonfiguraatio, sovellustilan alustaminen, lokiseurantasäikeen käynnistys, IPC-rajapintojen määritys ja lopuksi käyttöliittymän käynnistys. \\
     
-    Lokituskonfiguraatio tapahtuu \lstinline{setup_logger()}-aliohjelman kautta, mikä määrittelee lähdekoodin \ref{lst:logging_config} mukaiset asetukset.
+    Lokituskonfiguraatio tapahtuu setup\_logger-aliohjelman kautta, mikä määrittelee lähdekoodin \ref{lst:logging_config} mukaiset asetukset.
     Lähdekoodissa \ref{lst:log_example} on havainnollistettu esimerkki lokitapahtumasta, josta ilmenee selkeästi tapahtuma aika,
     viestin taso, tapahtuman moduuli ja itse viestin sisältö.
 
@@ -758,7 +754,7 @@ ReceivedCompleteMessage([0, 72, 101, 108, 108, 111,
 32, 87, 111, 114, 108, 100])
     \end{lstlisting}
     
-    Lähdekoodi \ref{lst:log_example} esittää mahdollisen lokitapahtuman. Sovellus voi kirjoittaa lokitapahtuman käyttämällä \lstinline{log}-kirjaston tarjoamia makroja:\\ \lstinline|info!("Processing connection event: {:?}", event);|\par
+    Lähdekoodi \ref{lst:log_example} esittää mahdollisen lokitapahtuman. Sovellus voi kirjoittaa lokitapahtuman käyttämällä log-kirjaston tarjoamia makroja, kuten lähdekoodin \ref{lst:setup} rivillä 12 on tehty.\par
 
     \begin{lstlisting}[caption={Lokituskonfiguraatio}, label={lst:logging_config}]
 fern::Dispatch::new()
@@ -777,7 +773,7 @@ fern::Dispatch::new()
     \end{lstlisting}
 
 
-    Sovellustila alustetaan \lstinline{tauri:app:Builder} rakenteen \lstinline{setup}-aliohjelmalla, jonka tunniste on kuvattu lähdekoodissa \ref{lst:setup_signature}. Aliohjelman tunniste sisältää tiedot sen vaatimuksista, joita täytyy noudattaa sen sisällä. Näistä vaatimuksista \lstinline{Send} on erityisen tärkeä, sillä se takaa muistiturvallisuuden säikeiden välillä. Tämä mahdollistaa kanavien käytön sulkeumassa ilman muistiongelmia \cite[luku 8.2]{rust-book}. \par
+    Sovellustila alustetaan Builder-rakenteen setup-aliohjelmalla, jonka tunniste on kuvattu lähdekoodissa \ref{lst:setup_signature}. Aliohjelman tunniste sisältää tiedot sen vaatimuksista, joita täytyy noudattaa sen sisällä. Näistä vaatimuksista Send on erityisen tärkeä, sillä se takaa muistiturvallisuuden säikeiden välillä. Tämä mahdollistaa kanavien käytön sulkeumassa ilman muistiongelmia \cite[luku 8.2]{rust-book}. \par
 
     \begin{lstlisting}[caption={Setup-aliohjelman tunniste.}, label={lst:setup_signature}]
 pub fn setup<F>(mut self, setup: F) -> Self
@@ -787,7 +783,7 @@ Result<(), Box<dyn std::error::Error>> + Send + 'static
     \end{lstlisting}
 
 
-    \lstinline{setup}-sulkeumassa, joka on kuvattu lähdekoodissa \ref{lst:setup}, luodaan lokituskanava riveillä 1\textendash4. Nämä kanavat mahdollistavat viestimisen säikeiden välillä ilman lukkoja. Ilman kanavia säikeiden välillä jaetut muuttujat täytyisi lukita käytön ajaksi lukolla, joka estää muita säikeitä käyttämästä kyseistä muuttujaa. Tätä kanavaa pitkin Rust-prosessi pystyy lähettämään käyttöliittymään viestejä mistä tahansa säikeestä. Kanavan viestejä pystyy vastaanottamaan vain yhdessä paikassa, mutta viestien lähetyksessä ei ole tätä rajoitusta \cite[luku 16.2]{rust-book}. Rivillä 7 luodaan säie viestien lukemista varten, mikä odottaa viestejä kanavasta ja saatuaan viestin välittää sen käyttöliittymään IPC-viestillä. Rivillä 5 luodaan sovelluksen tilarakenne, joka vastaanottaa lokikanavan lähettävän pään. Tämän jälkeen kutsutaan Tauri-sovelluskehystä hallitsemaan tätä tilaa.
+    setup-sulkeumassa, joka on kuvattu lähdekoodissa \ref{lst:setup}, luodaan lokituskanava riveillä 1\textendash4. Nämä kanavat mahdollistavat viestimisen säikeiden välillä ilman lukkoja. Ilman kanavia säikeiden välillä jaetut muuttujat täytyisi lukita käytön ajaksi lukolla, joka estää muita säikeitä käyttämästä kyseistä muuttujaa. Tätä kanavaa pitkin Rust-prosessi pystyy lähettämään käyttöliittymään viestejä mistä tahansa säikeestä. Kanavan viestejä pystyy vastaanottamaan vain yhdessä paikassa, mutta viestien lähetyksessä ei ole tätä rajoitusta \cite[luku 16.2]{rust-book}. Rivillä 7 luodaan säie viestien lukemista varten, mikä odottaa viestejä kanavasta ja saatuaan viestin välittää sen käyttöliittymään IPC-viestillä. Rivillä 5 luodaan sovelluksen tilarakenne, joka vastaanottaa lokikanavan lähettävän pään. Tämän jälkeen kutsutaan Tauri-sovelluskehystä hallitsemaan tätä tilaa.
     
     \begin{lstlisting}[caption={setup-sulkeuma.}, label={lst:setup}]
 let (log_sender, log_receiver): (
@@ -807,7 +803,7 @@ tauri::async_runtime::spawn(async move {
 });
 app.manage(app_state);\end{lstlisting}
 
-    Sovelluksen tila sisältää yhteyden tilan, viestien tilan ja viitteen lokikanavan lähettävään päähän. Lähdekoodin \ref{lst:app_state} riveillä 11 ja 13 on huomattava, että nämä ovat \lstinline{Mutex<...>} primitiivin sisällä. \lstinline{ConnectorState} ja \lstinline{MessageState} eivät toteuta \lstinline{Send}-ominaisuutta, joka löytyy \lstinline{setup}-aliohjelman tunnisteesta. \lstinline{Mutex<...>} primitiivi toimii lukkona, jonka avulla \lstinline{Send}-vaatimus täyttyy. \lstinline{Sender<...>} toteuttaa \lstinline{Send}-ominaisuuden, joten sitä ei tarvitse erikseen laittaa \lstinline{Mutex<...>}:in sisälle.
+    Sovelluksen tila sisältää yhteyden tilan, viestien tilan ja viitteen lokikanavan lähettävään päähän. Lähdekoodin \ref{lst:app_state} riveillä 11 ja 13 on huomattava, että nämä ovat Mutex<...> primitiivin sisällä. ConnectorState ja MessageState eivät toteuta Send-ominaisuutta, joka löytyy setup-aliohjelman tunnisteesta. Mutex<...> primitiivi toimii lukkona, jonka avulla Send-vaatimus täyttyy. Sender<...> toteuttaa Send-ominaisuuden, joten sitä ei tarvitse erikseen laittaa Mutexin sisälle.
 
     
     \begin{lstlisting}[caption={Sovellustilan rakenne.}, label={lst:app_state}]
@@ -833,12 +829,12 @@ struct AppState {
     Tapahtuma on yksisuuntainen viesti, jota käytetään pääosin ohjelmatilan muutoksien kommunikointiin. Lähdekoodissa \ref{lst:setup} rivillä 10 lähetetään tapahtuma, jonka käyttöliittymä vastaanottaa. Komento on Web API:n kaltainen viestintämenetelmä, jossa tieto siirtyy JSON-RPC kaltaisella protokollalla. Tämä mahdollistaa monimutkaisien tietorakenteiden käytön viestinnässä, sillä ne serialisoidaan JSON-muotoon \cite{tauri-app}.
 
     \subsection{IPC-Komennot}
-    IPC-komennot merkitään \lstinline{#[tauri::command]} määritteellä. Aliohjelma täytyy olla merkitty kyseillä määritteellä, jotta sitä pystyy käyttämään lähdekoodin \ref{lst:ipc_commands} määrityksessä. Tauri pystyy tarjoamaan viitteet muun muassa sovellustilaan ja sovelluskahvaan käyttämällä riippuvuusinjektio (engl. Dependency Injection) suunnittelutapaa. Tämä suunnittelutapa on todella yleinen useissa sovelluskehyksissä, kuten ASP.NET Core:ssa \cite{DI_dotnet}. Tämä suunnittelutapa ei kuitenkaan ole yleinen Rust-kielessä, sillä se vaatii aliohjelmien suorittamista dynaamisilla kutsuilla.
-    ASP.NET Core:ssa \lstinline{Reflection}-toiminnallisuus tarjoaa dynaamisen kutsumisen, mikä tekee tästä suunnittelutavasta käytännöllisen.
-    Tauri-sovelluskehys toteuttaa tämän käyttäen \\ \lstinline{Procedural Macros}-toimintoa. 
+    IPC-komennot merkitään \#[tauri::command]-määritteellä. Aliohjelma täytyy olla merkitty kyseillä määritteellä, jotta sitä pystyy käyttämään lähdekoodin \ref{lst:ipc_commands} määrityksessä. Tauri pystyy tarjoamaan viitteet muun muassa sovellustilaan ja sovelluskahvaan käyttämällä riippuvuusinjektio (engl. Dependency Injection) suunnittelutapaa. Tämä suunnittelutapa on todella yleinen useissa sovelluskehyksissä, kuten ASP.NET Core -kehitysalustassa \cite{DI_dotnet}. Tämä suunnittelutapa ei kuitenkaan ole yleinen Rust-kielessä, sillä se vaatii aliohjelmien suorittamista dynaamisilla kutsuilla.
+    ASP.NET Core:ssa Reflection-toiminnallisuus tarjoaa dynaamisen kutsumisen, mikä tekee tästä suunnittelutavasta käytännöllisen.
+    Tauri-sovelluskehys toteuttaa tämän käyttämällä Procedural Macros -toimintoa. 
 
 
-    Lähdekoodi \ref{lst:ipc_commands} määrittelee 5 IPC-komentoa, joita käytetään käyttöliittymän ja Rust-prosessin välisessä kommunikaatiossa. Näitä komentoja voidaan myöhemmin kutsua käyttöliittymästä käsin käyttäen \lstinline{invoke}-aliohjelmaa, kuten lähdekoodissa \ref{lst:calling_bind} on esitetty. \par
+    Lähdekoodi \ref{lst:ipc_commands} määrittelee 5 IPC-komentoa, joita käytetään käyttöliittymän ja Rust-prosessin välisessä kommunikaatiossa. Näitä komentoja voidaan myöhemmin kutsua käyttöliittymästä käsin käyttäen invoke-aliohjelmaa, kuten lähdekoodissa \ref{lst:calling_bind} on esitetty. \par
 
     \begin{lstlisting}[caption={IPC-komentojen määritys.}, label={lst:ipc_commands}]
 .invoke_handler(tauri::generate_handler![
@@ -860,10 +856,10 @@ invoke<LogSuccessMessage>("bind", {address: localAddress})
     setConnectionStatus((prev) => ({...prev, local: false}));
 });\end{lstlisting}
 
-    \lstinline{bind}-komento liittää verkkosovittimen \lstinline{address}-parametrin osoitteeseen. Liittämisen hoitaa \lstinline{ConnectionManager} rakenne, joka käynnistää myös tarvittavat säikeet viestien ja kuittauksien vastaanottoa varten, sekä säikeen viestien lähettämisetä varten. Lopuksi \lstinline{bind}-komento käynnistää säikeen, joka kuuntelee\\ \lstinline{ConnectionManager}:n tuottamia tapahtumia.
-    \lstinline{bind}-komennossa käynnistetty säie ohjaa \lstinline{ConnectionManager}:n tuottamat tapahtumat \lstinline{ConnectionProcessor} rakenteeseen, joka lajittelee tapahtumat niiden tyypin mukaan ja suorittaa tarvittavan strategian tapahtuman käsittelyyn.\par
+    Bind-komento liittää verkkosovittimen address-parametrin osoitteeseen. Liittämisen hoitaa ConnectionManager-rakenne, joka käynnistää myös tarvittavat säikeet viestien ja kuittauksien vastaanottoa varten, sekä säikeen viestien lähettämisetä varten. Lopuksi bind-komento käynnistää säikeen, joka kuuntelee\\ ConnectionManagerin tuottamia tapahtumia.
+    bind-komennossa käynnistetty säie ohjaa ConnectionManagerin tuottamat tapahtumat ConnectionProcessor-rakenteeseen, joka lajittelee tapahtumat niiden tyypin mukaan ja suorittaa tarvittavan strategian tapahtuman käsittelyyn.\par
 
-    \lstinline{connect}-komento ottaa vastaan osoitteen ja sovellustilan, joka tulee Taurin DI-järjestelmästä. Komennon tarkoitus on valmistella sovellustila viestien lähettämistä varten. Lähdekoodissa \ref{lst:connect} rivillä 4 yhteyden tila lukitaan, joka on \lstinline{Mutex<...>} rakenteen toiminto. \lstinline{lock()}-aliohjelma lukistee \\ \lstinline{state.connector_state} muuttujan ja palauttaa \lstinline{MutexGuard<ConnectorState>} rakenteen. Tämä suoja sallii muutoksien tekemisen \lstinline{ConnectorState} rakenteeseen, vaikka viite ei normaalisti salli muutoksia. Tätä piirrettä kutsutaan nimeltä sisäinen muuttuvuus (engl.  \textit{Interior Mutability}). Yhteystila on lukittuna niin kauan kun \lstinline{MutexGuard<ConnectorState>} on käytössä.\par
+    Connect-komento ottaa vastaan osoitteen ja sovellustilan, joka tulee Taurin DI-järjestelmästä. Komennon tarkoitus on valmistella sovellustila viestien lähettämistä varten. Lähdekoodissa \ref{lst:connect} rivillä 4 yhteyden tila lukitaan, joka on Mutex-rakenteen toiminto. lock-aliohjelma lukistee \\ connector\_state muuttujan ja palauttaa MutexGuard<ConnectorState>-rakenteen. Tämä suoja sallii muutoksien tekemisen ConnectorState-rakenteeseen, vaikka viite ei normaalisti salli muutoksia. Tätä piirrettä kutsutaan nimeltä sisäinen muuttuvuus (engl.  \textit{Interior Mutability}). Yhteystila on lukittuna niin kauan kun MutexGuard<ConnectorState> on käytössä.\par
 
     \begin{lstlisting}[basicstyle=\small\ttfamily,caption={connect-komento.}, label={lst:connect}]
 #[tauri::command]
@@ -880,8 +876,8 @@ result
 .map_err(|e| LogErrorMessage::ConnectionError(e.to_string()))
 }\end{lstlisting}
 
-    \lstinline{send_message, send_file_info ja respond_to_file_info} ovat komentoja, jotka lähettävät tietoja verkon yli. \lstinline{send_message} lähettää yksinkertaisen viestin vastaanottajalle.
-    \lstinline{send_file_info} lähettää vastaanottajalle tiedoston metatiedot: tiedoston nimi, tiedoston MIME-tyyppi ja koko tavuina. Näiden tietojen avulla vastaanottaja pystyy valmistautumaan tulevaan tiedostoon. Kuva \ref{fig:incoming_file} havainnollistaa, miltä tuleva tiedosto näyttää vastaanottajalle. Vastaanottaja pystyy kuvan \ref{fig:incoming_file} mukaisella ikkunalla valitsemaan mihin kansioon kyseinen tiedosto tullaan tallentamaan tai vaihtoehtoisesti hylkäämään tulevan tiedoston. Valinnan tekeminen laukaisee \lstinline{respond_to_file_info}-IPC-komennon, joka ilmoittaa lähettäjälle valinnasta.
+    send\_message, send\_file\_info ja respond\_to\_file\_info ovat komentoja, jotka lähettävät tietoja verkon yli. send\_message lähettää yksinkertaisen viestin vastaanottajalle.
+    send\_file\_info lähettää vastaanottajalle tiedoston metatiedot: tiedoston nimi, tiedoston MIME-tyyppi ja koko tavuina. Näiden tietojen avulla vastaanottaja pystyy valmistautumaan tulevaan tiedostoon. Kuva \ref{fig:incoming_file} havainnollistaa, miltä tuleva tiedosto näyttää vastaanottajalle. Vastaanottaja pystyy kuvan \ref{fig:incoming_file} mukaisella ikkunalla valitsemaan mihin kansioon kyseinen tiedosto tullaan tallentamaan tai vaihtoehtoisesti hylkäämään tulevan tiedoston. Valinnan tekeminen laukaisee respond\_to\_file\_info-IPC-komennon, joka ilmoittaa lähettäjälle valinnasta.
     Mikäli valinta on myönteinen, lähettäjä alkaa välittömästi lähettämään tiedostoa verkon yli. Jos valinta on kielteinen, lähettäjä saa ilmoituksen hylätystä tiedostosta.
 
     \begin{figure}[h!]
@@ -896,10 +892,10 @@ result
     \subsection{Tietorakenteet}\label{sec:structures}
     RRTP-kirjasto käsittelee huomattavan määrän dataa tietorakenteiden avulla, joten tehokkaiden tietorakenteiden käyttö on tärkeää. Kirjaston täytyy pystyä käsittelemään tehokkaasti listoja, jotka sisältävät tuhansia alkioita. \par
     Mittauksessa mitattiin tavallisen taulukon, kasavaratun taulukon,
-    \lstinline{Vec}:n, \lstinline{VecDeque} ja \lstinline{LinkedList} suoriutumista, kun tietorakenteen alkioita siirrettiin vasemmalle. Jokainen tietorakenne täytettiin 100 000 numerolla ja alkioita siirrettiin vasemmalle parhaiten siihen  sopivalla tavalla.
+    Vec-, VecDeque- ja LinkedList-rakenteiden suoriutumista, kun tietorakenteen alkioita siirrettiin vasemmalle. Jokainen tietorakenne täytettiin 100 000 numerolla ja alkioita siirrettiin vasemmalle parhaiten siihen  sopivalla tavalla.
     Mittaus tehtiin käyttäen criterion-kirjastoa ja 100:n näytemäärällä.
 
-    Taulukon \ref{tab:collection_bench} tulosten perusteella kasataulukko oli paras vaihtoehto mitatuista tietorakenteista. Tästä huolimatta projektissa käytettiin \lstinline{Vec}-tietorakennetta, sillä tarvittavan taulukon koko ei ole tiedossa kääntämisen aikana. \lstinline{Vec}-tietorakenne sallii sen koon muuttumisen ohjelman suorituksen aikana. 
+    Taulukon \ref{tab:collection_bench} tulosten perusteella kasataulukko oli paras vaihtoehto mitatuista tietorakenteista. Tästä huolimatta projektissa käytettiin Vec-tietorakennetta, sillä tarvittavan taulukon koko ei ole tiedossa kääntämisen aikana. Vec-tietorakenne sallii sen koon muuttumisen ohjelman suorituksen aikana. 
 
     \begin{table}[h!]
         \centering
@@ -916,7 +912,7 @@ result
         \label{tab:collection_bench}
     \end{table}
 
-    Tuloksista voidaan myös todeta, että \lstinline{LinkedList}-tietorakennetta tulisi käyttää vain harvoissa tilanteissa. Rust-kielen standardikirjaston dokumentaatio vahvistaa tämän väitteen \cite[\textit{LinkedList}]{rust-std}. Kääntäjä pystyy tekemään erinomaisia optimointeja muille tietorakenteille ja tietokoneen prosessori pystyy hyödyntämään välimuistia tehokkaammin.
+    Tuloksista voidaan myös todeta, että LinkedList-tietorakennetta tulisi käyttää vain harvoissa tilanteissa. Rust-kielen standardikirjaston dokumentaatio vahvistaa tämän väitteen \cite[\textit{LinkedList}]{rust-std}. Kääntäjä pystyy tekemään erinomaisia optimointeja muille tietorakenteille ja tietokoneen prosessori pystyy hyödyntämään välimuistia tehokkaammin.
 
 
     \subsection{Tiedostojen siirtäminen}
@@ -943,7 +939,6 @@ hidas lähetyksen alussa, mutta nopeutuu ajan kuluessa. Työn aikarajoitusten ta
 Kokonaisuudessaan RRTP-kirjasto suoriutuu suhteellisen hyvin tehtävästään, mutta huomiota täytyy kiinnittää sen tehokkuuteen isoja tiedostoja siirrettäessä. Kuvasta \ref{fig:performance} nähdään, että kirjaston suorituskyky pienenee mitä enemmän tietoa on siirretty. Tämä johtunee siitä, että kirjaston sisäinen puskuri täytyy ja alkioiden käsittely vie enemmän aikaa.
 
 
-
 Silmukkaosoitteen takia tämä testi ei kuitenkaan vastaa täysin todellisuutta.
 Testin tarkoitus oli pääasiassa seurata tietorakenteiden käsittelyn tehokkuutta ilman
 verkon aiheuttamaa häiriötä.
@@ -953,7 +948,7 @@ verkon aiheuttamaa häiriötä.
     Tässä työssä käytettiin alalla laajalti hyväksyttyjä sovelluskehitystapoja. Osa työkaluista ja menetelmistä on suhteellisen kokeellisia, mutta käytettiin kuitenkin vain kehittäjäkokemuksen parantamiseen, eikä niitä käytetty työn kannalta kriittisissä osissa.
 
     \subsection{Versionhallinta}
-    Tässä työssä käytettiin git-versionhallintaa, joka oli github.com-palvelun isännöimä. Git on toimialalla erittäin yleinen ja tärkeä työkalu lähdekoodin jakamiseen ja versionhallintaan. \par
+    Tässä työssä käytettiin git-versionhallintaa, joka oli github-palvelun isännöimä. Git on toimialalla erittäin yleinen ja tärkeä työkalu lähdekoodin jakamiseen ja versionhallintaan. \par
 
     Vetopyyntöjen(engl. Pull Request) tekeminen on yleinen ja suositeltu tapa liittää muutokset pääharaan. Tämä johtuu siitä, että kun projektissa on useita ihmisiä tekemässä, jokainen muutos vaatii toisten kehittäjien hyväksynnän. Kun kriteerit hyväksymiseen on toteutunut,
     muutos liitetään päähaaraan.\par
