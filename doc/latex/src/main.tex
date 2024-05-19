@@ -75,9 +75,8 @@
 }
 
 
-%Tietoliikenneprotokollan kehitys UDP:n laajennuksena
-\renewcommand{\title}{Tietoliikenneprotokollan kehitys UDP:n päälle}
-\newcommand{\englishTitle}{Development of transport protocol on top of UDP}
+\renewcommand{\title}{Luotettavan tietoliikenneprotokollan \newline suunnittelu ja toteutus Rustilla}
+\newcommand{\englishTitle}{Design and implementation of a reliable communition protocol in Rust}
 
 \author{Joonas Kajava}
 \date{\today}
@@ -119,7 +118,7 @@
         \section*{Tiivistelmä}
 
 \setlength{\tabcolsep}{0cm}
-        \begin{tabular} {p{5cm} l}
+        \begin{tabular} {p{5cm} p{10cm}}
             Tekijä:               & \me                                            \\
             Otsikko:              & \title                                         \\
             Sivumäärä:            & \pageCount{} sivua                             \\
@@ -133,13 +132,13 @@
         \sepline
         \begin{singlespace}
         
-        Tässä insinöörityössä esitetään tietoliikenneprotokollan kehitys UDP:n päälle, minkä nimeksi tuli RRTP-protokolla. Protokollaa varten tehtiin ohjelmakirjasto Rust-kielelle, josta lopputuloksena syntyi RRTP-protokollan toteuttava ohjelmakirjasto. Se yhdistää liukuvan ikkunan ja muita ominaisuuksia luotettavan yhteyden muodostamiseen. \par
+        Tässä insinöörityössä esitetään luotettavan tietoliikenneprotokollan suunnittelu ja toteutus, minkä nimeksi tuli RRTP-protokolla. Protokollaa varten tehtiin ohjelmakirjasto Rust-kielelle, josta lopputuloksena syntyi RRTP-protokollan toteuttava ohjelmakirjasto. Se yhdistää liukuvan ikkunan ja muita ominaisuuksia luotettavan yhteyden muodostamiseen. \par
 
-        Protokollan kestävyys testattiin demosovelluksella, joka kehitettiin tässä työssä käyttämällä Tauri-ohjelmistokehystä. Tauri-ohjelmistokehys suorittaa käyttöliittymän piirtämisen. Sovellus hyödyntää RRTP-ohjelmakirjastoa yhteyden muodostukseen ja tiedon välittämiseen kahden tietokoneen välillä. \par
+        Protokollan toimivuus testattiin demosovelluksella, joka kehitettiin tässä työssä käyttämällä Tauri-ohjelmistokehystä. Tauri-ohjelmistokehys suorittaa käyttöliittymän piirtämisen. Sovellus hyödyntää RRTP-ohjelmakirjastoa yhteyden muodostukseen ja tiedon välittämiseen kahden tietokoneen välillä. \par
 
         Kehityksen aikana toteutettiin suorituskykyanalyysejä, jossa vertailtiin tietorakenteiden nopeuksia protokollan käyttötarkoituksissa. Analyysin perusteella huomattiin, että LinkedList-tietorakenne ei ole sopiva tähän projektiin. Toteutukseen valittiin Vec-tietorakenne, jonka suorituskyky oli erinomainen ja sopii parhaiten projektin käyttötarkoituksiin.\par
 
-        Lopuksi pohdittiin työtapoja ja työkaluja, joita käytettiin kehityksessä. Työssä käytettiin Git-versionhallintaa ja kehitysympäristö koostui Windows-tietokoneesta sekä RustRover:sta, joka on Rust-kieleen erikoistunut ohjelmointiympäristö. 
+        Lopuksi pohdittiin työtapoja ja työkaluja, joita käytettiin kehityksessä. Työssä käytettiin Git-versionhallintaa ja kehitysympäristö koostui Windows-tietokoneesta sekä RustRoverista, joka on Rust-kieleen erikoistunut ohjelmointiympäristö. 
         
         \end{singlespace}
         
@@ -154,7 +153,7 @@
         
         \section*{Abstract}
 
-        \begin{tabular} {p{5cm} l}
+        \begin{tabular} {p{5cm} p{10cm}}
             Author:               & \me                                            \\
             Title:                & \englishTitle                                  \\
             Number of Pages:      & \pageCount{} pages                             \\
@@ -170,9 +169,9 @@
 \begin{singlespace}
     
 
-        This Bachelor's thesis goes through developing transport protocol on top of UDP. RRTP-protocol was given for this transport protocol. Library for Rust programming language was created for the protocol and it's implementation will be showcased in the thesis. End product was a library that implements RRTP-protocol, which combines sliding window and other techniques for reliable connection.\par
+        This Bachelor's thesis goes through design and implementation of a reliable communication protocol. RRTP-protocol was given for this communication protocol. Library for Rust programming language was created for the protocol and its implementation will be showcased in the thesis. End product was a library that implements RRTP-protocol, which combines sliding window and other techniques for reliable connection.\par
 
-        Robustness of the protocol is tested using a demo application that was also developed in this thesis. The application was created using Tauri-framework. Tauri-framework handles drawing the user interface. Demo application utilizes RRTP-library to handle connection and data tranfer between two computers. \par
+        Robustness of the protocol is tested using a demo application that was also developed in this thesis. The application was created using Tauri-framework. Tauri-framework handles drawing the user interface. Demo application utilizes RRTP-library to handle connection and data transfer between two computers. \par
 
         During development performance analysis was performed for data structures used in the protocol. Analysis indicated that LinkedList data structure is not suitable for this project, while Vec data structure is more appropriate for this project.
         \par
@@ -217,7 +216,7 @@
 
 \renewcommand{\arraystretch}{1.5}
     \section{Johdanto}\label{sec:johdanto}
-    Tässä työssä kehitettiin tietoliikenneprotokolla UDP:n päälle. UDP on yksinkertainen tietoliikenneprotokolla, joka ei tarjoa pakettien järjestämistä tai kattavaa virheenkorjausta. Tarkoitus on luoda pohja yrityksille ja kehittäjille tietoliikenneprotokollan toteutukseen.
+    Tässä työssä suunniteltiin ja toteutettiin tietoliikenneprotokolla Rust-kielelle. Tietoliikenne protokolla käyttää UDP-protokollaa pohjana ja laajentaa sitä uusilla ominaisuuksilla. UDP on yksinkertainen tietoliikenneprotokolla, joka ei tarjoa pakettien järjestämistä tai kattavaa virheenkorjausta. Tarkoitus on luoda pohja yrityksille ja kehittäjille tietoliikenneprotokollan toteutukseen.
     Työ on luonteeltaan tutkiva ja ohjeistava, joka selventää reaaliaikaisien sovelluksien toteutusta.\par
 
     Protokollaa varten tehdään RRTP-ohjelmistokirjasto käyttäen Rust-ohjelmointikieltä, joka soveltuu erinomaisesti järjestelmäohjelmointiin. Rust-kieli mahdollistaa laitteiston matalan tason hallinnan
@@ -225,7 +224,7 @@
     Nämä säännöt takaavat Rust-kielen muistiturvallisuuden, joka on todella tärkeää ohjelman toimivuuden kannalta. 
     Rust-kieli tarjoaa myös monia moderneja kieliominaisuuksia kuten: tyyppipäättely(engl. type inference), hahmonsovitus(engl. pattern matching) ja piirteet(engl. traits) \cite{rust-book}.
 
-    Johdannon jälkeen siirrytään käsittelemään RRTP-protokollan toteuttavan kirjaston toiminta. RRTP-kirjasto on neljään osaan jaettu kokonaisuus, joka käyttää säikeitä ja kanavia sisäiseen tiedon siirtoon. Kirjaston avulla ohjelmat, kuten tässä työssä kehitetty demosovellus pystyvät kommunikoimaan viestien ja tiedostojen avulla. 
+    Johdannon jälkeen siirrytään käsittelemään RRTP-protokollan toteuttavan kirjaston toimintaa. RRTP-kirjasto on neljään osaan jaettu kokonaisuus, joka käyttää säikeitä ja kanavia sisäiseen tiedon siirtoon. Kirjaston avulla ohjelmat, kuten tässä työssä kehitetty demosovellus pystyvät kommunikoimaan viestien ja tiedostojen avulla. 
     Toteutuksen läpikäynti alkaa paketin vakioiden ja rakenteen määrityksellä, jonka jälkeen siirrytään käsittelemään kirjaston arkkitehtuuria. \par
 
     Luotettavuus tässä tietoliikenneprotokollassa tulee liukuvasta ikkunasta. Se sallii pakettien lähettämisen ja vastaanottamisen epämääräisessä järjestyksessä sekä takaa viestien perille pääsyn aikakatkaisun avulla. Työssä liukuvan ikkunan toiminta esitetään lähettäjän ja vastaanottajan näkökulmista, jossa toiminta havainnollistetaan diagrammien ja koodin avulla. Tämän jälkeen keskustellaan tarkemmin valikoiva toisto ARQ -tekniikasta. \par
@@ -258,13 +257,13 @@
     Paketti, joka on havainnollistettu taulukossa \ref{tab:packet}, perustuu kevyesti TCP:n ja on rakennettu UDP:n päälle. Paketin rakenne on minimaalinen ja yksinkertainen, mikä sisältää tarvittavat kentät luotettavaan yhteyteen. Nämä kentät ovat järjestysnumero, ohjausbitit ja kentät datan hallintaa varten. Pakettiin sisältyy yksi tavun kokoinen varattu kenttä, jota voidaan käyttää tulevaisuudessa. 6 ohjausbittiä ei ole käytössä, joita voidaan käyttää myöhemmin uusiin ominaisuuksiin.
 
     \subsubsection*{Vakiot}
-    Taulukkoon \ref{tab:vakiot} on koostettu ne vakiot, jotka ovat tärkeitä protokollan toiminnan kannalta. Vastaanottajalla ja lähettäjällä täytyy olla samat vakiot käytössä, jotta pakettien muodostaminen ja lukeminen onnistuu. Eroavaisuudet näissä vakioissa vastaanottajan ja lähettäjän välillä tarkoittaa mahdollisesti sitä, että vastaanottaja aloittaa datan lukemisen väärästä kohdasta.
+    Taulukkoon \ref{tab:vakiot} on koostettu ne vakiot, jotka ovat tärkeitä protokollan toiminnan kannalta. Vastaanottajalla ja lähettäjällä täytyy olla samat vakiot käytössä, jotta pakettien muodostaminen ja lukeminen onnistuu. Eroavaisuudet näissä vakioissa vastaanottajan ja lähettäjän välillä voivat tarkoittaa, että vastaanottaja aloittaa datan lukemisen väärästä kohdasta.
 
     \begin{table}[h!]
         \centering
         \begin{tabularx}{\textwidth}{|X|r|r|r|}
         \hline
-            \textbf{Vakion-nimi}          & \textbf{Lyhenne} & \textbf{Arvo} & \textbf{Yksikkö} \\ \hline
+            \textbf{Vakion nimi}          & \textbf{Lyhenne} & \textbf{Arvo} & \textbf{Yksikkö} \\ \hline
             MAX\_DATA\_SIZE      & $D_s$   & 128  & Tavu    \\ \hline
             SEQ\_NUM\_SIZE       & $S_s$   & 4    & Tavu    \\ \hline
             CONTROL\_BITS\_SIZE  & $C_s$   & 1    & Tavu    \\ \hline
@@ -378,7 +377,7 @@ if control_bits & 00000001 == 00000001 {
     \lstinline{ConnectionManager} luo pistokkeen sovelluksen antamaan osoitteeseen.
     Lähetys- ja vastaanottosäikeet käynnistyvät, kun pistokkeen luonti onnistuu. \lstinline{ConnectionManager} rakenne on määritelty lähdekoodin \ref{lst:connectionmanager} mukaisesti.
     
-    \begin{lstlisting}[caption={ConnectionManager:n rakenne}, label={lst:connectionmanager}]
+    \begin{lstlisting}[caption={ConnectionManagerin rakenne}, label={lst:connectionmanager}]
 pub struct ConnectionManager {
     listener_thread: Option<thread::JoinHandle<()>>,
     transmitter_thread: Option<thread::JoinHandle<()>>,
@@ -447,7 +446,7 @@ pub struct ReceiverWindow {
     buffer: Vec<Option<Frame>>,
 }\end{lstlisting}
 
-    Rust-kielessä ei pysty tekemään perintää samantyylisesti, kuin yleisissä olio-ohjelmointi-kielissä. Tämän takia
+    Rust-kielessä ei pysty tekemään perintää samantyylisesti kuin yleisissä olio-ohjelmointikielissä. Tämän takia
     käytetään suunnittelutapaa nimeltä "\textit{Composition over Inheritance}" \cite{Ivicevic202228Rust}.
 
     Vastaanottava ikkuna pitää muistissa pienimmän järjestysnumeron $n_s$, minkä se on vastaanottanut.
@@ -528,7 +527,7 @@ pub struct TransmitterWindow {
     Tässä toteutuksessa käytettiin valikoivaa toistoa, sillä se on tehokas tiedonsiirron kannalta, mutta se vaatii datan puskuroinnin. Puskurointi vaatii huomattavaa muistin käyttöä, mitä ei saata olla pienissä laitteissa. Tämä toteutus tehtiin sillä oletuksella, että alustana on tietokone ja muistia on riittävästi.\par
 
     \subsection{Viestien käsittely}
-    Protokolla käsittelee vain binääridatan lähettämistä. Monimutkaisten tietorakenteiden, kuten objektien lähettäminen protokollan kautta täytyy tehdä binäärikoodauksen kautta. Verkkosivustoissa käytetään usein tekstipohjaisia tietomuotoja, kuten HTML ja JSON. Nämä tietomuodot eivät sovellu reaaliaikaiseen kommunikaatioon, sillä niiden mukana tulee ylimääräisiä merkkejä, joita käytetään skeeman välitykseen. Spesialisoidut reaaliaikaiset sovellukset eivät tarvitse skeematietoja tiedon lukemiseen, sillä osapuolien välillä liikkuva tieto on todella tarkkaan määritelty.
+    Protokolla käsittelee vain binääridatan lähettämistä. Monimutkaisten tietorakenteiden, kuten objektien lähettäminen protokollan kautta täytyy tehdä binäärikoodauksen kautta. Verkkosivustoissa käytetään usein tekstipohjaisia tietomuotoja, kuten HTML ja JSON. Nämä tietomuodot eivät sovellu reaaliaikaiseen kommunikaatioon, sillä niiden mukana tulee ylimääräisiä merkkejä, joita käytetään skeeman välitykseen. Erikoistuneet reaaliaikaiset sovellukset eivät tarvitse skeematietoja tiedon lukemiseen, sillä osapuolien välillä liikkuva tieto on todella tarkkaan määritelty.
     \par
 
     \subsubsection*{Skeemapohjainen tieto}
@@ -748,7 +747,7 @@ fn checksum() {
     Se suorittaa 5 tärkeää toimintoa: lokitus
     konfiguraatio, sovellustilan alustaminen, lokiseurantasäikeen käynnistys, IPC-rajapintojen määritys ja lopuksi käyttöliittymän käynnistys. \\
     
-    Lokitus konfiguraatio tapahtuu \lstinline{setup_logger()}-aliohjelman kautta, mikä määrittelee lähdekoodin \ref{lst:logging_config} mukaiset asetukset.
+    Lokituskonfiguraatio tapahtuu \lstinline{setup_logger()}-aliohjelman kautta, mikä määrittelee lähdekoodin \ref{lst:logging_config} mukaiset asetukset.
     Lähdekoodissa \ref{lst:log_example} on havainnollistettu esimerkki lokitapahtumasta, josta ilmenee selkeästi tapahtuma aika,
     viestin taso, tapahtuman moduuli ja itse viestin sisältö.
 
