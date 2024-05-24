@@ -1,18 +1,18 @@
 use std::fs;
 use std::path::Path;
 
-use tauri::{Manager, State};
 use tauri::AppHandle;
+use tauri::{Manager, State};
 
 use lib_rrttp::application_layer::connection_manager::{
     ConnectionManager, ConnectionManagerInterface,
 };
 
-use crate::AppState;
 use crate::connection_processor::ConnectionProcessor;
 use crate::message::Message;
 use crate::models::file_models::{FileInfo, FileMetadata};
 use crate::models::log_message::{LogErrorMessage, LogMessageResult, LogSuccessMessage};
+use crate::AppState;
 
 #[tauri::command]
 pub fn bind(address: &str, state: State<AppState>) -> LogMessageResult {
@@ -24,7 +24,6 @@ pub fn bind(address: &str, state: State<AppState>) -> LogMessageResult {
         .map_err(|e| LogErrorMessage::LocalSocketBindFailed(e.to_string()))?;
 
     let sender = state.log_sender.clone();
-
     let processor = ConnectionProcessor::new(
         sender.clone(),
         state.message_state.clone(),

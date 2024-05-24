@@ -153,7 +153,7 @@ fn rrtp() {
                             timestamp: now.elapsed().as_micros(),
                         });
                     }
-                    ConnectionEventType::ReceivedCompleteMessage(bytes) => {
+                    ConnectionEventType::ReceivedCompleteMessage(_bytes) => {
                         break 'l;
                     }
                     ConnectionEventType::SentMessage => {}
