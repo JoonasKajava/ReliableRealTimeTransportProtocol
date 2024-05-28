@@ -1146,7 +1146,7 @@ FUNCTION {misc}
   new.block
   format.url output
   new.block
-  urldate output
+  ". Luettu " * urldate *
   new.block
   format.note output
   fin.entry
