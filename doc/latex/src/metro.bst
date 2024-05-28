@@ -61,6 +61,7 @@ ENTRY
     title
     type
     url
+    urldate
     volume
     year
   }
@@ -381,7 +382,7 @@ FUNCTION {format.url}
   url
   duplicate$ empty$
     { pop$ "" }
-    { "\urlprefix\url{" swap$ * "}" * }
+    { "\urlprefix<\url{" swap$ * "}>" * }
   if$
 }
 
@@ -407,13 +408,13 @@ FUNCTION {format.names}
       nameptr #1 >
         {
           namesleft #1 >
-            { "; " * t * }
+            { ", " * t * }
             {
               s nameptr "{ll}" format.name$ duplicate$ "others" =
                 { 't := }
                 { pop$ }
               if$
-              ";" *
+              "," *
               t "others" =
                 {
                   " " * bbl.etal *
@@ -954,6 +955,8 @@ FUNCTION {book}
   new.block
   format.url output
   new.block
+  ". Luettu " * urldate *
+  new.block
   format.note output
   fin.entry
 }
@@ -1143,6 +1146,8 @@ FUNCTION {misc}
   new.block
   format.url output
   new.block
+  urldate output
+  new.block
   format.note output
   fin.entry
   empty.misc.check
@@ -1270,7 +1275,7 @@ FUNCTION {begin.bib}
   write$ newline$
   "  \def\url#1{{\tt #1}}\fi"
   write$ newline$
-  "\expandafter\ifx\csname urlprefix\endcsname\relax\def\urlprefix{URL }\fi"
+  "\expandafter\ifx\csname urlprefix\endcsname\relax\def\urlprefix{Verkkoaineisto. }\fi"
   write$ newline$
 }
 EXECUTE {begin.bib}
