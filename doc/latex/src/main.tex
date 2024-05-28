@@ -18,7 +18,6 @@
 \usepackage{setspace}
 \usepackage{framed}
 \usepackage{parskip}
-\usepackage[style=vancouver]{biblatex}
 \usepackage{xcolor}
 \usepackage{tabularray}
 \usepackage{tabularx}
@@ -27,7 +26,9 @@
 \usepackage[titles]{tocloft}
 \usepackage{fancyhdr}
 \usepackage{caption}
+\usepackage[square, numbers, semicolon]{natbib}
 
+\bibliographystyle{metro}
 
 \captionsetup{justification=raggedright,singlelinecheck=false}
 
@@ -46,7 +47,6 @@
 \setmainfont{Arial}
 
 
-\addbibresource{mendeley.bib}
 %\usepackage{showframe}
 \lstset{language=Rust, style=boxed,
     captionpos=b,
@@ -76,7 +76,7 @@
 
 
 \renewcommand{\title}{Luotettavan tietoliikenneprotokollan \newline suunnittelu ja toteutus Rustilla}
-\newcommand{\englishTitle}{Design and implementation of a reliable communition protocol in Rust}
+\newcommand{\englishTitle}{Design and implementation of a reliable communication protocol in Rust}
 
 \author{Joonas Kajava}
 \date{\today}
@@ -132,11 +132,11 @@
         \sepline
         \begin{singlespace}
         
-        Tässä insinöörityössä esitetään luotettavan tietoliikenneprotokollan suunnittelu ja toteutus, minkä nimeksi tuli RRTP-protokolla. Protokollaa varten tehtiin ohjelmakirjasto Rust-kielelle, josta lopputuloksena syntyi RRTP-protokollan toteuttava ohjelmakirjasto. Se yhdistää liukuvan ikkunan ja muita ominaisuuksia luotettavan yhteyden muodostamiseen. \par
+        Tässä insinöörityössä esitetään luotettavan tietoliikenneprotokollan suunnittelu ja toteutus, minkä nimeksi tuli RRTP-protokolla. Protokollaa varten tehtiin ohjelmakirjasto Rust-kielelle, mistä lopputuloksena syntyi RRTP-protokollan toteuttava ohjelmakirjasto. Se yhdistää liukuvan ikkunan ja muita tekniikoita luotettavan yhteyden muodostamiseen. \par
 
-        Protokollan toimivuus testattiin demosovelluksella, joka kehitettiin tässä työssä käyttämällä Tauri-ohjelmistokehystä. Tauri-ohjelmistokehys suorittaa käyttöliittymän piirtämisen. Sovellus hyödyntää RRTP-ohjelmakirjastoa yhteyden muodostukseen ja tiedon välittämiseen kahden tietokoneen välillä. \par
+        Protokollan toimivuus testattiin demosovelluksella, joka kehitettiin tässä työssä käyttämällä Tauri-ohjelmistokehystä. Tauri-ohjelmistokehys hoitaa käyttöliittymän piirtämisen. Sovellus hyödyntää RRTP-ohjelmakirjastoa yhteyden muodostamiseen ja tiedon välittämiseen kahden tietokoneen välillä. \par
 
-        Kehityksen aikana toteutettiin suorituskykyanalyysejä, jossa vertailtiin tietorakenteiden nopeuksia protokollan käyttötarkoituksissa. Analyysin perusteella huomattiin, että LinkedList-tietorakenne ei ole sopiva tähän projektiin. Toteutukseen valittiin Vec-tietorakenne, jonka suorituskyky oli erinomainen ja sopii parhaiten projektin käyttötarkoituksiin.\par
+        Kehityksen aikana toteutettiin suorituskykyanalyysejä, joissa vertailtiin tietorakenteiden nopeuksia protokollan käyttötarkoituksissa. Analyysin perusteella todettiin, että LinkedList-tietorakenne ei ole sopiva tähän projektiin. Toteutukseen valittiin Vec-tietorakenne, jonka suorituskyky oli erinomainen ja joka sopii parhaiten projektin käyttötarkoituksiin.\par
 
         Lopuksi pohdittiin työtapoja ja työkaluja, joita käytettiin kehityksessä. Työssä käytettiin Git-versionhallintaa ja kehitysympäristö koostui Windows-tietokoneesta sekä RustRoverista, joka on Rust-kieleen erikoistunut ohjelmointiympäristö. 
         
@@ -169,7 +169,7 @@
 \begin{singlespace}
     
 
-        This Bachelor's thesis goes through design and implementation of a reliable communication protocol. RRTP-protocol was given for this communication protocol. Library for Rust programming language was created for the protocol and its implementation will be showcased in the thesis. End product was a library that implements RRTP-protocol, which combines sliding window and other techniques for reliable connection.\par
+        This Bachelor's thesis goes through design and implementation of a reliable communication protocol. RRTP-protocol was given for this communication protocol. Library for Rust programming language was created for the protocol and its implementation will be showcased in the thesis. End product was a library that implements RRTP-protocol, which combines sliding window and other techniques for a reliable connection.\par
 
         Robustness of the protocol is tested using a demo application that was also developed in this thesis. The application was created using Tauri-framework. Tauri-framework handles drawing the user interface. Demo application utilizes RRTP-library to handle connection and data transfer between two computers. \par
 
@@ -216,22 +216,22 @@
 
 \renewcommand{\arraystretch}{1.5}
     \section{Johdanto}\label{sec:johdanto}
-    Tässä työssä suunniteltiin ja toteutettiin tietoliikenneprotokolla Rust-kielelle. Tietoliikenne protokolla käyttää UDP-protokollaa pohjana ja laajentaa sitä uusilla ominaisuuksilla. UDP on yksinkertainen tietoliikenneprotokolla, joka ei tarjoa pakettien järjestämistä tai kattavaa virheenkorjausta. Tarkoitus on luoda pohja yrityksille ja kehittäjille tietoliikenneprotokollan toteutukseen.
+    Tässä työssä suunniteltiin ja toteutettiin tietoliikenneprotokolla Rust-kielelle. Tietoliikenneprotokolla käyttää UDP-protokollaa pohjana ja laajentaa sitä uusilla ominaisuuksilla. UDP on yksinkertainen tietoliikenneprotokolla, joka ei tarjoa pakettien järjestämistä tai kattavaa virheenkorjausta. Tarkoitus on luoda pohja yrityksille ja kehittäjille tietoliikenneprotokollan toteutukseen.
     Työ on luonteeltaan tutkiva ja ohjeistava, joka selventää reaaliaikaisien sovelluksien toteutusta.\par
 
-    Protokollaa varten tehdään RRTP-ohjelmistokirjasto käyttäen Rust-ohjelmointikieltä, joka soveltuu erinomaisesti järjestelmäohjelmointiin. Rust-kieli mahdollistaa laitteiston matalan tason hallinnan
-    samaan tapaan kuin C-ohjelmointikieli. Iso etu Rust-kielessä on, että se käyttää automaattista muistin hallintaa, joka ei käytä roskankerääjää, vaan muistin vapautus tapahtuu omistus- ja lainausjärjestelmän sääntöjen mukaisesti.
+    Protokollaa varten tehtiin RRTP-ohjelmistokirjasto käyttäen Rust-ohjelmointikieltä, joka soveltuu erinomaisesti järjestelmäohjelmointiin. Rust-kieli mahdollistaa laitteiston matalan tason hallinnan
+    samaan tapaan kuin C-ohjelmointikieli. Iso etu Rust-kielessä on, että se käyttää automaattista muistinhallintaa, joka ei käytä roskankerääjää, vaan muistin vapautus tapahtuu omistus- ja lainausjärjestelmän sääntöjen mukaisesti.
     Nämä säännöt takaavat Rust-kielen muistiturvallisuuden, joka on todella tärkeää ohjelman toimivuuden kannalta. 
-    Rust-kieli tarjoaa myös monia moderneja kieliominaisuuksia kuten: tyyppipäättely(engl. type inference), hahmonsovitus(engl. pattern matching) ja piirteet(engl. traits) \cite{rust-book}.
+    Rust-kieli tarjoaa myös monia moderneja kieliominaisuuksia kuten tyyppipäättely (engl. type inference), hahmonsovitus (engl. pattern matching) ja piirteet (engl. traits) \cite{rust-book}.
 
     Johdannon jälkeen siirrytään käsittelemään RRTP-protokollan toteuttavan kirjaston toimintaa. RRTP-kirjasto on neljään osaan jaettu kokonaisuus, joka käyttää säikeitä ja kanavia sisäiseen tiedon siirtoon. Kirjaston avulla ohjelmat, kuten tässä työssä kehitetty demosovellus pystyvät kommunikoimaan viestien ja tiedostojen avulla. 
     Toteutuksen läpikäynti alkaa paketin vakioiden ja rakenteen määrityksellä, jonka jälkeen siirrytään käsittelemään kirjaston arkkitehtuuria. \par
 
-    Luotettavuus tässä tietoliikenneprotokollassa tulee liukuvasta ikkunasta. Se sallii pakettien lähettämisen ja vastaanottamisen epämääräisessä järjestyksessä sekä takaa viestien perille pääsyn aikakatkaisun avulla. Työssä liukuvan ikkunan toiminta esitetään lähettäjän ja vastaanottajan näkökulmista, jossa toiminta havainnollistetaan diagrammien ja koodin avulla. Tämän jälkeen keskustellaan tarkemmin valikoiva toisto ARQ -tekniikasta. \par
+    Luotettavuus tässä tietoliikenneprotokollassa tulee liukuvasta ikkunasta. Se sallii pakettien lähettämisen ja vastaanottamisen epämääräisessä järjestyksessä sekä takaa viestien perille pääsyn aikakatkaisun avulla. Työssä liukuvan ikkunan toiminta esitetään lähettäjän ja vastaanottajan näkökulmista, jossa toiminta havainnollistetaan diagrammien ja koodin avulla. Tämän jälkeen keskustellaan tarkemmin valikoiva toisto ARQ-protokollasta. \par
 
     Viestien käsittelyssä esitetään eri tietomuodot, joita voidaan käyttää tiedonsiirrossa. Tietomuotojen määritys on tärkeää tiedonsiirrossa, sillä vastaanottajan ja lähettäjän täytyy olla yhteisymmärryksessä niistä. Demosovelluksessa tiedonsiirto tapahtuu käyttäen binäärimuotoa, mutta skeemapohjaisen tiedon käyttäminen on mahdollista. Skeemapohjaisen tiedon ja binääritiedon erot esitetään esimerkkien avulla.\par
 
-    Viimeisenä RRTP-protokollasta esitetään virheenkorjaus, johon kuuluu 16 bittinen tarkistussumma. Sen sijoitus paketissa havainnollistetaan taulukon ja koodin avulla. Lopuksi tarkistussumman muodostus esitetään esimerkkikoodin avulla.\par
+    Viimeisenä RRTP-protokollasta esitetään virheenkorjaus, johon kuuluu 16-bittinen tarkistussumma. Sen sijoitus paketissa havainnollistetaan taulukon ja koodin avulla. Lopuksi tarkistussumman muodostus esitetään esimerkkikoodin avulla.\par
 
     RRTP-kirjastoa varten toteutettiin myös demosovellus, joka tarjoaa 
     toiminnot viestien ja tiedostojen lähettämistä varten. Demosovelluksesta esitetään sen riippuvuudet eri kirjastoihin sekä Rust-prosessin ja 
@@ -240,27 +240,29 @@
     Tämän työn tavoitteena oli tutkia tietoliikenneprotokollien toimintaa ja niiden toteutusta. On usein kannattavaa kehittää sovelluksen tarpeisiin mukautettu protokolla, mikäli kaistanleveys ja vasteaika merkitsee huomattavasti.
 
    \section{RRTP-protokolla}\label{sec:protocol}
-    TCP ja UDP protokollat ovat kaksi yleisintä TCP/IP-protokollaa. TCP-protokolla on jatkuvan yhteyden muodostava tietoliikenneprotokolla, jota käytetään usein vakaata ja luotettavaa yhteyttä vaativissa palveluissa, kun taas UDP on usein paras reaaliaikaisia sovelluksia varten. Tämä johtuu siitä, että TCP-paketin mukana liikkuu paljon varattuja tavuja, joita ei käytetä ollenkaan.\par
+    TCP- ja UDP-protokollat ovat kaksi yleisintä TCP/IP-protokollaa. TCP-protokolla on jatkuvan yhteyden muodostava tietoliikenneprotokolla, jota käytetään usein vakaata ja luotettavaa yhteyttä vaativissa palveluissa, kun taas UDP on usein paras reaaliaikaisia sovelluksia varten. Tämä johtuu siitä, että TCP-paketin mukana liikkuu paljon varattuja tavuja, joita ei käytetä ollenkaan.\par
     
     UDP:n etu reaaliaikaisessa kommunikaatiossa on, että se on kevyt ja nopea. Se ei kuitenkaan tarjoa kattavaa virheenkorjausta, järjestystä tai ruuhkanhallintamekanismeja. Tarkistussumma on ainut virheentarkistus, minkä UDP tarjoaa. Se ei kuitenkaan yksin riitä vakaaseen yhteyteen, vaan lisäksi täytyy huomioida pakettien järjestys. Tämän takia liukuva ikkuna ja automaattinen uudelleenlähetys(AQR) ovat tärkeitä tekniikoita kommunikaation luotettavuudessa, sillä niiden avulla paketit voivat liikkua verkon yli epämääräisessä järjestyksessä. Pakettien uudelleen järjestäminen vastaanottaessa vaatii järjestysnumeron. UDP sisältää
     lähettäjän ja vastaanottajan portit, datan koon, tarkistussumman ja datan.
-    \cite{KumarSurveyUDP}
+    [\citenum{KumarSurveyUDP}.]
     \par
    
     Tässä luvussa esitetään RRTP-protokollan toteutus, joka on reaaliaikaiseen kommunikointiin erikoistunut tietoliikenneprotokolla.\par
 
-    Protokollan paketti sisältää ohjausbittejä, jotka ilmaisevat tärkeää tietoa paketista. Näiden bittien avulla vastaanottaja tietää milloin viimeinen paketti on saapunut perille ja lähettäjä saa tiedon kuittauksesta. 
+    Protokollan paketti sisältää ohjausbittejä, jotka ilmaisevat tärkeää tietoa paketista. Näiden bittien avulla vastaanottaja tietää, milloin viimeinen paketti on saapunut perille ja lähettäjä saa tiedon kuittauksesta. 
     Liukuvaa ikkunaa hyödynnetään paketin järjestämiseen ja samanaikaiseen lähettämiseen.
     Vastaanottaja ja lähettäjä voivat välittää paketteja keskenään järjestyksestä riippumatta, sillä ikkunan puskuri järjestää paketit niiden järjestysnumeron mukaan.
 
     \subsection{Paketti}\label{sec:paketti}
-    Paketti, joka on havainnollistettu taulukossa \ref{tab:packet}, perustuu kevyesti TCP:n ja on rakennettu UDP:n päälle. Paketin rakenne on minimaalinen ja yksinkertainen, mikä sisältää tarvittavat kentät luotettavaan yhteyteen. Nämä kentät ovat järjestysnumero, ohjausbitit ja kentät datan hallintaa varten. Pakettiin sisältyy yksi tavun kokoinen varattu kenttä, jota voidaan käyttää tulevaisuudessa. 6 ohjausbittiä ei ole käytössä, joita voidaan käyttää myöhemmin uusiin ominaisuuksiin.
+    Paketti, joka on havainnollistettu taulukossa \ref{tab:packet}, perustuu kevyesti TCP:hen ja on rakennettu käyttäen UDP:ta pohjana. Paketin rakenne on minimaalinen ja yksinkertainen, mikä sisältää tarvittavat kentät luotettavaan yhteyteen. Nämä kentät ovat järjestysnumero, ohjausbitit ja kentät datan hallintaa varten. Pakettiin sisältyy yksi tavun kokoinen varattu kenttä, jota voidaan käyttää tulevaisuudessa. 6 ohjausbittiä ei ole käytössä, joita voidaan käyttää myöhemmin uusiin ominaisuuksiin.
 
     \subsubsection*{Vakiot}
     Taulukkoon \ref{tab:vakiot} on koostettu ne vakiot, jotka ovat tärkeitä protokollan toiminnan kannalta. Vastaanottajalla ja lähettäjällä täytyy olla samat vakiot käytössä, jotta pakettien muodostaminen ja lukeminen onnistuu. Eroavaisuudet näissä vakioissa vastaanottajan ja lähettäjän välillä voivat tarkoittaa, että vastaanottaja aloittaa datan lukemisen väärästä kohdasta.
 
     \begin{table}[h!]
         \centering
+        \caption{Vakiot ja niiden arvot.}
+        \label{tab:vakiot}
         \begin{tabularx}{\textwidth}{|X|r|r|r|}
         \hline
             \textbf{Vakion nimi}          & \textbf{Lyhenne} & \textbf{Arvo} & \textbf{Yksikkö} \\ \hline
@@ -275,11 +277,9 @@
             OPTION\_DATA\_SIZE   & $OD_s$  & 4    & Tavu    \\ \hline
             MAX\_OPTION\_COUNT   & $MO_c$  & 4    & Määrä \\  \hline
         \end{tabularx}
-        \caption{Vakiot ja niiden arvot.}
-        \label{tab:vakiot}
     \end{table}
 
-    Näiden vakioiden perusteella voidaan laskea tärkeitä muuttujia, jotka ovat määritelty kaavojen \ref{eq:fmin}-\ref{eq:optionSize} mukaisesti.
+    Näiden vakioiden perusteella voidaan laskea tärkeitä muuttujia, jotka on määritelty kaavojen \ref{eq:fmin}-\ref{eq:optionSize} mukaisesti.
 
     \begin{align}
         \text{MIN\_FRAME\_SIZE} &= F_{min} = S_s + C_s + R_s + DL_s + DO_s \label{eq:fmin} \\
@@ -292,8 +292,9 @@
     Kehys määrittelee jokaisen arvon sijainnin ja pituuden paketissa. Näin lähettäjällä ja vastaanottajalla on yhtenäinen ymmärrys paketin rakenteesta.
 
     \begin{table}[h!]
-        \
         \centering
+        \caption{Paketin rakenne}
+        \label{tab:packet}
         \resizebox{\textwidth}{!}{
             \begin{tabular}{*{33}{|l}|l|}
                 \hline
@@ -301,18 +302,16 @@
                 Octet & Bit & 0 & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 0 & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 0 & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 0 & 1 & 2 & 3 & 4 & 5 & 6 & 7 \\ \hline
                 0 & 0 & \multicolumn{32}{|c|}{Sequence number} \\ \hline
                 4 & 32 & RES & RES & RES & RES & RES & RES & EOM & ACK & \multicolumn{8}{|c|}{Reserved} & \multicolumn{8}{|c|}{Data Length}& \multicolumn{8}{|c|}{Data Offset} \\ \hline
-                32 & 64 & \multicolumn{32}{|c|}{Options} \\
+                8 & 64 & \multicolumn{32}{|c|}{Options} \\
                 ... & ... & \multicolumn{32}{|c|}{} \\ \hline
                 \multicolumn{2}{|c|}{Data Offset} & \multicolumn{32}{|c|}{Data} \\
                 ... & ... & \multicolumn{32}{|c|}{} \\ \hline
             \end{tabular}
         }
-        \caption{Paketin rakenne}
-        \label{tab:packet}
     \end{table}
 
     Lähdekoodissa \ref{lst:frame} määritetään tietorakenne \textit{Frame}, joka sisältää kaiken paketissa olevan tiedon.
-    [u8; MAX\_FRAME\_SIZE]  on taulukkotyyppi joka koostuu tavuista ja on kooltaan yhtä suuri kuin F\textsubscript{max}, joka on määritelty kaavassa \ref{eq:fmax}.
+    [u8; MAX\_FRAME\_SIZE]  on taulukkotyyppi, joka koostuu tavuista ja on kooltaan yhtä suuri kuin F\textsubscript{max}, joka on määritelty kaavassa \ref{eq:fmax}.
     data\_length sisältää tiedon pakettiin tallennetun datan koosta, kun taas options\_size sisältää tiedon paketin asetuksien koosta, mitä käytetään datan asettamisen oikeaan paikkaan ja \textit{'Data Offset'} kentän asettamiseen.
     
     Paketti on määritelty seuraavasti:
@@ -341,8 +340,7 @@ pub fn set_sequence_number(&mut self, sequence_number: u32) {
 
     Oikea tavujärjestys on erittäin tärkeä osa verkon ylitse tehtävää tiedonsiirtoa. Protokollaa käyttävien tietokoneiden täytyy olla yhteisymmärryksessä siitä, mitä tavujärjestystä tiedonsiirrossa käytetään. Laskeva tavujärjestys on yleisin järjestys, joten sitä käytettiin myös tässä protokollassa. \par
     
-    Mikäli tavujärjestystä ei oteta huomioon tiedonsiirrossa ja vastaanottajan sekä lähettäjän tietokoneet käyttävät eri tavujärjestystä, lukujen muuntaminen tavutaulukosta primitiiviseksi luvuksi johtaa vääriin tuloksiin.
-    \cite{Adiga2007HowC}
+    Mikäli tavujärjestystä ei oteta huomioon tiedonsiirrossa ja vastaanottajan sekä lähettäjän tietokoneet käyttävät eri tavujärjestystä, lukujen muuntaminen tavutaulukosta primitiiviseksi luvuksi johtaa vääriin tuloksiin     \cite{Adiga2007HowC}.
 
     \subsubsection*{Ohjausbitit}\label{subsec:control_bits}
     Ohjausbitit ilmaantuvat paketissa yhtenä tavuna, joista jokainen bitti vastaa tiettyä totuusarvoa.
@@ -351,14 +349,14 @@ pub fn set_sequence_number(&mut self, sequence_number: u32) {
     
     \begin{table}[h!]
         \centering
+        \caption{Ohjausbitit ja niiden arvot}
+        \label{tab:control_bits}
         \begin{tabularx}{\textwidth}{|X|r|r|}
         \hline
             \textbf{Nimi}     & \textbf{Lyhenne} & \textbf{Binääriarvo} \\         \hline
             Kuittaus & ACK     & 00000001    \\ \hline
             Pääte    & EOM     & 00000010    \\ \hline
         \end{tabularx}
-        \caption{Ohjausbitit ja niiden arvot}
-        \label{tab:control_bits}
     \end{table}
 
 
@@ -389,7 +387,7 @@ pub struct ConnectionManager {
 
     ConnectionManagerilla on omistajuus vastaanottaja- ja lähettäjäsäikeisiin.
     Option<...> määrittelee valinnaisen arvon, joka tarkoittaa, että kyseinen muuttuja ei
-    välttämättä sisällä käyttökelpoista arvoa. Tämä vastaa useissa ohjelmointikielissä null arvoa \cite[luku 6.1]{rust-book}. Näitä kahta muuttujaa käytetään säikeiden sulavaan sulkemiseen, kun ConnectionManager pudotetaan muistista. ConnectionManager toteuttaa Drop-ominaisuuden, joka liittää vastaanottaja-
+    välttämättä sisällä käyttökelpoista arvoa. Tämä vastaa useissa ohjelmointikielissä null-arvoa \cite[luku 6.1]{rust-book}. Näitä kahta muuttujaa käytetään säikeiden sulavaan sulkemiseen, kun ConnectionManager pudotetaan muistista. ConnectionManager toteuttaa Drop-ominaisuuden, joka liittää vastaanottaja-
     ja lähettäjäsäikeet. Näin ohjelma jää odottamaan, että nämä kaksi säiettä sulkeutuvat oikein \cite[\textit{JoinHandle}]{rust-std}.
     
     \architecture
@@ -410,8 +408,8 @@ impl Drop for ConnectionManager {
 
 
     \subsection{Liukuva ikkuna}\label{sec:liukuva_ikkuna}
-    Liukuva ikkuna on tekniikka, jonka sallii pakettien lähettämisen ja vastaanottamisen epämääräisessä järjestyksessä. 
-    Kirjasto käyttää kahta liukuvaa ikkunaa, jotka on havainnollistettu arkkitehtuuri kuvassa \ref{fig:arkkitehtuuri}. Lähettäjän ja vastaanottajan ikkunat jakavat suurimman osan toiminnallisuuksista Window toteutuksen kautta, joka on esitetty lähdekoodissa \ref{lst:window}. 
+    Liukuva ikkuna on tekniikka, joka sallii pakettien lähettämisen ja vastaanottamisen epämääräisessä järjestyksessä. 
+    Kirjasto käyttää kahta liukuvaa ikkunaa, jotka on havainnollistettu arkkitehtuuri kuvassa \ref{fig:arkkitehtuuri}. Lähettäjän ja vastaanottajan ikkunat jakavat suurimman osan toiminnallisuuksista Window-toteutuksen kautta, joka on esitetty lähdekoodissa \ref{lst:window}. 
 
     
 \begin{lstlisting}[caption={Ikkunan rakenne}, label={lst:window}]
@@ -421,7 +419,7 @@ pub struct Window {
     window_left_edge: u32,
 }\end{lstlisting}
 
-frame\_status-kentällä on kaksi tarkoitusta riippuen vastaanotto- tai lähetystilasta. Kummassakin tilanteessa kenttä on aina ikkunan w\textsubscript{s} kokoinen. Vastaanotto tilanteessa kenttä pitää kirjaa onnistuneiden pakettien vastaanottamisesta, kun taas lähetys tilanteessa kenttä pitää kirjaa paketeista, jotka ovat saapuneet onnistuneesti toiseen tietokoneeseen.\par
+frame\_status-kentällä on kaksi tarkoitusta riippuen siitä, onko kyseessä vastaanotto- tai lähetystila. Kummassakin tilanteessa kenttä on aina ikkunan w\textsubscript{s} kokoinen. Vastaanottotilanteessa kenttä pitää kirjaa onnistuneiden pakettien vastaanottamisesta, kun taas lähetystilanteessa kenttä pitää kirjaa paketeista, jotka ovat saapuneet onnistuneesti toiseen tietokoneeseen.\par
 
 window\_size-kenttä on aina w\textsubscript{s} kokoinen. Ikkunan kokoa on mahdollista muuttaa käyttämällä set\_window\_size-aliohjelmaa, joka muuttaa tämän kentän arvoa ja muuttaa frame\_status-taulukon kokoa.\par
 
@@ -435,7 +433,7 @@ window\_left\_edge vastaa muuttujaa n\textsubscript{s}. Vastaanottajan tilantees
 
     \subsubsection*{Ikkunan siirto vastaanottaessa}
 
-    Vastaanottajan ikkuna määritellään lähdekoodin \ref{lst:rwindow} mukaisesti. Se sisältää yleisen Window toteutuksen ja buffer-kentän, jonka tarkoitus on toimia puskurina, kunnes ikkunan liukuminen aiheuttaa valmiiden pakettien siirtymisen ylempiin kerroksiin. \par
+    Vastaanottajan ikkuna määritellään lähdekoodin \ref{lst:rwindow} mukaisesti. Se sisältää yleisen Window-toteutuksen ja buffer-kentän, jonka tarkoitus on toimia puskurina, kunnes ikkunan liukuminen aiheuttaa valmiiden pakettien siirtymisen ylempiin kerroksiin. \par
     
 \begin{lstlisting}[caption={Vastaanottajan ikkunan rakenne}, label={lst:rwindow}]
 pub struct ReceiverWindow {
@@ -448,7 +446,7 @@ pub struct ReceiverWindow {
 
     Vastaanottava ikkuna pitää muistissa pienimmän järjestysnumeron n\textsubscript{s}, minkä se on vastaanottanut.
     Vastaanottava ikkuna hylkää kaikki paketit, joiden järjestysnumero on ikkunan ulkopuolella n\textsubscript{x} < n\textsubscript{s} tai n\textsubscript{x} > n\textsubscript{s} + w\textsubscript{s}. Jos järjestysnumero on ikkunan sisällä, se hyväksytään ja merkitään vastaanotetuksi. Mikäli n\textsubscript{x} = n\textsubscript{s} + 1, ikkunaa voidaan siirtää eteenpäin.
-    Siirto tapahtuu kulkemalla hyväksyttyjen järjestysnumeroiden listaa eteenpäin, kunnes vastaan tulee järjestysnumero, jota ei ole vielä vastaanotettu. Kulkemisen jälkeen, tapahtuneiden askelien määrä lisätään muuntujaan n\textsubscript{s}.
+    Siirto tapahtuu kulkemalla hyväksyttyjen järjestysnumeroiden listaa eteenpäin, kunnes vastaan tulee järjestysnumero, jota ei ole vielä vastaanotettu. Kulkemisen jälkeen tapahtuneiden askelien määrä lisätään muuntujaan n\textsubscript{s}.
 
     Tässä toteutuksessa n\textsubscript{s} löytyy yleisen ikkunan (lähdekoodi \ref{lst:window}) sisältä kentästä window\_left\_edge.
 
@@ -457,7 +455,7 @@ pub struct ReceiverWindow {
     Datan vastaanottaminen tapahtuu vastaanottajasäikeessä, joka käynnistetään yhteyden muodostamisessa.
     Säie pyörii ikuisessa silmukassa, jossa ensimmäinen operaatio on ikkunan siirto eteenpäin.
 
-    Lähdekoodi \ref{lst:shift_window} esittää ikkunan siirtämistä eteenpäin, jonka tehtävä on kasvattaa n\textsubscript{s} arvoa ja ilmoittaa ylemmälle kerrokselle siirron määrä.
+    Lähdekoodi \ref{lst:shift_window} esittää ikkunan siirtämistä eteenpäin, jonka tehtävä on kasvattaa n\textsubscript{s}-arvoa ja ilmoittaa ylemmälle kerrokselle siirron määrä.
     frame\_status viittaa onnistuneesti lähetettyihin tai vastaanotettuihin paketteihin.
 
     \begin{lstlisting}[caption={Ikkunan siirto}, label={lst:shift_window}]
@@ -477,7 +475,7 @@ pub fn shift_window(&mut self) -> usize {
 
     Lähdekoodissa \ref{lst:shift_rwindow} data puretaan puskurista ja puskuria siirretään eteenpäin. Tämä operaatio tuottaa
     listan paketeista, jotka ovat saapuneet onnistuneesti ja ovat oikeassa järjestyksessä. Kuva \ref{fig:sliding_window} havainnollistaa puskurin siirron ja siitä syntyvät paketit.
-    Lista käsitellään flatten-aliohjelmalla, joka tuottaa listan missä Option
+    Lista käsitellään flatten-aliohjelmalla, joka tuottaa listan, missä Option
     on suodatettu pois. Lopuksi puskurin kapasiteettia kutistetaan. Käsitelty lista talletaan ja siirretään käsiteltäväksi ylempiin kerroksiin. \par
 
 
@@ -495,13 +493,13 @@ pub fn shift_window(&mut self) -> Vec<Frame> {
     Mikäli paketti on viimeinen viesti, puskuri siirretään uuteen listaan ja välitetään ylemmille kerroksille.
 
     \subsubsection*{Lähettäjän toiminta}\label{subsec:sender_impl}
-    Dataa voidaan lähettää käyttämällä ConnectionManagerista löytyvällä kanavalla. Lähettäjä säie seuraa tätä kanavaa ja käsittelee sieltä tulevat viestit. \par
+    Dataa voidaan lähettää käyttämällä ConnectionManagerista löytyvällä kanavalla. Lähettäjäsäie seuraa tätä kanavaa ja käsittelee sieltä tulevat viestit. \par
 
     Aluksi viestit leikataan osiin, jossa jokainen osa on kooltaan D\textsubscript{s} tai pienempi. Tämän jälkeen valmis kehys lisätään jonoon, josta se lähetetään käyttäen lähetys säikeen liukuvaa ikkunaa.
  
-Lähetys säie lukee data\_queue-taulukkoa ja aloittaa datan lähettämisen, kun se sisältää kehyksiä. Taulukko käsitellään ja jokaisen kehyksen tilanne luetaan. Jokaisella kehyksellä on kolme mahdollista tilaa: ei lähetetty, lähetetty ja kuitattu. Pakettien lähtötilanne on: ei lähetetty. Mikäli taulukon läpikäydessä kohdataan jo aikaisemmin lähetetty kehys, sen lähetys ajankohtaa verrataan aikakatkaisu muuttujaan. Aikakatkaisun avulla lähettäjä voi lähettää kehyksen uudelleen, mikäli lähetys ajankohdasta on kulunut tarpeeksi aikaa. Lähetyksen jälkeen kehyksen tila päivitetään lähetettytilaan, jonka mukana kulkee tieto lähetys ajankohdasta. \par
+Lähetyssäie lukee data\_queue-taulukkoa ja aloittaa datan lähettämisen, kun se sisältää kehyksiä. Taulukko käsitellään ja jokaisen kehyksen tilanne luetaan. Jokaisella kehyksellä on kolme mahdollista tilaa: ei lähetetty, lähetetty ja kuitattu. Pakettien lähtötilanne on ei lähetetty. Mikäli taulukon läpikäydessä kohdataan jo aikaisemmin lähetetty kehys, sen lähetysajankohtaa verrataan aikakatkaisu muuttujaan. Aikakatkaisun avulla lähettäjä voi lähettää kehyksen uudelleen, mikäli lähetys ajankohdasta on kulunut tarpeeksi aikaa. Lähetyksen jälkeen kehyksen tila päivitetään lähetetty-tilaan, jonka mukana kulkee tieto lähetysajankohdasta. \par
 
-Lähetys säie seuraa myös lähdekoodissa \ref{lst:twindow} määritettyä kuittauskanavaa, joka välittää tiedon ACK-paketin saapumisesta. Tieto paketin saapumisesta tulee kuvan \ref{fig:arkkitehtuuri} pistoke abstraktiosta. ACK-paketti hylätään, jos sen järjestysnumero ei ole lähettävän ikkunan sisällä. Järjestysnumeron perusteella vastaava kehys etsitään data\_queue-taulukosta ja sen tila muutetaan kuitatuksi. \par
+Lähetyssäie seuraa myös lähdekoodissa \ref{lst:twindow} määritettyä kuittauskanavaa, joka välittää tiedon ACK-paketin saapumisesta. Tieto paketin saapumisesta tulee kuvan \ref{fig:arkkitehtuuri} pistokeabstraktiosta. ACK-paketti hylätään, jos sen järjestysnumero ei ole lähettävän ikkunan sisällä. Järjestysnumeron perusteella vastaava kehys etsitään data\_queue-taulukosta ja sen tila muutetaan kuitatuksi. \par
     
     \begin{lstlisting}[caption={Lähettävän ikkunan rakenne}, label={lst:twindow}]
 pub struct TransmitterWindow {
@@ -513,9 +511,9 @@ pub struct TransmitterWindow {
 }\end{lstlisting}
 
     \subsubsection*{Valikoiva toisto ARQ}\label{subsec:valikoiva_toisto}
-    Valikoiva toisto ARQ (engl. selective repeat) on tehokkaampi verrattuna toisiin ARQ protokolliin, joista yksi esimerkki on Stop-and-wait ARQ.
+    Valikoiva toisto ARQ (engl. selective repeat) on tehokkaampi verrattuna toisiin ARQ-protokolliin, joista yksi esimerkki on Stop-and-wait ARQ.
 
-    Stop-and-wait ARQ käyttävä lähettäjä jää odottamaan jokaisesta paketista kuittausta ennen kuin siirtyy lähettämään seuraavaa pakettia. Vastaavasti vastaanottaja hylkää kaikki paketit, jotka eivät ole seuraava paketti järjestyslukujen perusteella \cite{StopAndWaitARQ}.
+    Stop-and-wait ARQ:ta käyttävä lähettäjä jää odottamaan jokaisesta paketista kuittausta ennen kuin siirtyy lähettämään seuraavaa pakettia. Vastaavasti vastaanottaja hylkää kaikki paketit, jotka eivät ole seuraava paketti järjestyslukujen perusteella \cite{StopAndWaitARQ}.
 
     Valikoivassa toistossa lähettäjä lähettää kaikki ikkunan sisällä olevat paketit ja odottamaan vastaanottajan kuittauksia. Mikäli lähettäjä vastaanottaa kuittauksia ikkunan etupäästä, lähettäjä siirtää ikkunaa eteenpäin ja lähettää paketit, jotka ovat nyt ikkunan sisällä. Tämä jatkuu niin kauan, kunnes kaikki paketit on lähetetty puskurista. \par
 
@@ -524,16 +522,16 @@ pub struct TransmitterWindow {
     Tässä toteutuksessa käytettiin valikoivaa toistoa, sillä se on tehokas tiedonsiirron kannalta, mutta se vaatii datan puskuroinnin. Puskurointi vaatii huomattavaa muistin käyttöä, mitä ei saata olla pienissä laitteissa. Tämä toteutus tehtiin sillä oletuksella, että alustana on tietokone ja muistia on riittävästi.\par
 
     \subsection{Viestien käsittely}
-    Protokolla käsittelee vain binääridatan lähettämistä. Monimutkaisten tietorakenteiden, kuten objektien lähettäminen protokollan kautta täytyy tehdä binäärikoodauksen kautta. Verkkosivustoissa käytetään usein tekstipohjaisia tietomuotoja, kuten HTML ja JSON. Nämä tietomuodot eivät sovellu reaaliaikaiseen kommunikaatioon, sillä niiden mukana tulee ylimääräisiä merkkejä, joita käytetään skeeman välitykseen. Erikoistuneet reaaliaikaiset sovellukset eivät tarvitse skeematietoja tiedon lukemiseen, sillä osapuolien välillä liikkuva tieto on todella tarkkaan määritelty.
+    Protokolla käsittelee vain binääridatan lähettämistä. Monimutkaisten tietorakenteiden, kuten objektien lähettäminen protokollan kautta täytyy tehdä binäärikoodauksen kautta. Verkkosivustoissa käytetään usein tekstipohjaisia tietomuotoja, kuten HTML:ää ja JSON:ia. Nämä tietomuodot eivät sovellu reaaliaikaiseen kommunikaatioon, sillä niiden mukana tulee ylimääräisiä merkkejä, joita käytetään skeeman välitykseen. Erikoistuneet reaaliaikaiset sovellukset eivät tarvitse skeematietoja tiedon lukemiseen, sillä osapuolien välillä liikkuva tieto on todella tarkkaan määritelty.
     \par
 
     \subsubsection*{Skeemapohjainen tieto}
     Skeemapohjaista dataa kannattaa hyödyntää silloin, kun vastaanottajalla ei ole tarkkaa tietoa datan sisältävästä tiedoista. Tästä hyvä esimerkki on konfiguraatiodata, joka usein koostuu kentistä ja niiden arvoista.
-    Useat konfiguraatio mahdollisuudet eivät ole pakollisia ja sen takia niille on määritelty oletusarvot. Konfiguraatio voi sisältää tuhansia eri vaihtoehtoja ja ne ovat nimetty sovituilla termeillä. \par
+    Useat konfiguraatiomahdollisuudet eivät ole pakollisia ja sen takia niille on määritelty oletusarvot. Konfiguraatio voi sisältää tuhansia eri vaihtoehtoja ja ne on nimetty sovituilla termeillä. \par
     Mikäli konfiguraatiotietoja haluttaisiin siirtää verkon yli, skeemapohjainen data soveltuu tähän parhaiten. Näin lähettäjä pystyy kertomaan viestissä, mitä tietoja data sisältää.
 
 
-    Lähdekoodissa \ref{lst:json_data} ja taulukossa \ref{tab:binary_data} havainnollistetaan kaksi tapaa koodata data tiedonsiirtoa varten. JSON-data on helposti luettavaa, mutta se sisältää ylimääräisiä merkkejä, joita tietokone ei tarvitse. Binääritieto taas sisältää kaiken tarvittavan tiedon, joka riittää tietokoneelle, mutta tekee siitä vaikeasti luettavaa ihmiselle. Binääritieto vie huomattavasti vähemmän tilaa, kuin tavallinen JSON-data.\par
+    Lähdekoodissa \ref{lst:json_data} ja taulukossa \ref{tab:binary_data} havainnollistetaan kaksi tapaa koodata data tiedonsiirtoa varten. JSON-data on helposti luettavaa, mutta se sisältää ylimääräisiä merkkejä, joita tietokone ei tarvitse. Binääritieto taas sisältää kaiken tarvittavan tiedon, joka riittää tietokoneelle, mutta tekee siitä vaikeasti luettavaa ihmiselle. Binääritieto vie huomattavasti vähemmän tilaa kuin tavallinen JSON-data.\par
     
     Lähdekoodin \ref{lst:json_data} muoto vie 26 tavua, kun taas taulukon \ref{tab:binary_data} vie 19 tavua. Tämä ero suurenee huomattavasti, kun tiedon määrä kasvaa. \par
 
@@ -545,6 +543,8 @@ pub struct TransmitterWindow {
 
     \begin{table}[h!]
         \centering
+        \caption{Binääridata, joka sisältää saman tiedon kuin lähdekoodissa \ref{lst:json_data}.}
+        \label{tab:binary_data}
         \begin{tblr}{
             colspec = {lllll},
             cell{1}{1} = {cyan},
@@ -558,8 +558,6 @@ pub struct TransmitterWindow {
             01100001 & 01110011 & 00100000 & 01001011 & 01100001 \\
             01101010 & 01100001 & 01110110 & 01100001 \\
         \end{tblr}
-        \caption{Binääridata, joka sisältää saman tiedon kuin lähdekoodissa \ref{lst:json_data}.}
-        \label{tab:binary_data}
     \end{table}
     
     Tässä toteutuksessa on käytetty bincode-kirjastoa binääridatan muodostukseen.
@@ -567,10 +565,12 @@ pub struct TransmitterWindow {
     \subsubsection*{Ennalta määritelty data}
     Reaaliaikaisissa sovelluksissa pitäisi aina pyrkiä siirtämään tietoa ennalta määritetyssä muodossa, jotta voidaan välttää ylimääräisen tiedon siirtämisen verkon yli.
 
-    Tässä toteutuksessa on käytetty binääridata muotoa, jossa ensimmäinen tavu kertoo tiedon muodon. Olkoon tämä ensimmäinen tavu nimeltään jatkossa "toimintotieto". Taulukossa \ref{tab:binary_data_player} esitetään esimerkki pelaajan sijainnista binäärimuodossa. Tämä binääritieto sisältää pelaajan tunnuksen ja koordinaatit minimaalisessa muodossa.\par
+    Tässä toteutuksessa on käytetty binääridatamuotoa, jossa ensimmäinen tavu kertoo tiedon muodon. Olkoon tämä ensimmäinen tavu nimeltään jatkossa "toimintotieto". Taulukossa \ref{tab:binary_data_player} esitetään esimerkki pelaajan sijainnista binäärimuodossa. Tämä binääritieto sisältää pelaajan tunnuksen ja koordinaatit minimaalisessa muodossa.\par
 
     \begin{table}[h!]
         \centering
+        \caption{Pelaajan sijainti binääritietona.}
+        \label{tab:binary_data_player}
         \begin{tblr}{
             colspec = {llll},
             cell{1}{1} = {cyan},
@@ -578,8 +578,6 @@ pub struct TransmitterWindow {
         }
             00000001& 00000010& 00000011& 00000100 \\
         \end{tblr}
-        \caption{Pelaajan sijainti binääritietona.}
-        \label{tab:binary_data_player}
     \end{table}
 
     Vastaanottaja lukee viestin toimintotiedon ja valitsee sen perusteella oikean strategian viestin käsittelyyn. Tässä toteutuksessa toimintotieto on yksi tavu, joka sallii 255 eri toimintoa. Mikäli tämä ei riitä, voidaan käyttää yhtä toimintoa skeemadatan siirtämiseen, mikä käytännössä avaa mahdollisuuden käyttää loputtoman määrän toimintoja. Toinen vaihtoehto on suurentaa toimintotietoa kahteen tai neljään tavuun. \par
@@ -592,10 +590,12 @@ pub struct TransmitterWindow {
 
     \subsubsection*{Tarkistussumma}
 
-    UDP-paketissa tarkistussumma koostuu kahdesta tavusta, joka esiintyy paketin rakenteessa juuri ennen dataa. Taulukko \ref{tab:hello-world} havainnollistaa tarkistustumman(purppura) ja datan(vihreä) sijainnin paketissa.
+    UDP-paketissa tarkistussumma koostuu kahdesta tavusta, joka esiintyy paketin rakenteessa juuri ennen dataa. Taulukko \ref{tab:hello-world} havainnollistaa tarkistussumman (purppura) ja datan (vihreä) sijainnin paketissa.
 
     \begin{table}[h!]
         \centering
+        \caption{UDP-paketti Hex-muodossa, missä tarkistussumma merkitty purppuralla ja vastaavasti data vihreällä.}
+        \label{tab:hello-world}
         \begin{tblr}{
             colspec = {llllllll},
             cell{7}{3-4} = {purple7},
@@ -612,8 +612,6 @@ pub struct TransmitterWindow {
             02 & 00 & 0c & 08 & 00 & 68 & 65 & 6c \\
             6c & 6f & 20 & 77 & 6f & 72 & 6c & 64 \\
         \end{tblr}
-        \caption{UDP-paketti Hex-muodossa, missä tarkistussumma merkitty purppuralla ja vastaavasti data vihreällä.}
-        \label{tab:hello-world}
     \end{table}
 
     Lähdekoodissa \ref{lst:creating_checksum} muodostetaan 16-bittinen tarkistussumma.
@@ -643,7 +641,7 @@ fn calculate_checksum(data: &[u8]) -> u16 {
     C-ohjelmointikielessä kokonaisluvun ylivuotoa ei ole määritelty. Tämä voi ja on johtanut useisiin tietoturvaongelmiin. Ylivuotoa voi olla vaikea havaita, sillä C-ohjelma jatkaa toimintaa, vaikka ylivuoto tapahtuu.\par
     Rust-ohjelmointikielessä kokonaisluvun ylivuoto on määritelty. Ylivuoto johtaa aina ohjelman paniikkiin, joka Rust-ohjelmointikielessä viittaa virheeseen, josta ei voi palautua. Paniikki johtaa aina prosessin sammumiseen \cite[luku 9.3]{rust-book}. Tämä käytännössä poistaa ylivuodon aiheuttamat tietoturvaongelmat \cite[luku 3.2]{rust-book}.
 
-    Lähdekoodissa \ref{lst:data_for_checksum} näytetään miten calculate\_checksum-aliohjelmassa käytetty data muodostetaan. Tarkistussumma sisältää lähettäjän ja vastaanottajan IP-osoitteet, portit, protokollan (numeraalinen arvo on 17), UDP-osuuden koon ja lopuksi kuorman \cite{RFC-768, protocol-numbers}. \par
+    Lähdekoodissa \ref{lst:data_for_checksum} näytetään, miten calculate\_checksum-aliohjelmassa käytetty data muodostetaan. Tarkistussumma sisältää lähettäjän ja vastaanottajan IP-osoitteet, portit, protokollan (numeraalinen arvo on 17), UDP-osuuden koon ja lopuksi kuorman. [\citenum{RFC-768, protocol-numbers}.] \par
 
 \newpage
 
@@ -681,10 +679,10 @@ fn checksum() {
     \section{Demosovellus}\label{sec:demo}
 
     Osana tätä työtä toteutettiin esimerkkiohjelma, jolla pystyy luotettavasti siirtämään tiedostoja ja viestejä verkon yli. Demosovellus on rakennettu käyttäen Tauri- ja React-kirjastoja. Koska Rust-ohjelmointikieli on vielä nuori ja kattavia käyttöliittymä kirjastoja ei ole montaa \cite{AreYet}. 
-    Egui ja Iced projektit olivat hyviä vaihtoehtoja Taurille, mutta niiden dokumentaatio ja yleinen kypsyys eivät olleet riittäviä tämän projektin tarpeisiin. \par
+    Egui- ja Iced-projektit olivat hyviä vaihtoehtoja Taurille, mutta niiden dokumentaatio ja yleinen kypsyys eivät olleet riittäviä tämän projektin tarpeisiin. \par
 
 
-    Demosovellus on rakennettu käyttäen Tauri-ohjelmistokehystä, joka on Electronin kaltainen ohjelmistokehys. Tauri eroaa Electronista siinä, että Electron suoritetaan Node.js runtime ympäristön päällä ja tarjoaa version Chromium selaimesta käyttöliittymän piirtämiseen. Tauri ei tarjoa selainta vaan Rust-prosessi luo ikkunan käyttäen TAO-ohjelmistokirjastoa, minkä jälkeen WRY-ohjelmistokirjasto luo WebView-elementin, joka kutsuu käyttöjärjestelmän tarjoamaa selainta näyttämään kuvan \ref{fig:demo_interface} mukaisen käyttöliittymän \cite{tauri-app}.
+    Demosovellus on rakennettu käyttäen Tauri-ohjelmistokehystä, joka on Electronin kaltainen ohjelmistokehys. Tauri eroaa Electronista siinä, että Electron suoritetaan Node.js runtime -ympäristön päällä ja tarjoaa version Chromium-selaimesta käyttöliittymän piirtämiseen. Tauri ei tarjoa selainta vaan Rust-prosessi luo ikkunan käyttäen TAO-ohjelmistokirjastoa, minkä jälkeen WRY-ohjelmistokirjasto luo WebView-elementin, joka kutsuu käyttöjärjestelmän tarjoamaa selainta näyttämään kuvan \ref{fig:demo_interface} mukaisen käyttöliittymän. [\citenum{tauri-app}.]
 
     \begin{figure}[h!]
         \centering
@@ -694,8 +692,8 @@ fn checksum() {
         \label{fig:demo_interface}
     \end{figure}
     
-    Demosovelluksesta löytyy kaksi kenttää osoitteiden asettamiseen. Lista, joka
-    pitää kirjaa tapahtumista. Tilannepaneeli, joka näyttää yhteyden tilan.
+    Demosovelluksesta löytyy kaksi kenttää osoitteiden asettamiseen. Lista joka
+    pitää kirjaa tapahtumista. Tilannepaneeli joka näyttää yhteyden tilan:
     Kaksi kenttää viestien ja tiedostojen lähettämiseen. \par
 
     \subsection{Riippuvuudet}
@@ -703,6 +701,8 @@ fn checksum() {
 
     \begin{table}[h!]
         \centering
+        \caption{Rust-riippuvuudet}
+        \label{tab:cargo_dependencies}
         \begin{tabularx}{\textwidth}{|X|r|}
         \hline
             \textbf{Nimi}      & \textbf{Käyttötarkoitus}            \\ \hline
@@ -713,13 +713,13 @@ fn checksum() {
             infer              & Tiedostotietojen lukeminen                                    \\ \hline
             thiserror/anyhow   & Virheilmoituksien luonti ja käsittely \\ \hline
         \end{tabularx}
-        \caption{Rust-riippuvuudet}
-        \label{tab:cargo_dependencies}
     \end{table}
 
 
     \begin{table}[h!]
         \centering
+        \caption{Npm-riippuvuudet.}
+        \label{tab:npm_dependencies}
         \begin{tabularx}{\textwidth}{|X|r|}
         \hline
             \textbf{Nimi}            & \textbf{Käyttötarkoitus}                           \\ \hline
@@ -733,18 +733,16 @@ fn checksum() {
             typescript      & Tyyppitietojen lisääminen javascriptiin   \\  \hline
             vite            & Front-end ohjelmiston prosessointi \\ \hline
         \end{tabularx}
-        \caption{Npm-riippuvuudet.}
-        \label{tab:npm_dependencies}
     \end{table}
 
 
     \subsection{Sovelluksen käynnistysvaihe}
 
     Demosovellus alkaa main.rs-tiedoston main-aliohjelmasta.
-    Se suorittaa 5 tärkeää toimintoa: lokituskonfiguraatio, sovellustilan alustaminen, lokiseurantasäikeen käynnistys, IPC-rajapintojen määritys ja lopuksi käyttöliittymän käynnistys. \\
+    Se suorittaa 5 tärkeää toimintoa, jotka ovat lokituskonfiguraatio, sovellustilan alustaminen, lokiseurantasäikeen käynnistys, IPC-rajapintojen määritys ja lopuksi käyttöliittymän käynnistys. \\
     
     Lokituskonfiguraatio tapahtuu setup\_logger-aliohjelman kautta, mikä määrittelee lähdekoodin \ref{lst:logging_config} mukaiset asetukset.
-    Lähdekoodissa \ref{lst:log_example} on havainnollistettu esimerkki lokitapahtumasta, josta ilmenee selkeästi tapahtuma aika,
+    Lähdekoodissa \ref{lst:log_example} on havainnollistettu esimerkki lokitapahtumasta, josta ilmenee selkeästi tapahtuma-aika,
     viestin taso, tapahtuman moduuli ja itse viestin sisältö.
 
     \begin{lstlisting}[caption={Esimerkki lokitapahtumasta.}, label={lst:log_example}]
@@ -826,11 +824,11 @@ struct AppState {
     Tauri-sovelluskehys hyödyntää IPC-viestejä käyttöliittymän ja Rust-prosessin väliseen kommunikointiin.
 
     Tauri-sovelluskehys sisältää kaksi IPC-primitiiviä: tapahtumat ja komennot.
-    Tapahtuma on yksisuuntainen viesti, jota käytetään pääosin ohjelmatilan muutoksien kommunikointiin. Lähdekoodissa \ref{lst:setup} rivillä 10 lähetetään tapahtuma, jonka käyttöliittymä vastaanottaa. Komento on Web API:n kaltainen viestintämenetelmä, jossa tieto siirtyy JSON-RPC kaltaisella protokollalla. Tämä mahdollistaa monimutkaisien tietorakenteiden käytön viestinnässä, sillä ne serialisoidaan JSON-muotoon \cite{tauri-app}.
+    Tapahtuma on yksisuuntainen viesti, jota käytetään pääosin ohjelmatilan muutoksien kommunikointiin. Lähdekoodissa \ref{lst:setup} rivillä 10 lähetetään tapahtuma, jonka käyttöliittymä vastaanottaa. Komento on Web API:n kaltainen viestintämenetelmä, jossa tieto siirtyy JSON-RPC-kaltaisella protokollalla. Tämä mahdollistaa monimutkaisien tietorakenteiden käytön viestinnässä, sillä ne serialisoidaan JSON-muotoon \cite{tauri-app}.
 
-    \subsection{IPC-Komennot}
-    IPC-komennot merkitään \#[tauri::command]-määritteellä. Aliohjelma täytyy olla merkitty kyseillä määritteellä, jotta sitä pystyy käyttämään lähdekoodin \ref{lst:ipc_commands} määrityksessä. Tauri pystyy tarjoamaan viitteet muun muassa sovellustilaan ja sovelluskahvaan käyttämällä riippuvuusinjektio (engl. Dependency Injection) suunnittelutapaa. Tämä suunnittelutapa on todella yleinen useissa sovelluskehyksissä, kuten ASP.NET Core -kehitysalustassa \cite{DI_dotnet}. Tämä suunnittelutapa ei kuitenkaan ole yleinen Rust-kielessä, sillä se vaatii aliohjelmien suorittamista dynaamisilla kutsuilla.
-    ASP.NET Core:ssa Reflection-toiminnallisuus tarjoaa dynaamisen kutsumisen, mikä tekee tästä suunnittelutavasta käytännöllisen.
+    \subsection{IPC-komennot}
+    IPC-komennot merkitään \#[tauri::command]-määritteellä. Aliohjelma täytyy olla merkitty kyseillä määritteellä, jotta sitä pystyy käyttämään lähdekoodin \ref{lst:ipc_commands} määrityksessä. Tauri pystyy tarjoamaan viitteet muun muassa sovellustilaan ja sovelluskahvaan käyttämällä riippuvuusinjektio (engl. Dependency Injection) suunnittelutapaa. Tämä suunnittelutapa on todella yleinen useissa sovelluskehyksissä, kuten ASP.NET Core -kehitysalustassa \cite{DI_dotnet}. Tämä suunnittelutapa ei kuitenkaan ole yleinen Rust-kielessä, sillä se vaatii aliohjelmien suorittamista dynaamisilla kutsuilla (engl. dynamic method invocation).
+    ASP.NET Coressa Reflection-toiminnallisuus tarjoaa dynaamisen kutsumisen, mikä tekee tästä suunnittelutavasta käytännöllisen.
     Tauri-sovelluskehys toteuttaa tämän käyttämällä Procedural Macros -toimintoa. 
 
 
@@ -856,10 +854,10 @@ invoke<LogSuccessMessage>("bind", {address: localAddress})
     setConnectionStatus((prev) => ({...prev, local: false}));
 });\end{lstlisting}
 
-    Bind-komento liittää verkkosovittimen address-parametrin osoitteeseen. Liittämisen hoitaa ConnectionManager-rakenne, joka käynnistää myös tarvittavat säikeet viestien ja kuittauksien vastaanottoa varten, sekä säikeen viestien lähettämisetä varten. Lopuksi bind-komento käynnistää säikeen, joka kuuntelee\\ ConnectionManagerin tuottamia tapahtumia.
+    Bind-komento liittää verkkosovittimen address-parametrin osoitteeseen. Liittämisen hoitaa ConnectionManager-rakenne, joka käynnistää myös tarvittavat säikeet viestien ja kuittauksien vastaanottoa varten sekä säikeen viestien lähettämisetä varten. Lopuksi bind-komento käynnistää säikeen, joka kuuntelee\\ ConnectionManagerin tuottamia tapahtumia.
     bind-komennossa käynnistetty säie ohjaa ConnectionManagerin tuottamat tapahtumat ConnectionProcessor-rakenteeseen, joka lajittelee tapahtumat niiden tyypin mukaan ja suorittaa tarvittavan strategian tapahtuman käsittelyyn.\par
 
-    Connect-komento ottaa vastaan osoitteen ja sovellustilan, joka tulee Taurin DI-järjestelmästä. Komennon tarkoitus on valmistella sovellustila viestien lähettämistä varten. Lähdekoodissa \ref{lst:connect} rivillä 4 yhteyden tila lukitaan, joka on Mutex-rakenteen toiminto. lock-aliohjelma lukistee \\ connector\_state muuttujan ja palauttaa MutexGuard<ConnectorState>-rakenteen. Tämä suoja sallii muutoksien tekemisen ConnectorState-rakenteeseen, vaikka viite ei normaalisti salli muutoksia. Tätä piirrettä kutsutaan nimeltä sisäinen muuttuvuus (engl.  \textit{Interior Mutability}). Yhteystila on lukittuna niin kauan kun MutexGuard<ConnectorState> on käytössä.\par
+    Connect-komento vastaanottaa osoitteen ja sovellustilan, joka tulee Taurin DI-järjestelmästä. Komennon tarkoitus on valmistella sovellustila viestien lähettämistä varten. Lähdekoodissa \ref{lst:connect} rivillä 4 yhteyden tila lukitaan, joka on Mutex-rakenteen toiminto. lock-aliohjelma lukitsee \\ connector\_state-muuttujan ja palauttaa MutexGuard<ConnectorState>-rakenteen. Tämä suoja sallii muutoksien tekemisen ConnectorState-rakenteeseen, vaikka viite ei normaalisti salli muutoksia. Tätä piirrettä kutsutaan nimeltä sisäinen muuttuvuus (engl.  \textit{Interior Mutability}). Yhteystila on lukittuna niin kauan kun MutexGuard<ConnectorState> on käytössä.\par
 
     \begin{lstlisting}[basicstyle=\small\ttfamily,caption={connect-komento.}, label={lst:connect}]
 #[tauri::command]
@@ -877,7 +875,7 @@ result
 }\end{lstlisting}
 
     send\_message, send\_file\_info ja respond\_to\_file\_info ovat komentoja, jotka lähettävät tietoja verkon yli. send\_message lähettää yksinkertaisen viestin vastaanottajalle.
-    send\_file\_info lähettää vastaanottajalle tiedoston metatiedot: tiedoston nimi, tiedoston MIME-tyyppi ja koko tavuina. Näiden tietojen avulla vastaanottaja pystyy valmistautumaan tulevaan tiedostoon. Kuva \ref{fig:incoming_file} havainnollistaa, miltä tuleva tiedosto näyttää vastaanottajalle. Vastaanottaja pystyy kuvan \ref{fig:incoming_file} mukaisella ikkunalla valitsemaan mihin kansioon kyseinen tiedosto tullaan tallentamaan tai vaihtoehtoisesti hylkäämään tulevan tiedoston. Valinnan tekeminen laukaisee respond\_to\_file\_info-IPC-komennon, joka ilmoittaa lähettäjälle valinnasta.
+    send\_file\_info lähettää vastaanottajalle tiedoston metatiedot: tiedoston nimi, tiedoston MIME-tyyppi ja koko tavuina. Näiden tietojen avulla vastaanottaja pystyy valmistautumaan tulevaan tiedostoon. Kuva \ref{fig:incoming_file} havainnollistaa, miltä tuleva tiedosto näyttää vastaanottajalle. Vastaanottaja pystyy kuvan \ref{fig:incoming_file} mukaisella ikkunalla valitsemaan, mihin kansioon kyseinen tiedosto tullaan tallentamaan tai vaihtoehtoisesti hylkäämään tulevan tiedoston. Valinnan tekeminen laukaisee respond\_to\_file\_info-IPC-komennon, joka ilmoittaa lähettäjälle valinnasta.
     Mikäli valinta on myönteinen, lähettäjä alkaa välittömästi lähettämään tiedostoa verkon yli. Jos valinta on kielteinen, lähettäjä saa ilmoituksen hylätystä tiedostosta.
 
     \begin{figure}[h!]
@@ -888,7 +886,7 @@ result
     \end{figure}
 
     \section{Suorituskyky}\label{sec:suorityskyky}
-    Kehityksen aikana huomioitiin myös toteutuksen suorityskyky. Rust-kieli on itsestään jo todella suorituskykyinen, jopa C-kieleen verrattuna. Nollakustannusabstraktio-malli sallii ohjelmoinnin käyttämällä korkeita abstraktioita ilman suorituskyky haittaa \cite{Codex2023UnderstandingAbstractions}. Huomattava osa suorituskyky ongelmista ei johdu kielesta, vaan käytetyistä algoritmeista ja tietorakenteista. Tämän takia tehtiin suorituskykyanalyysejä kaikista kriittisimpiin tietorakenteisiin.   
+    Kehityksen aikana huomioitiin myös toteutuksen suorituskyky. Rust-kieli on itsestään jo todella suorituskykyinen, jopa C-kieleen verrattuna. Nollakustannusabstraktio-malli sallii ohjelmoinnin käyttämällä korkeita abstraktioita ilman suorituskyky haittaa \cite{Codex2023UnderstandingAbstractions}. Huomattava osa suorituskykyongelmista ei johdu kielestä, vaan käytetyistä algoritmeista ja tietorakenteista. Tämän takia tehtiin suorituskykyanalyysejä kaikista kriittisimpiin tietorakenteisiin.   
     \subsection{Tietorakenteet}\label{sec:structures}
     RRTP-kirjasto käsittelee huomattavan määrän dataa tietorakenteiden avulla, joten tehokkaiden tietorakenteiden käyttö on tärkeää. Kirjaston täytyy pystyä käsittelemään tehokkaasti listoja, jotka sisältävät tuhansia alkioita. \par
     Mittauksessa mitattiin tavallisen taulukon, kasavaratun taulukon,
@@ -899,17 +897,17 @@ result
 
     \begin{table}[h!]
         \centering
+        \caption{Tietorakenteiden nopeus alkioiden siirrossa vasemmalle.}
+        \label{tab:collection_bench}
         \begin{tabularx}{\textwidth}{|X|r|}
         \hline
             \textbf{Tietorakenne} & \textbf{Tulos}     \\ \hline
-            Kasataulukko & 61.603 µs \\ \hline
-            Taulukko     & 72.929 µs \\ \hline
-            Vec          & 124.49 µs \\ \hline
-            VecDeque     & 176.03 µs \\ \hline
-            LinkedList   & 4.5944 ms \\ \hline
+            Kasataulukko & 61,603 µs \\ \hline
+            Taulukko     & 72,929 µs \\ \hline
+            Vec          & 124,49 µs \\ \hline
+            VecDeque     & 176,03 µs \\ \hline
+            LinkedList   & 4,5944 ms \\ \hline
         \end{tabularx}
-        \caption{Tietorakenteiden nopeus alkioiden siirrossa vasemmalle.}
-        \label{tab:collection_bench}
     \end{table}
 
     Tuloksista voidaan myös todeta, että LinkedList-tietorakennetta tulisi käyttää vain harvoissa tilanteissa. Rust-kielen standardikirjaston dokumentaatio vahvistaa tämän väitteen \cite[\textit{LinkedList}]{rust-std}. Kääntäjä pystyy tekemään erinomaisia optimointeja muille tietorakenteille ja tietokoneen prosessori pystyy hyödyntämään välimuistia tehokkaammin.
@@ -918,7 +916,7 @@ result
     \subsection{Tiedostojen siirtäminen}
 
 
-Tiedonsiirron testaamisessa käytettiin 30 MB kokoista videotiedostoa, jotta 
+Tiedonsiirron testaamisessa käytettiin 30 MB:n kokoista videotiedostoa, jotta 
 tiedoston eheys olisi mahdollisimman helppo tarkistaa.
 Tässä testissä verrattiin RRTP-kirjaston, UDP:n ja TCP:n 
 tiedonsiirtokykyä käyttäen silmukkaosoitetta. \par
@@ -936,7 +934,7 @@ hidas lähetyksen alussa, mutta nopeutuu ajan kuluessa. Työn aikarajoitusten ta
     \end{figure}
 
     
-Kokonaisuudessaan RRTP-kirjasto suoriutuu suhteellisen hyvin tehtävästään, mutta huomiota täytyy kiinnittää sen tehokkuuteen isoja tiedostoja siirrettäessä. Kuvasta \ref{fig:performance} nähdään, että kirjaston suorituskyky pienenee mitä enemmän tietoa on siirretty. Tämä johtunee siitä, että kirjaston sisäinen puskuri täytyy ja alkioiden käsittely vie enemmän aikaa.
+Kokonaisuudessaan RRTP-kirjasto suoriutuu suhteellisen hyvin tehtävästään, mutta huomiota täytyy kiinnittää sen tehokkuuteen isoja tiedostoja siirrettäessä. Kuvasta \ref{fig:performance} nähdään, että kirjaston suorituskyky pienenee, mitä enemmän tietoa on siirretty. Tämä johtunee siitä, että kirjaston sisäinen puskuri täytyy ja alkioiden käsittely vie enemmän aikaa.
 
 
 Silmukkaosoitteen takia tämä testi ei kuitenkaan vastaa täysin todellisuutta.
@@ -963,11 +961,13 @@ verkon aiheuttamaa häiriötä.
 
 
     Alustana toimi taulukon \ref{tab:main_pc} mukainen pöytätietokone.
-    Editorina pääsääntöisesti oli käytössä ohjelmistokehitysympäristö RustRover, jossa oli muutama tärkeä lisäosa, kuten IdeaVim, Grazie Pro, SonarLint ja WakaTime.
+    Editorina oli pääsääntöisesti käytössä ohjelmistokehitysympäristö RustRover, jossa oli muutama tärkeä lisäosa, kuten IdeaVim, Grazie Pro, SonarLint ja WakaTime.
     UDP-pakettien seurantaan käytettiin WireShark-ohjelmistoa.
 
     \begin{table}[h!]
         \centering
+        \caption{Kehitysalustan tiedot.}
+        \label{tab:main_pc}
         \begin{tabularx}{\textwidth}{|X|r|}
             \hline
             \textbf{Ohjelmisto} & \textbf{Versio} \\ \hline
@@ -975,15 +975,13 @@ verkon aiheuttamaa häiriötä.
             Rust-kääntäjä     & rustc 1.75.0 (82e1608df 2023-12-21) \\ \hline
             Node.js           & v18.8.0 \\ \hline
         \end{tabularx}
-        \caption{Kehitysalustan tiedot.}
-        \label{tab:main_pc}
     \end{table}
 
     \section{Yhteenveto}
     Tavoitteena tässä opinnäytetyössä oli tutustua Rust-ohjelmointikieleen ja
     reaaliaikaisten kommunikaatiojärjestelmien luontiin. Työn tuloksena syntyi RRTP-kirjasto, joka hyödyntää liukuvaa ikkunaa ja muita toimintoja luotettavan yhteyden muodostamiseen.\par
 
-    RRTP-kirjasto pystyy siirtämään viestejä ja tiedostoja ilman tiedon korruptiota. Lähdekoodi on suurimmaksi osaksi idiomaattista Rust-koodia ja käyttöliittymän React-koodi käyttää ajankohtaisia suosituksia ja menetelmiä.
+    RRTP-kirjasto pystyy siirtämään viestejä ja tiedostoja ilman tiedon korruptiota. Lähdekoodi on suurimmaksi osaksi idiomaattista Rust-koodia, ja käyttöliittymän React-koodi käyttää ajankohtaisia suosituksia ja menetelmiä.
     Koodi on jaettu yksinkertaisiin moduuleihin ja suunniteltu niin, että laajennukset tai muutokset ovat helppoja toteuttaa.\par
 
     Jatkokehityspolku on selkeä. Protokollaan voidaan toteuttaa lisää TCP:n hyödyntämiä tekniikoita, kuten dynaaminen aikakatkaisu paketeille ja dynaaminen koko liukuvalle ikkunalle. Nämä kaksi tekniikkaa saadaan helposti lisättyä, koska mahdolliset muutokset otettiin huomioon arkkitehtuurin suunnittelussa.\par
@@ -993,11 +991,12 @@ verkon aiheuttamaa häiriötä.
     Tätä filosofiaa pystyttiin myös jatkamaan käyttöliittymän puolella käyttämällä
     tarkkoja TypeScript-sääntöjä ja TypeShare-kirjastoa, jotta TypeScript-tyypit saatiin vastaamaan täsmälleen Rust-tyyppejä.\par
 
-    Protokollan kehityksessä tutustuttiin säikeiden turvalliseen käyttöön ja miten Rust-kieli auttaa tässä. Tärkeänä osana oli myös toteuttaa toimiva käyttöliittymä, joka pystyy hyödyntämään Rust-kielen vahvuuksia. Tämä on erityisen tärkeää sillä
-    uskon vahvasti, että Rust-kieli on tulevaisuuden kieli. Sitä käytetään jo muun muassa Linux:n ja Windows:n kernelissä. Rust-kielen turvallisuus, tehokkuus ja modernit ominaisuudet tekevät siitä lähes täydellisen kielen, jolla on mahdollisuus korvata C- ja C++ tulevaisuudessa.
+    Protokollan kehityksessä tutustuttiin säikeiden turvalliseen käyttöön ja miten Rust-kieli auttaa tässä. Tärkeänä osana oli myös toteuttaa toimiva käyttöliittymä, joka pystyy hyödyntämään Rust-kielen vahvuuksia. Tämä on erityisen tärkeää, sillä
+    uskon vahvasti, että Rust-kieli on tulevaisuuden kieli. Sitä käytetään jo muun muassa Linuxin ja Windowsin kernelissä. Rust-kielen turvallisuus, tehokkuus ja modernit ominaisuudet tekevät siitä lähes täydellisen kielen, jolla on mahdollisuus korvata C- ja C++ tulevaisuudessa.
 
 
     \newpage
     \addtocontents{toc}{\protect\contentsline{section}{Lähteet}{}{}}
-    \printbibliography
+    
+    \bibliography{doc/latex/src/mendeley}
 \end{document}
